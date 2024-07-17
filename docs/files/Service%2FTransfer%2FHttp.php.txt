@@ -1,0 +1,264 @@
+<?php
+
+/**
+ * Service zum Transferieren von Dateien via HTTP
+ *
+ * Class Marktjagd_Service_Transfer_Http
+ */
+class Marktjagd_Service_Transfer_Http
+{
+    /* @var $logger Zend_Log */
+    private $_logger;
+
+    /**
+     * Konstruktor
+     */
+    public function __construct()
+    {
+        $this->_logger = Zend_Registry::get('logger');
+    }
+
+    /**
+     * Download a file from a url to a internal location
+     *
+     * @param string|array $url
+     * @param string $localPath
+     * @return bool
+     */
+    public function getRemoteFile($url, $localPath)
+    {
+        if (!is_array($url)) {
+            $success = $this->_curlOneFile($url, $localPath);
+        } else {
+            $success = $this->_multiCurl($url, $localPath);
+        }
+
+        return $success;
+    }
+
+    /**
+     * @param string $url
+     * @param string $localPath
+     * @return bool
+     */
+    protected function _curlOneFile($url, $localPath)
+    {
+        $parsedUrl = parse_url($url);
+        $host = $parsedUrl['host'];
+        if (isset($parsedUrl['path'])) {
+            $path = $parsedUrl['path'];
+        } else {
+            // the url is pointing to the host like http://www.mysite.com
+            $path = '/';
+        }
+
+        $aUrl = explode('/', $path);
+        $fileName = end($aUrl);
+
+        if (isset($parsedUrl['query'])) {
+            $path .= '?' . $parsedUrl['query'];
+        }
+
+        if (isset($parsedUrl['port'])) {
+            $port = $parsedUrl['port'];
+        } else {
+            // most sites use port 80
+            $port = '80';
+        }
+
+        $newUrl = $parsedUrl['scheme'] . '://' . $host . $path;
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $newUrl);
+        curl_setopt($ch, CURLOPT_PORT , $port);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_FAILONERROR, true);
+        curl_setopt($ch, CURLOPT_ENCODING, '');
+
+        // Handle Redirects
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
+
+        if ($parsedUrl['scheme'] == 'https') {
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+            if ($port == '80') {
+                curl_setopt($ch, CURLOPT_PORT, 443);
+            }
+        }
+
+        if (array_key_exists('user', $parsedUrl)
+            && strlen($parsedUrl['user'])
+            && array_key_exists('pass', $parsedUrl)
+            && strlen($parsedUrl['pass'])
+        ) {
+            curl_setopt($ch, CURLOPT_USERPWD, $parsedUrl['user'] . ':' . $parsedUrl['pass']);
+        }
+
+        $result = curl_exec($ch);
+
+        if ($result === false
+            || curl_errno($ch) != 0
+        ) {
+            curl_close($ch);
+            return false;
+        }
+
+        file_put_contents($localPath . $fileName, $result);
+        curl_close($ch);
+        
+        return $localPath . $fileName;
+    }
+
+    /**
+     * @param array $urls
+     * @param string $localPath
+     * @return bool
+     */
+    protected function _multiCurl($urls, $localPath)
+    {
+        $mh = curl_multi_init();
+        $fileNames = array();
+        $ch        = array();
+        $res       = array();
+        foreach($urls as $i => $url)
+        {
+            $parsedUrl = parse_url($url);
+            $host = $parsedUrl['host'];
+            if (isset($parsedUrl['path'])) {
+                $path = $parsedUrl['path'];
+            } else {
+                // the url is pointing to the host like http://www.mysite.com
+                $path = '/';
+            }
+
+            $aUrl = explode('/', $path);
+            $fileNames[$i] = end($aUrl);
+
+            if (isset($parsedUrl['query'])) {
+                $path .= '?' . $parsedUrl['query'];
+            }
+
+            if (isset($parsedUrl['port'])) {
+                $port = $parsedUrl['port'];
+            } else {
+                // most sites use port 80
+                $port = '80';
+            }
+
+            $newUrl = $parsedUrl['scheme'] . '://' . $host . $path;
+
+            $ch[$i] = curl_init($newUrl);
+            curl_setopt($ch[$i], CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch[$i], CURLOPT_URL, $newUrl);
+            curl_setopt($ch[$i], CURLOPT_PORT , $port);
+            curl_setopt($ch[$i], CURLOPT_HEADER, 0);
+            curl_setopt($ch[$i], CURLOPT_RETURNTRANSFER, 1);
+
+            if ($parsedUrl['scheme'] == 'https') {
+                curl_setopt($ch[$i], CURLOPT_SSL_VERIFYPEER, 0);
+                curl_setopt($ch[$i], CURLOPT_SSLVERSION, 3);
+                if ($port == '80') {
+                    curl_setopt($ch[$i], CURLOPT_PORT, 443);
+                }
+            }
+
+            if ($parsedUrl['user']
+                && $parsedUrl['pass']
+            ) {
+                curl_setopt($ch[$i], CURLOPT_USERPWD, $parsedUrl['user'] . ':' . $parsedUrl['pass']);
+            }
+
+            curl_multi_add_handle($mh, $ch[$i]);
+        }
+
+        // Start performing the request
+        do {
+            $execReturnValue = curl_multi_exec($mh, $runningHandles);
+        } while ($execReturnValue == CURLM_CALL_MULTI_PERFORM);
+        // Loop and continue processing the request
+        while ($runningHandles && $execReturnValue == CURLM_OK) {
+            // Wait forever for network
+            $numberReady = curl_multi_select($mh);
+            if ($numberReady != -1) {
+                // Pull in any new data, or at least handle timeouts
+                do {
+                    $execReturnValue = curl_multi_exec($mh, $runningHandles);
+                } while ($execReturnValue == CURLM_CALL_MULTI_PERFORM);
+            }
+        }
+
+        // Check for any errors
+        if ($execReturnValue != CURLM_OK) {
+            $this->_logger->log('Curl multi read error ' . $execReturnValue, Zend_Log::WARN);
+            return false;
+        }
+
+        // Extract the content
+        foreach($urls as $i => $url)
+        {
+            // Check for errors
+            $curlError = curl_error($ch[$i]);
+            if($curlError == "") {
+                $res[$i] = curl_multi_getcontent($ch[$i]);
+            } else {
+                $this->_logger->log('Curl error on handle ' . $i . ':' . $curlError, Zend_Log::ERR);
+            }
+            // Remove and close the handle
+            curl_multi_remove_handle($mh, $ch[$i]);
+            curl_close($ch[$i]);
+        }
+        // Clean up the curl_multi handle
+        curl_multi_close($mh);
+
+        // Print the response data
+        foreach ($res as $key => $result) {
+            file_put_contents($localPath . $fileNames[$key], $result);
+        }
+
+        return true;
+    }
+
+    /**
+     * Generiert einen lokalen Downloadpfad für FTP-Downloads und legt ggfs. diesen Pfad an
+     *
+     * @param int $companyId
+     * @return bool|string
+     */
+    public function generateLocalDownloadFolder($companyId)
+    {
+        $localFolderName = APPLICATION_PATH . '/../public/files/http/' . $companyId . '/' . date('Y-m-d-H-i-s') . '/';
+        if (!is_dir($localFolderName)) {
+            if (!mkdir($localFolderName, 0775, true)) {
+                $this->_logger->log('generic http-crawler for company ' . $companyId . "\n"
+                    . 'unable to create local folder for http-download', Zend_Log::CRIT);
+                return false;
+            }
+        }
+
+        return $localFolderName;
+    }
+
+    /**
+     * Generiert die öffentlich erreichbare URL für Dateien, welche unter /public/files/http abgelegt wurden
+     *
+     * @param string $localFilePath
+     * @return bool|string
+     */
+    public function generatePublicHttpUrl($localFilePath)
+    {
+        $configCrawler = new Zend_Config_Ini(APPLICATION_PATH . '/configs/application.ini', APPLICATION_ENV);
+
+        if (!preg_match('#.*?(/files/http/(.*?))$#', $localFilePath, $match)) {
+            $this->_logger->log(
+                'invalid filename for generating public http-file url, filename: ' . $localFilePath,
+                Zend_Log::ERR
+            );
+
+            return false;
+        }
+
+        return $configCrawler->crawler->publicUrl . $match[1];
+    }
+}

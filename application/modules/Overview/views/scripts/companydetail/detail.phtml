@@ -1,0 +1,119 @@
+<h1 class="page-header">Company Details</h1>
+<div class="panel-heading">
+    <h3 class="panel-title"><?php echo $this->companyDetailForm ?></h3>
+</div>
+<div class="row">
+    <?php if (is_array($this->aStores) && count($this->aStores)) : ?>
+        <div class="col-lg-12" id="diasto">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <i class="fa fa-bar-chart-o fa-fw"></i> Anzahl Standorte:
+                    <?php echo !is_null($this->aStores['#lastImport']) ? '<br/>- letzter Import: ' . date('d.m.Y H:i:s', strtotime($this->aStores['#lastImport'])) : '';
+                    echo !is_null($this->aStores['#lastTimeModified']) ? '<br/>- letztes Update: ' . date('d.m.Y H:i:s', strtotime($this->aStores['#lastTimeModified'])) : '';?>
+            </div>
+            <!-- /.panel-heading -->
+            <div class="panel-body"><div id="stores"></div>
+            </div>
+            <!-- /.panel-body -->
+        </div>
+    </div>
+    <?php endif; ?>
+    <?php if (is_array($this->aProducts) && count($this->aProducts)) : ?>
+        <div class="col-lg-12" id="diabro">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <i class="fa fa-bar-chart-o fa-fw"></i> Anzahl Produkte:
+                    <?php echo !is_null($this->aProducts['#lastImport']) ? '<br/>- letzter Import: ' . date('d.m.Y H:i:s', strtotime($this->aProducts['#lastImport'])) : '';
+                    echo !is_null($this->aProducts['#lastTimeModified']) ? '<br/>- letztes Update: ' . date('d.m.Y H:i:s', strtotime($this->aProducts['#lastTimeModified'])) : '';?>
+            </div>           
+            <!-- /.panel-heading -->
+            <div class="panel-body"><div id="products"></div>
+            </div>
+            <!-- /.panel-body -->
+        </div>
+    </div>
+    <?php endif; ?>
+    <?php if (is_array($this->aBrochures) && count($this->aBrochures)) : ?>
+        <div class="col-lg-12" id="diapro">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <i class="fa fa-bar-chart-o fa-fw"></i> Anzahl Prospekte:
+                    <?php echo !is_null($this->aBrochures['#lastImport']) ? '<br/>- letzter Import: ' . date('d.m.Y H:i:s', strtotime($this->aBrochures['#lastImport'])) : '';
+                    echo !is_null($this->aBrochures['#lastTimeModified']) ? '<br/>- letztes Update: ' . date('d.m.Y H:i:s', strtotime($this->aBrochures['#lastTimeModified'])) : '';?>
+            </div>
+            <!-- /.panel-heading -->
+            <div class="panel-body"><div id="brochures"></div>
+            </div>
+            <!-- /.panel-body -->
+        </div>
+    </div>
+    <?php endif; ?>
+</div>
+
+<script type="text/javascript">
+<?php if (is_array($this->aStores)) : ?>
+    Morris.Line({
+        element: 'stores',
+        data: [
+<?php
+foreach ($this->aStores as $singleStoreKey => $singleStoreValue):
+    if (!preg_match('#(lastTimeModified|lastImport|companyId)#', $singleStoreKey)) {
+        echo '{x: "' . $singleStoreKey . '", '
+        . 'a: ' . $singleStoreValue . '},';
+    }
+endforeach;
+?>
+        ],
+        xkey: 'x',
+        ykeys: ['a'],
+            smooth: false,
+        lineColors: ['#9DC42E'],
+        pointFillColors: ['#E50054'],
+        labels: ['Anzahl Standorte']
+    });
+    <?php endif;
+if (is_array($this->aProducts)) :
+    ?>
+    Morris.Line({
+        element: 'products',
+        data: [
+<?php
+foreach ($this->aProducts as $singleProductKey => $singleProductValue):
+    if (!preg_match('#(lastTimeModified|lastImport|companyId)#', $singleProductKey)) {
+        echo '{x: "' . $singleProductKey . '", '
+        . 'a: ' . $singleProductValue . '},';
+    }
+endforeach;
+?>
+        ],
+        xkey: 'x',
+        ykeys: ['a'],
+            smooth: false,
+        lineColors: ['#9DC42E'],
+        pointFillColors: ['#E50054'],
+        labels: ['Anzahl Produkte']
+    });
+<?php endif; 
+if (is_array($this->aBrochures)) :
+    ?>
+    Morris.Line({
+        element: 'brochures',
+        data: [
+<?php
+foreach ($this->aBrochures as $singleBrochureKey => $singleBrochureValue):
+    if (!preg_match('#(lastTimeModified|lastImport|companyId)#', $singleBrochureKey)) {
+        echo '{x: "' . $singleBrochureKey . '", '
+        . 'a: ' . $singleBrochureValue . '},';
+    }
+endforeach;
+?>
+        ],
+        xkey: 'x',
+        ykeys: ['a'],
+            smooth: false,
+        lineColors: ['#9DC42E'],
+        pointFillColors: ['#E50054'],
+        labels: ['Anzahl Prospekte']
+    });
+<?php endif; ?>
+</script>

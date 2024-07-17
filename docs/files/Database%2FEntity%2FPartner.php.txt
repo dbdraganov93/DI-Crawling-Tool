@@ -1,0 +1,173 @@
+<?php
+
+class Marktjagd_Database_Entity_Partner extends Marktjagd_Database_Entity_Abstract
+{
+
+    // table fields
+    protected $_idPartner;
+    protected $_name;
+    protected $_description;
+    protected $_apiHost;
+    protected $_apiKey;
+    protected $_apiPassword;
+
+    /**
+     * Contains mapping of table columns to function
+     *
+     * @var array
+     */
+    protected $_aColumnMap = array(
+        'idPartner' => 'IdPartner',
+        'name' => 'Name',
+        'description' => 'Description',
+        'apiHost' => 'ApiHost',
+        'apiKey' => 'ApiKey',
+        'apiPassword' => 'ApiPassword'
+    );
+
+    /**
+     * @return int
+     */
+    public function getIdPartner()
+    {
+        return $this->_idPartner;
+    }
+
+    /**
+     * @param int $idPartner
+     * @return Marktjagd_Database_Entity_Partner
+     */
+    public function setIdPartner($idPartner)
+    {
+        $this->_idPartner = (int) $idPartner;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->_name;
+    }
+
+    /**
+     * @param string $name
+     * @return Marktjagd_Database_Entity_Partner
+     */
+    public function setName($name)
+    {
+        $this->_name = (string) $name;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription()
+    {
+        return $this->_description;
+    }
+
+    /**
+     * @param string $description
+     * @return Marktjagd_Database_Entity_Partner
+     */
+    public function setDescription($description)
+    {
+        $this->_description = (string) $description;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getApiHost()
+    {
+        return $this->_apiHost;
+    }
+
+    /**
+     * @param string $apiHost
+     * @return Marktjagd_Database_Entity_Partner
+     */
+    public function setApiHost($apiHost)
+    {
+        $this->_apiHost = (string) $apiHost;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getApiKey()
+    {
+        return $this->_apiKey;
+    }
+
+    /**
+     * @param string $apiKey
+     * @return Marktjagd_Database_Entity_Partner
+     */
+    public function setApiKey($apiKey)
+    {
+        $this->_apiKey = (string) $apiKey;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getApiPassword()
+    {
+        return $this->_apiPassword;
+    }
+
+    /**
+     * @param string $apiPassword
+     * @return Marktjagd_Database_Entity_Partner
+     */
+    public function setApiPassword($apiPassword)
+    {
+        $this->_apiPassword = (string) $apiPassword;
+        return $this;
+    }
+
+
+
+    /**
+     * Returns the mapper class, if no one exists, default will be created.
+     *
+     * @return  Marktjagd_Database_Mapper_Partner
+     */
+    public function getMapper()
+    {
+        return parent::getMapper();
+    }
+
+    /**
+     * Saves data to database If the primary key is set,
+     * data will be updated.
+     *
+     * @param bool $bNull Save also null values
+     * @param bool $bForceInsert
+     * @return void
+     */
+    public function save($bNull = false, $bForceInsert = false)
+    {
+        $this->getMapper()->save($this, $bNull, $bForceInsert);
+    }
+
+    /**
+     * Loads the data by primary key(s). By multiple primary
+     * keys use an array with the values of the primary key columns.
+     *
+     * @param int $mId Primary key(s) value(s)
+     *
+     * @return bool True if found, otherwise false
+     */
+    public function find($mId)
+    {
+        return $this->getMapper()->find($mId, $this);
+    }
+}
+

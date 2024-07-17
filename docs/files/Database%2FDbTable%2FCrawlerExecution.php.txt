@@ -1,0 +1,9 @@
+<?php
+
+class Marktjagd_Database_DbTable_CrawlerExecution extends Marktjagd_Database_DbTable_Abstract
+{
+    protected $_name = 'CrawlerExecution';
+
+    protected $_primary = 'idCrawlerExecution';
+
+}

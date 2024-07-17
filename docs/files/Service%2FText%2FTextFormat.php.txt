@@ -1,0 +1,265 @@
+<?php
+
+/**
+ * Beinhaltet Funktionen zum Umwandeln/Formatieren von Text
+ */
+class Marktjagd_Service_Text_TextFormat {
+
+    /**
+     * Konvertiert den Zeichensatz des Strings in UTF-8
+     *
+     * @param $text
+     * @return string
+     */
+    public function convertTextToUtf8($text)
+    {
+        // Versuchen den Zeichensatz anhand eines Meta-Tags zu bestimmen
+        $patternCharset = '#<meta\s*http-equiv=("|\')content-type("|\')\s*content=("|\')[^;]+; '
+            . 'charset=([-A-Za-z0-9]+)("|\')#i';
+        if (preg_match($patternCharset, $text, $match)){
+            // Zeichensatz des Meta-Tags benutzen:
+            $charset = strtoupper($match[4]);
+        } else {
+            // Zeichensatz versuchen automatisch zu erkennen:
+            $charset = mb_detect_encoding(
+                ' ' . $text . ' ',
+                "UTF-8, ISO-8859-15, ISO-8859-1, windows-1252, ASCII"
+            );
+            /* Vor und nach dem Text noch ein Leerzeichen, da sonst Sonderzeichen
+               am Anfang und Ende nicht erkannt werden. */
+        }
+
+        if ($charset != "UTF-8") {
+            // Text von altem Charset in UTF-8 konvertieren
+            $text = iconv($charset,"UTF-8", $text);
+        }
+
+        return $text;
+    }
+
+    /**
+     * Wandelt alle HTML-Sonderzeichen in UTF-8 um.
+     *
+     * @param $text
+     * @return string
+     */
+    public function htmlDecode($text)
+    {
+        // ASCII-HTML Zeichen (128-159) in UTF8-HTML Zeichen umwandeln:
+        $mapping = array(
+            '&#128;' => '&#8364;',
+            '&#129;' => '&#129;',
+            '&#130;' => '&#8218;',
+            '&#131;' => '&#402;',
+            '&#132;' => '&#8222;',
+            '&#133;' => '&#8230;',
+            '&#134;' => '&#8224;',
+            '&#135;' => '&#8225;',
+            '&#136;' => '&#710;',
+            '&#137;' => '&#8240;',
+            '&#138;' => '&#352;',
+            '&#139;' => '&#8249;',
+            '&#140;' => '&#338;',
+            '&#141;' => '&#141;',
+            '&#142;' => '&#381;',
+            '&#143;' => '&#143;',
+            '&#144;' => '&#144;',
+            '&#145;' => '&#8216;',
+            '&#146;' => '&#8217;',
+            '&#147;' => '&#8220;',
+            '&#148;' => '&#8221;',
+            '&#149;' => '&#8226;',
+            '&#150;' => '&#8211;',
+            '&#151;' => '&#8212;',
+            '&#152;' => '&#732;',
+            '&#153;' => '&#8482;',
+            '&#154;' => '&#353;',
+            '&#155;' => '&#8250;',
+            '&#156;' => '&#339;',
+            '&#157;' => '&#157;',
+            '&#158;' => '&#382;',
+            '&#159;' => '&#376;',
+            '&#x99;' => '',
+            '&#x94;' => '',
+            '&#x93;' => '',
+
+            // wird durch html_entity_decode nicht erkannt
+            '&apos;' => '\'',
+        );
+        $text = str_replace(array_keys($mapping), array_values($mapping), $text);
+
+        // Zeichen umwandeln:
+        $text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
+        // Die Spaces dir durch &nbsp; entstehen sind nicht gleich dem ' ' Space, daher ersetzen:
+        $text = str_replace(html_entity_decode('&nbsp;', ENT_QUOTES, 'UTF-8'), ' ', $text);
+        return $text;
+    }
+
+    /**
+     * Entfernt alle HTML-Kommentare aus dem Text ("<!-- ... -->").
+     *
+     * @param   $text
+     * @return  string
+     */
+    public function stripComments($text)
+    {
+        $text = preg_replace('#<!--.*?-->#m', '', $text);
+        return $text;
+    }
+
+    /**
+     * Entfernt alle Zeilenumbrüche aus dem übergebenen Text
+     * (nötig wenn man einen regulären Ausdruck verwenden will der über mehrere Zeilen gehen würde).
+     *
+     * @param   $text
+     * @return  string
+     */
+    public function stripNewLines($text)
+    {
+        $text = str_replace("\n", '', $text);
+        $text = str_replace("\r", '', $text);
+        return $text;
+    }
+
+    /**
+     * Entfernt White-Spaces
+     *
+     * @param   $text
+     * @return  string
+     */
+    public function stripWhiteSpace($text)
+    {
+        $text = preg_replace('#[\s]+#', ' ', $text);
+        return $text;
+    }
+
+    /**
+     * Konvertiert Super-Sonderzeichen in UTF-8
+     * Diese Zeichen kommen aus dem Druck und sind für PDF's notwendig
+     *
+     * @param   string $text
+     * @return  string
+     */
+    public function convertSpecialUtf8($text)
+    {
+        if (!$text) {
+            return $text;
+        }
+        $replace = array(
+            '–' => '-',
+            ' ' => ' ',
+            'ſ' => 'f',
+            'ﬁ' => 'fi',
+            'ﬂ' => 'fl',
+            'ﬀ' => 'ff',
+            'ﬃ' => 'ffi',
+            'ﬄ' => 'ffl',
+            'ﬅ' => 'ft',
+            'ﬆ' => 'st',
+            'ĸ' => 'K',
+        );
+        $text = str_replace(array_keys($replace), array_values($replace), $text);
+        return $text;
+    }
+
+    /**
+     * Prüft ob der übergebene String aus validem UTF-8 Zeichen besteht.
+     * (http://www.w3.org/International/questions/qa-forms-utf-8.en.php)
+     *
+     * @param   String  $text
+     * @return  boolean
+     */
+    public static function checkValidUtf8($text)
+    {
+        // Da preg_match bei längeren Strings abstürzt => lange Strings zerlegen
+        if (strlen($text) > 8000) {
+            $texts = array();
+            do {
+                $texts[] = substr($text, 0, 8000);
+                $text = substr($text, 8000);
+            } while (strlen($text) > 8000);
+            $texts[] = $text;
+        } else {
+            $texts = array($text);
+        }
+
+        // Alle Einzelstrings prüfen:
+        foreach ($texts as &$text) {
+            if (!preg_match('%^(?:
+                 [\x09\x0A\x0D\x20-\x7E]            # ASCII
+               | [\xC2-\xDF][\x80-\xBF]             # non-overlong 2-byte
+               | \xE0[\xA0-\xBF][\x80-\xBF]         # excluding overlongs
+               | [\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}  # straight 3-byte
+               | \xED[\x80-\x9F][\x80-\xBF]         # excluding surrogates
+               | \xF0[\x90-\xBF][\x80-\xBF]{2}      # planes 1-3
+               | [\xF1-\xF3][\x80-\xBF]{3}          # planes 4-15
+               | \xF4[\x80-\x8F][\x80-\xBF]{2}      # plane 16
+               )*$%xs', $text)
+            ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public function prepareJsonString($str) {
+        $replacements = array(
+            '\/'		=> '/',
+            '\"'		=> '"',
+            '\u00c4'	=> 'Ä',
+            '\u00e4'	=> 'ä',
+            '\u00d6'	=> 'Ö',
+            '\u00f6'	=> 'ö',
+            '\u00dc'	=> 'Ü',
+            '\u00fc'	=> 'ü',
+            '\u00df'	=> 'ß',
+            '\u00b0'	=> '°',
+            '\u00e9'	=> 'é',
+            '\u00bf'	=> '¿',
+            '\u00a0'	=> ' ',
+            '\u0026'	=> '&',
+            '\u2013'	=> '-',
+            '\u00ae'	=> '®',
+            '\x3c'		=> '<',
+            '\x3e'		=> '>',
+        );
+        foreach ($replacements as $s => $r) {
+            $str = str_ireplace($s, $r, $str);
+        }
+        return $str;
+    }
+
+    /**
+     * Konvertiert Hex-Unicode in Text
+     * Bsp.: \u00F6 => ö
+     * @param string|array $string
+     * @return string|array
+     */
+    public function fixHexUnicode($string)
+    {
+        $json = json_encode($string);
+        $json = str_replace('\\\\u',  '\\u', $json);
+        $string  = json_decode($json);
+
+        return $string;
+    }
+
+    /**
+     * Entfernt generelle Großschreibung aus einer Zeichenkette und wandelt diese in sinvolle Groß-/
+     * Kleinschreibung um
+     * Bsp.: AUGUST-BEBEL-STR. => August-Bebel-Str.
+     *
+     * @param $string
+     * @return string
+     */
+    public function uncapitalize($string)
+    {
+        $string = ucwords(strtolower($string));
+
+        if (strpos($string, '-')!==false) {
+            $string = implode('-', array_map('ucfirst', explode('-', $string)));
+        }
+
+        return $string;
+    }
+}

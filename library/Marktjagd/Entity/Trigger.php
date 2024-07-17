@@ -1,0 +1,157 @@
+<?php
+
+/**
+ * Class Marktjagd_Entity_Trigger
+ */
+class Marktjagd_Entity_Trigger
+{
+    /**
+     * Company-Id des Unternehmens, für welches der Trigger ausgelöst wurde
+     *
+     * @var int
+     */
+    protected $_companyId;
+
+    /**
+     * Pfad zur Datei, welche durch den Trigger übergeben wird
+     *
+     * @var string
+     */
+    protected $_destination;
+
+    /**
+     * Art des Triggers (FTP, Mail, etc.)
+     *
+     * @var string
+     */
+    protected $_triggerType;
+
+    /**
+     * Aktion, welche durch den Trigger optional mit übergeben werden kann
+     *
+     * @var string
+     */
+    protected $_action;
+
+    /**
+     * Nutzer, welcher den Trigger ausgelöst hat
+     *
+     * @var string
+     */
+    protected $_userName;
+
+    /**
+     * Falls Aktion RNTO, dann wird in dieser Variable der alte Dateiname (vor dem Umbenennen) gesetzt
+     *
+     * @var string
+     */
+    protected $_renamedFrom;
+
+    /**
+     * @param string $action
+     * @return Marktjagd_Entity_Trigger
+     */
+    public function setAction($action)
+    {
+        $this->_action = $action;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAction()
+    {
+        return $this->_action;
+    }
+
+    /**
+     * @param int $companyId
+     * @return Marktjagd_Entity_Trigger
+     */
+    public function setCompanyId($companyId)
+    {
+        $this->_companyId = $companyId;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getCompanyId()
+    {
+        return $this->_companyId;
+    }
+
+    /**
+     * @param string $destination
+     * @return Marktjagd_Entity_Trigger
+     */
+    public function setDestination($destination)
+    {
+        $this->_destination = $destination;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDestination()
+    {
+        return $this->_destination;
+    }
+
+    /**
+     * @param string $triggerType
+     * @return Marktjagd_Entity_Trigger
+     */
+    public function setTriggerType($triggerType)
+    {
+        $this->_triggerType = $triggerType;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTriggerType()
+    {
+        return $this->_triggerType;
+    }
+
+    /**
+     * @param string $userName
+     * @return Marktjagd_Entity_Trigger
+     */
+    public function setUserName($userName)
+    {
+        $this->_userName = $userName;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUserName()
+    {
+        return $this->_userName;
+    }
+
+    /**
+     * @param string $renamedFrom
+     * @return Marktjagd_Entity_Trigger
+     */
+    public function setRenamedFrom($renamedFrom)
+    {
+        $this->_renamedFrom = $renamedFrom;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRenamedFrom()
+    {
+        return $this->_renamedFrom;
+    }
+}

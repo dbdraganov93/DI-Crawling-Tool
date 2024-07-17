@@ -1,0 +1,21 @@
+<?php
+
+class Marktjagd_Database_DbTable_IntervallType extends Marktjagd_Database_DbTable_Abstract {
+
+    protected $_name = 'IntervallType';
+    
+    protected $_primary = 'idIntervallType';
+
+    /**
+     * 
+     * @param string $intervallId
+     * @return Zend_Db_Table_Rowset_Abstract
+     */
+    public function findIntervallTypeById($intervallId) {
+        $select = $this->select()->setIntegrityCheck(false);
+        $select->from($this->_name)
+                ->where('idIntervallType = ?', (int)$intervallId);
+        return $this->fetchAll($select);
+    }
+
+}

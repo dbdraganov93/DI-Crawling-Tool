@@ -1,0 +1,121 @@
+<?php
+
+/**
+ * Services zum Hinzufügen, Bearbeiten &Auslesen von FTP-Nutzern aus der DB Ftp und der Tabelle users
+ */
+class Marktjagd_Database_Service_Users extends Marktjagd_Database_Service_Abstract
+{
+    /**
+     * Generiert einen FTP-Nutzer, trägt diesen in die DB ein und liefert das Passwort zurück
+     *
+     * @param string $login Loginname für den FTP-Zugang
+     * @param bool $isUpdate Soll Nutzer aktualisiert oder hinzugefügt werden
+     * @param string $subfolder Unterordner, der dem Verzeichnis des Nutzers vorangestellt wird
+     * @param string $comment Kommentar zum FTP Login
+     * @param string $allowedIps erlaubte IP-Adressen
+     * @param string $publicKey Public Key des Unternehmens, das sich verbinden will
+     * @return string Passwort im Klartext zum Senden an den Kunden
+     */
+    public function generateFtpUserByCompany(
+        $login,
+        $isUpdate,
+        $subfolder = '',
+        $comment = '',
+        $allowedIps = '',
+        $publicKey = ''
+    )
+    {
+        $eUser = new Marktjagd_Database_Entity_Users();
+        $eUser->setLogin($login);
+
+        $directory = '/srv/ftp';
+
+        if (strlen($subfolder)) {
+            $subfolder = trim($subfolder, '/');
+            $directory .= '/' . $subfolder;
+        }
+
+        if (is_numeric($login)) {
+            $directory .= '/' . $login;
+        }
+
+        $eUser->setDirectory($directory);
+
+        if (strlen($comment)) {
+            $eUser->setComment($comment);
+        }
+
+        if (strlen($publicKey)) {
+            $eUser->setPublicKey($publicKey);
+            $password = $publicKey;
+        } else {
+            $password = md5(uniqid('', true));
+            $salt = md5(uniqid('', true));
+            $hash = hash('sha256', $salt . $password);
+            $eUser->setSalt($salt)
+                  ->setPassword($hash);
+        }
+
+        if (strlen($allowedIps)) {
+            $eUser->setAllowedIps($allowedIps);
+        }
+
+        // Update oder Insert
+        if ($isUpdate) {
+            if (!$eUser->save(true)) {
+                return false;
+            }
+        } else {
+            if (!$this->insert($eUser)) {
+                return false;
+            }
+        }
+
+        return $password;
+    }
+
+    /**
+     * Fügt einen Datensatz in die Datenbank ein
+     *
+     * @param Marktjagd_Database_Entity_Users $eUser
+     * @return string
+     */
+    public function insert($eUser)
+    {
+        $mUsers = new Marktjagd_Database_Mapper_Users();
+        return $mUsers->insert($eUser);
+    }
+
+    /**
+     * Findet alle FTP-Nutzer
+     *
+     * @return Marktjagd_Database_Collection_Users
+     */
+    public function findAll()
+    {
+        $cUser = new Marktjagd_Database_Collection_Users();
+        $mUser = new Marktjagd_Database_Mapper_Users();
+        $mUser->fetchAll(null, $cUser);
+        return $cUser;
+    }
+
+    /**
+     * Löscht einen FTP-Benutzer aus der Datenbank
+     *
+     * @param string $loginName
+     * @return bool
+     */
+    public function deleteUser($loginName)
+    {
+        $mUser = new Marktjagd_Database_Mapper_Users();
+        if (!$mUser->getDbTable()->delete(
+            'login = "'
+            . $loginName
+            . '"')) {
+            return false;
+        }
+
+        return true;
+    }
+
+}

@@ -1,0 +1,92 @@
+<div class="col-lg-12">
+    <h1 class="page-header">Aufgaben verwalten</h1>
+</div>
+<div class="col-lg-12">
+    <?php echo $this->companyForm ?>
+</div>
+
+<?php
+/* @var $cTasks Marktjagd_Database_Collection_Task */
+$cTasks = $this->cTasks;
+
+
+if (isset($cTasks) && count($cTasks)) :
+    ?>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    Aufgabenübersicht
+                </div>
+                <div class="panel-body">
+                    <div class="col-lg-12">
+                        <div class="table">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:10%">Nächster Termin</th>
+                                        <th style="width:10%">Enddatum</th>
+                                        <th style="width:7%">Intervall</th>
+                                        <th style="width:13%">Titel</th>
+                                        <th style="width:25%">Beschreibung</th>
+                                        <th style="width:15%">zugewiesen an</th>
+                                        <th style="width:5%">Löschen</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($cTasks as $eTask) : ?>
+                                        <tr onclick="window.location = '/Task/index/show/company/<?php echo $eTask->getIdCompany();
+                                echo $eTask instanceof Marktjagd_Database_Entity_Task ? '?idTask=' . $eTask->getIdTask() : '?idAdvertisingSettings=' . $eTask->getIdAdvertisingSettings()
+                                        ?>'"
+                                            style ="cursor:pointer;">
+                                            <td><?php echo date('d.m.Y', strtotime($eTask->getNextDate())); ?></td>
+                                            <td><?php echo $eTask instanceof Marktjagd_Database_Entity_Task ? 'nicht terminiert' : date('d.m.Y', strtotime($eTask->getEndDate())); ?></td>
+                                            <td><?php
+                                                if ($eTask->getIntervallType() != 'unique')
+                                                {
+                                                    echo $eTask->getIntervall() . ' ';
+                                                }
+                                                echo preg_replace(
+                                                        array(
+                                                    '#day#',
+                                                    '#week#',
+                                                    '#month#',
+                                                    '#year#',
+                                                    '#unique#'
+                                                        ), array(
+                                                    'Tag(e)',
+                                                    'Woche(n)',
+                                                    'Monat(e)',
+                                                    'Jahr(e)',
+                                                    'einmalig'
+                                                        ), $eTask->getIntervallType());
+                                                ?></td>
+                                            <td><?php echo $eTask instanceof Marktjagd_Database_Entity_AdvertisingSettings ? 'Werbeplan: ' : ''; echo $eTask->getTitle(); ?></td>
+                                            <td><?php echo $eTask->getDescription(); echo $eTask instanceof Marktjagd_Database_Entity_Task ? '' : $eTask->getAdType() . ' - Verteilung Wochentage: ' . $eTask->getWeekDays(); ?></td>
+                                            <td><?php echo $eTask instanceof Marktjagd_Database_Entity_Task ? $eTask->getAssignedTo() : ''; ?></td>
+                                            <td style="text-align: center"><a href="/Task/index/delete/company/<?php echo $eTask->getIdCompany();
+                                                echo $eTask instanceof Marktjagd_Database_Entity_Task ? '?idTask=' . $eTask->getIdTask() : '?idAdvertisingSettings=' . $eTask->getIdAdvertisingSettings() ?>"><i class="fa fa-trash-o"></i></td>
+                                        </tr>
+    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif;
+?>
+<div class="row">
+    <div class="col-lg-5">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                Aufgabe anlegen
+            </div>
+            <div class="panel-body">
+<?php echo $this->taskForm ?>
+            </div>
+        </div>
+    </div>
+</div>

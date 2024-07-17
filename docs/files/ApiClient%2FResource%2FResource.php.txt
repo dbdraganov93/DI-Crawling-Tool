@@ -1,0 +1,859 @@
+<?php
+/**
+ * Contains Base class for all resources.
+ *
+ * PHP version 5
+ *
+ * @category Resource
+ * @package  Resource
+ * @author   Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license  Martktjagd GmbH
+ * @link     http://www.marktjagd.det
+ */
+
+namespace Marktjagd\ApiClient\Resource;
+
+use Marktjagd\ApiClient\Request\Request as Request;
+
+/**
+ * Base class for all resources. Extend this class to implement
+ * an explicit resource.
+ *
+ * @category Resource
+ * @package  Resource
+ * @author   Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license  Martktjagd GmbH
+ * @link     http://www.marktjagd.de
+ */
+abstract class Resource implements \ArrayAccess
+{
+    /**
+     * Whether the resource has a collection resource.
+     *
+     * @var bool
+     */
+    protected static $hasCollection = false;
+    
+    /**
+     * Whether the logger should log changes of this resource.
+     * 
+     * @var bool
+     */
+    protected static $loggingEnabled = true;
+
+    /**
+     * Array of resource loggers.
+     *
+     * @var array
+     */
+    protected static $loggers = array();
+
+    /**
+     * Resource fields used as primary key.
+     *
+     * @var array
+     */
+    protected $primaryKey = array();
+
+    /**
+     * Resource attributes.
+     *
+     * @var array
+     */
+    protected $attributes = array();
+
+    /**
+     * Resource fields.
+     *
+     * @var array
+     */
+    protected $fields     = array();
+
+    /**
+     * Embedded resources.
+     *
+     * @var array
+     */
+    protected $resources  = array();
+
+    /**
+     * Whether the resource was not saved yet.
+     *
+     * @var bool
+     */
+    protected $isNew = true;
+
+    /**
+     * Whether the resource was modified.
+     *
+     * @var bool
+     */
+    protected $isModified = false;
+
+    /**
+     * Whether the resource was deleted.
+     *
+     * @var bool
+     */
+    protected $isDeleted = false;
+
+    /**
+     * Request object used for API calls.
+     *
+     * @var Request
+     */
+    protected $request;
+
+
+    /**
+     * Sets the resource definition (fields, attributes, embedded resources).
+     * Override in explicit resource implementations.
+     *
+     * @return void
+     */
+    abstract protected function setResourceDefinition();
+
+    /**
+     * Returns the name of the resource.
+     *
+     * @return string resource name
+     */
+    protected static function getName()
+    {
+        $class = self::getClassNameWithoutNamespace(self::getChildClassName());
+        $self  = self::getClassNameWithoutNamespace(__CLASS__);
+
+        return self::underscore(substr($class, 0, -strlen($self)));
+    }
+
+    /**
+     * Returns the class name of the first child that extends this class.
+     *
+     * @return string class name
+     */
+    protected static function getChildClassName()
+    {
+        $class = get_called_class();
+
+        while (__CLASS__ != get_parent_class($class))
+        {
+            $class = get_parent_class($class);
+        }
+
+        return $class;
+    }
+
+    /**
+     * Return the class name of the corresponding collection resource class
+     * including the namespace.
+     *
+     * @return string class name of the collection resource class
+     * @throws ResourceException if the current resource has no collection resource
+     */
+    protected static function getCollectionResourceClassName()
+    {
+        if (!static::$hasCollection)
+        {
+            throw new ResourceException('Resource ' . static::getName() . ' has no collection');
+        }
+
+        $class = self::getChildClassName();
+        $self  = self::getClassNameWithoutNamespace(__CLASS__);
+
+        return substr_replace($class, 'Collection', -strlen($self), 0);
+    }
+
+    /**
+     * Returns the class name of the given object with the namespace stripped.
+     *
+     * @param object|string $object
+     * @return string class name without namespace
+     */
+    protected static final function getClassNameWithoutNamespace($object)
+    {
+        if (!(is_string($object) || is_object($object)))
+        {
+            throw new \UnexpectedValueException(
+                sprintf('Parameter 1 must be an object or a string, %s given', gettype($object))
+            );
+        }
+
+        $class   = is_string($object) ? $object : get_class($object);
+        $nsParts = explode('\\', $class);
+
+        return end($nsParts);
+    }
+
+    /**
+     * Converts a camelcased string to an underscore separated string.
+     *
+     * @param string $string camelcased string
+     * @return string underscore separated string
+     */
+    protected static final function underscore($string)
+    {
+        $tmp = preg_replace(
+            array('/([A-Z]+)([A-Z][a-z])/', '/([a-z\d])([A-Z])/'),
+            '$1_$2', $string
+        );
+
+        return strtolower($tmp);
+    }
+
+    /**
+     * Converts an underscore separated string to a camelcased string.
+     *
+     * @param string $string underscore separated string
+     *
+     * @return string camelcased string
+     */
+    protected static final function camelize($string)
+    {
+        return preg_replace('/(_)+(.)/e', "strtoupper('$2')", $string);
+    }
+
+    /**
+     * Load a resource object using its primary key.
+     *
+     * @param string $primaryKey ID or slash-separated primary key fields
+     * @param array  $params     request parameters
+     * @return Resource the resource object or NULL if the request failed
+     */
+    protected static function doFind($primaryKey, array $params = array())
+    {
+        $resourceName = static::getName();
+
+        if (!is_null($primaryKey))
+        {
+            $primaryKey = '/' . $primaryKey;
+        }
+
+        $request = Request::createInstance($resourceName . $primaryKey, $params);
+
+        if (!($request->get() && $request->isResponseStatusCodeOk()))
+        {
+            return null;
+        }
+
+        // create instance of the called class
+        $resource = new static;
+        $resource->load($request->getResponse()->$resourceName);
+        $resource->request = $request;
+
+        return $resource;
+    }
+
+    /**
+     * Load a collection resource.
+     *
+     * @param string $primaryKey ID or slash-separated primary key fields
+     * @param array $params request parameters
+     * @return ResourceCollection collection of resources or NULL on errors
+     */
+    protected static function doFindAll($primaryKey, array $params = array())
+    {
+        $collectionResourceClassName = self::getCollectionResourceClassName();
+        $collectionResourceName = $collectionResourceClassName::getName();
+
+        if (!is_null($primaryKey))
+        {
+            $primaryKey = '/' . $primaryKey;
+        }
+
+        $request = Request::createInstance($collectionResourceName . $primaryKey, $params);
+
+        if (!($request->get() && $request->isResponseStatusCodeOk()))
+        {
+            return null;
+        }
+
+        $collection = ResourceFactory::create($collectionResourceName);
+        $collection->load($request->getResponse()->$collectionResourceName, get_called_class());
+        $collection->request = $request;
+
+        return $collection;
+    }
+
+    /**
+     * Count the number of available resources.
+     *
+     * @param string $primaryKey ID or slash-separated primary key fields
+     * @param array $params request parameters
+     * @return int number of available resources
+     */
+    protected static function doCountAll($primaryKey, array $params = array())
+    {
+        $params     = array_merge($params, array('count' => 0));
+        $collection = self::doFindAll($primaryKey, $params);
+
+        if (!is_null($collection))
+        {
+            if (!isset($collection['hits']))
+            {
+                throw new ResourceException('Resource ' . static::getName() . ' does not support count');
+            }
+
+            return $collection['hits'];
+        }
+
+        return 0;
+    }
+
+    /**
+     * Adds a resource logger.
+     *
+     * @param ResourceLogger $logger resource logger
+     */
+    public static function addLogger(ResourceLogger $logger)
+    {
+        self::$loggers[] = $logger;
+    }
+
+    public static function setLogger(ResourceLogger $logger)
+    {
+        self::$loggers = array($logger);
+    }
+
+    public static function hasLogger()
+    {
+        return !empty(self::$loggers);
+    }
+
+    /**
+     * Implements virtual static methods (find, findAll, countAll)
+     *
+     * @param type $name
+     * @param array $arguments
+     *
+     * @method \Marktjagd\ApiClient\Resource\Resource find($primaryKey, array $params = array())
+     *      Load a resource object using its primary key.
+     * @method \Marktjagd\ApiClient\Resource\CollectionResource findAll(array $params = array())
+     *      Load a collection resource. Override in resource implementations
+     *      that require a primary key for the collection resource.
+     * @method int countAll(array $params = array())
+     *      Count the number of available resources. Override in resource
+     *      implementations that require a primary key for the collection
+     *      resource.
+     */
+    public static function __callStatic($name, array $arguments = array())
+    {
+        switch ($name)
+        {
+            case 'find':
+                if (empty($arguments))
+                {
+                    throw new ResourceException('Missing argument 1 for ' . __NAMESPACE__ . '\Resource::find()');
+                }
+
+                $primaryKey = $arguments[0];
+                $params     = isset($arguments[1]) ? $arguments[1] : array();
+
+                return self::doFind($primaryKey, $params);
+
+            case 'findAll':
+                $params = isset($arguments[0]) ? $arguments[0] : array();
+
+                return self::doFindAll(null, $params);
+
+            case 'countAll':
+                $params = isset($arguments[0]) ? $arguments[0] : array();
+
+                return self::doCountAll(null, $params);
+
+            default:
+                throw new ResourceException(sprintf('Undefined function %s', $name));
+        }
+    }
+
+    /**
+     * Constructor.
+     */
+    public function __construct()
+    {
+        $this->setResourceDefinition();
+    }
+
+    /**
+     * Sets an resource attribute definition.
+     *
+     * @param ResourceAttribute $attribute resource attribute object
+     * @return Resource current instance
+     */
+    protected function hasAttribute(ResourceAttribute $attribute)
+    {
+        $this->attributes[$attribute->getName()] = $attribute;
+
+        return $this;
+    }
+
+    /**
+     * Sets a resource field definition.
+     *
+     * @param ResourceField $field          resource field object
+     * @param bool          $primaryKey     primary key
+     * @param int           $requestMethods bitmask of the request methods for
+     *                                      which the primary key is mandatory,
+     *                                      default Request::METHOD_ALL ^ Request::METHOD_PUT
+     * @return Resource current instance
+     */
+    protected function hasField(ResourceField $field, $primaryKey = false, $requestMethods = null)
+    {
+        $this->fields[$field->getName()] = $field;
+
+        if ($primaryKey)
+        {
+            if (is_null($requestMethods))
+            {
+                $requestMethods = Request::METHOD_ALL ^ Request::METHOD_PUT;
+            }
+
+            $this->primaryKey[$field->getName()] = $requestMethods;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Sets an embedded resource definition.
+     *
+     * @param Resource $resource resource object
+     * @return Resource current instance
+     */
+    protected function hasResource(Resource $resource)
+    {
+        $this->resources[$resource->getName()] = $resource;
+
+        return $this;
+    }
+
+    /**
+     * Returns the primary key for the specified request method.
+     *
+     * @param int $requestMethod bitmask of the request method
+     * @return string primary key
+     */
+    protected function getPrimaryKey($requestMethod)
+    {
+        $tmp = array();
+
+        foreach ($this->primaryKey as $name => $requestMethods)
+        {
+            if ($requestMethods & $requestMethod)
+            {
+                $tmp[] = $this->$name;
+            }
+        }
+
+        return implode('/', $tmp);
+    }
+
+    /**
+     * Tests whether the resource was saved before.
+     *
+     * @return bool TRUE if the resource was saved, FALSE otherwise
+     */
+    public function isNew()
+    {
+        return $this->isNew;
+    }
+
+    /**
+     * Tests whether the resource was modified since last load.
+     *
+     * @return bool TRUE if the resource was modified, FALSE otherwise
+     */
+    public function isModified()
+    {
+        return $this->isModified;
+    }
+
+    /**
+     * Tests whether the resource was deleted.
+     *
+     * @return bool TRUE if the resource was deleted, FALSE otherwise
+     */
+    public function isDeleted()
+    {
+        return $this->isDeleted;
+    }
+
+    /**
+     * Checks whether the last request generated errors.
+     *
+     * @return bool TRUE if errors where generated, FALSE otherwise
+     */
+    public function hasErrors()
+    {
+        return $this->request ? $this->request->hasErrors() : false;
+    }
+
+    /**
+     * Returns an array of RequestError objects if the last request
+     * generated any.
+     *
+     * @return array RequestError objects
+     */
+    public function getErrors()
+    {
+        return $this->hasErrors() ? $this->request->getErrors() : array();
+    }
+
+    /**
+     * Return the Request object used for the last API call. NULL is returned
+     * if there weren't any API calls before.
+     *
+     * @return Request last Request object
+     */
+    public function getRequest()
+    {
+        return $this->request;
+    }
+
+    /**
+     * Loads the resource using an json request response.
+     *
+     * @param stdClass $response json request response
+     * @return Resource current instance
+     */
+    public function load(\stdClass $response)
+    {
+        foreach ($this->attributes as $name => $attribute)
+        {
+            $attribute->setValue(isset($response->{'@attributes'}->$name) ? $response->{'@attributes'}->$name : null);
+        }
+
+        foreach ($this->fields as $name => $field)
+        {
+            $field->setValue(isset($response->$name) ? $response->$name : null);
+        }
+
+        foreach ($this->resources as $name => $resource)
+        {
+            if (isset($response->$name) && $response->$name instanceof \stdClass)
+            {
+                $resource->load($response->$name);
+            }
+        }
+
+        $this->isNew = false;
+
+        return $this;
+    }
+
+    /**
+     * Loads the resource fields from an assoziative array.
+     *
+     * @param array $values field values
+     * @return Resource current instance
+     */
+    public function fromArray(array $values = array())
+    {
+        $values = array_intersect_key($values, $this->fields);
+
+        if (!empty($values))
+        {
+            foreach ($values as $field => $value)
+            {
+                $method = 'set' . ucfirst(self::camelize($field));
+                $this->$method($value);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Returns an assoziative array with the values of the resource fields.
+     *
+     * @return array resource field values
+     */
+    public function toArray()
+    {
+        $array = array();
+
+        foreach ($this->fields as $field)
+        {
+            $array[$field->getName()] = $field->getValue();
+        }
+
+        return $array;
+    }
+
+    /**
+     * Creates a new resource if was not saved before or updates an existing
+     * resource.
+     *
+     * @return bool TRUE if the resource was successfully saved, FALSE otherwise
+     */
+    public function save()
+    {
+        return $this->isNew() ? $this->create() : $this->update();
+    }
+
+    /**
+     * Creates a new resource.
+     *
+     * @return bool TRUE on success, FALSE otherwise
+     */
+    public function create()
+    {
+        $name = static::getName();
+        $primaryKey = $this->getPrimaryKey(Request::METHOD_PUT);
+
+        $this->request = new Request($name . (empty($primaryKey) ? '' : "/$primaryKey"));
+        $this->request->setRequestBody(json_encode(array($name => $this->toArray())));
+
+        if (!$this->request->put() || !$this->request->isResponseStatusCodeCreated())
+        {
+            return false;
+        }
+
+        $this->load($this->request->getResponse()->$name);
+        $this->isNew = false;
+        $this->isModified = false;
+
+        // logging
+        $this->log(null, $this);
+
+        return true;
+    }
+
+    /**
+     * Updates an existing resource.
+     *
+     * @return bool TRUE on success, FALSE otherwise
+     */
+    public function update()
+    {
+        // logging
+        if (self::hasLogger() && static::$loggingEnabled)
+        {
+            $old = self::doFind($this->getPrimaryKey(Request::METHOD_GET));
+        }
+
+        $name = static::getName();
+        $primaryKey = $this->getPrimaryKey(Request::METHOD_POST);
+
+        $this->request = new Request($name . (empty($primaryKey) ? '' : "/$primaryKey"));
+        $this->request->setRequestBody(json_encode(array($name => $this->toArray())));
+
+        if (!$this->request->post() || !$this->request->isResponseStatusCodeOk())
+        {
+            return false;
+        }
+
+        $this->load($this->request->getResponse()->$name);
+        $this->isModified = false;
+
+        // logging
+        if (self::hasLogger() && static::$loggingEnabled)
+        {
+            $this->log($old, $this);
+        }
+
+        return true;
+    }
+
+    /**
+     * Deletes the resource.
+     *
+     * @return bool TRUE if the resource was successfully deleted, FALSE otherwise
+     */
+    public function delete()
+    {
+        if ($this->isDeleted() || $this->isNew())
+        {
+            return false;
+        }
+
+        $name = static::getName();
+        $primaryKey = $this->getPrimaryKey(Request::METHOD_DELETE);
+
+        $this->request = new Request($name . (empty($primaryKey) ? '' : "/$primaryKey"));
+
+        if (!$this->request->delete() || !$this->request->isResponseStatusCodeOk())
+        {
+            return false;
+        }
+
+        // logging
+        $this->log($this);
+
+        $this->isDeleted = true;
+
+        return true;
+    }
+
+    /**
+     * Calls the registered resource loggers.
+     *
+     * @param Resource $old resource before modification
+     * @param Resource $new resource after modification
+     */
+    protected function log(Resource $old = null, Resource $new = null)
+    {
+        if (self::hasLogger() && static::$loggingEnabled) {
+            foreach (self::$loggers as $logger)
+            {
+                $logger->log(self::getName(), $this->getPrimaryKey(Request::METHOD_GET), $old, $new);
+            }
+        }
+    }
+
+    /**
+     * Implements virtual accessors and mutators for resource fields
+     * (getXxx, setXxx).
+     *
+     * @param string $name      name of the called method
+     * @param array  $arguments method arguments
+     * @return mixed
+     */
+    public function __call($name, array $arguments = array())
+    {
+        $func = substr($name, 0, 3);
+        $var  = lcfirst(substr($name, 3));
+
+        if (!in_array($func, array('get', 'set')))
+        {
+            throw new ResourceException('Undefined function ' . $name);
+        }
+
+        try
+        {
+            switch ($func)
+            {
+                case 'get':
+                    return $this->__get($var);
+
+                case 'set':
+                    $this->__set($var, empty($arguments) ? null : $arguments[0]);
+                    return $this;
+            }
+        }
+        catch (ResourceException $e)
+        {
+            throw new ResourceException('Undefined function ' . $name, null, $e);
+        }
+    }
+
+    /**
+     * Implements magic read access to resource fields as public members.
+     *
+     * @param string $name field or resource name
+     * @return mixed field value or resource
+     */
+    public function __get($name)
+    {
+        $tmp = self::underscore($name);
+
+        if (isset($this->fields[$tmp]))
+        {
+            return $this->fields[$tmp]->getValue();
+        }
+        elseif (isset($this->resources[$tmp]))
+        {
+            return $this->resources[$tmp];
+        }
+
+        throw new ResourceException('Undefined resource field ' . $tmp);
+    }
+
+    /**
+     * Implements magic write access to resource fields as public members.
+     *
+     * @param string $name  field name
+     * @param mixed  $value field value
+     *
+     * @return void
+     */
+    public function __set($name, $value)
+    {
+        $tmp = self::underscore($name);
+
+        if (!isset($this->fields[$tmp]))
+        {
+            throw new ResourceException('Undefined resource field ' . $tmp);
+        }
+
+        $oldValue = $this->fields[$tmp]->getValue();
+
+        $this->fields[$tmp]->setValue($value);
+
+        // modified check
+        if ($oldValue !== $this->fields[$tmp]->getValue())
+        {
+            $this->isModified = true;
+        }
+    }
+
+    /**
+     * Implements magic isset to test whether a field or resource exists.
+     *
+     * @param string $name field or resource name
+     *
+     * @return bool TRUE if the field or resource exists and is not NULL, FALSE otherwise
+     */
+    public function __isset($name)
+    {
+        $tmp = self::underscore($name);
+
+        return (isset($this->fields[$tmp]) && !is_null($this->fields[$tmp]->getValue())) ||
+            isset($this->resources[$tmp]);
+    }
+
+    /**
+     * Test wether an attribute exists and is not NULL. Implements ArrayAccess
+     *
+     * @param string $name attribute name
+     *
+     * @return bool TRUE if the attribute is set, FALSE otherwise
+     */
+    public function offsetExists($name)
+    {
+        return isset($this->attributes[$name]) && !is_null($this->attributes[$name]->getValue());
+    }
+
+    /**
+     * Get an attribute value. Implements ArrayAccess.
+     *
+     * @param string $name attribute name
+     *
+     * @return mixed attribute value
+     */
+    public function offsetGet($name)
+    {
+        if (!isset($this->attributes[$name]))
+        {
+            throw new ResourceException('Undefined resource attribute ' . $name);
+        }
+
+        return $this->attributes[$name]->getValue();
+    }
+
+    /**
+     * Set an attribute value. Implements ArrayAccess.
+     *
+     * @param string $name  attribute name
+     * @param mixed  $value attribute value
+     *
+     * @return void
+     */
+    public function offsetSet($name, $value)
+    {
+        throw new ResourceException('Setting an attribute is not allowed');
+    }
+
+    /**
+     * Unset an attribute value. Implements ArrayAccess.
+     *
+     * @param string $name attribute name
+     *
+     * @return void
+     */
+    public function offsetUnset($name)
+    {
+        throw new ResourceException('Unsetting an attribute is not allowed');
+    }
+
+}
+

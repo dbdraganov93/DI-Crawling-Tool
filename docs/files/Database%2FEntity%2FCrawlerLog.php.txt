@@ -1,0 +1,422 @@
+<?php
+
+class Marktjagd_Database_Entity_CrawlerLog extends Marktjagd_Database_Entity_Abstract
+{
+    // table fields
+    protected $_idCrawlerLog;
+    protected $_idCrawlerConfig;
+    protected $_idCrawlerLogType;
+    protected $_scheduled;
+    protected $_start;
+    protected $_end;
+    protected $_prio;
+    protected $_processNumber;
+    protected $_errorMessage;
+    protected $_importId;
+    protected $_importStart;
+    protected $_importEnd;
+
+
+    /**
+     * Contains mapping of table columns to function
+     *
+     * @var array
+     */
+    protected $_aColumnMap = array(
+        'idCrawlerLog' => 'IdCrawlerLog',
+        'idCrawlerConfig' => 'IdCrawlerConfig',
+        'idCrawlerLogType' => 'IdCrawlerLogType',
+        'scheduled' => 'Scheduled',
+        'start' => 'Start',
+        'end' => 'End',
+        'prio' => 'Prio',
+        'processNumber' => 'ProcessNumber',
+        'errorMessage' => 'ErrorMessage',
+        'importId' => 'ImportId',
+        'importStart' => 'ImportStart',
+        'importEnd' => 'ImportEnd'
+    );
+
+    /**
+     * Relationship map
+     *
+     * @var array
+     */
+    protected $_aRelationMap = array('CrawlerConfig' => 'Marktjagd_Database_Entity_CrawlerConfig',
+                                     'CrawlerLogType' => 'Marktjagd_Database_Entity_CrawlerLogType');
+
+    /**
+     * Relation property map
+     *
+     * @var array
+     */
+    protected $_aRelationPropertyMap = array('CrawlerConfig' => 'CrawlerConfig',
+                                             'CrawlerLogType' => 'CrawlerLogType');
+
+    /**
+     * Relationship object for table CrawlerConfig
+     *
+     * @var Marktjagd_Database_Entity_CrawlerConfig
+     */
+    protected $_oCrawlerConfig;
+
+    /**
+     * Relationship object for table CrawlerLogType
+     *
+     * @var Marktjagd_Database_Entity_CrawlerLogType
+     */
+    protected $_oCrawlerLogType;
+
+    /**
+     * Set entity crawlerconfig
+     *
+     * @param Marktjagd_Database_Entity_CrawlerConfig         $oCrawlerConfig
+     * @return Marktjagd_Database_Entity_CrawlerLog
+     */
+    public function setCrawlerConfig(Marktjagd_Database_Entity_CrawlerConfig $oCrawlerConfig)
+    {
+        $this->_oCrawlerConfig = $oCrawlerConfig;
+        return $this;
+    }
+
+    /**
+     * Return entity crawlerconfig
+     *
+     * @return Marktjagd_Database_Entity_CrawlerConfig
+     */
+    public function getCrawlerConfig()
+    {
+        return $this->_oCrawlerConfig;
+    }
+
+    /**
+     * Set entity crawlerlogtype
+     *
+     * @param Marktjagd_Database_Entity_CrawlerLogType         $oCrawlerLogType
+     * @return Marktjagd_Database_Entity_CrawlerLog
+     */
+    public function setCrawlerLogType(Marktjagd_Database_Entity_CrawlerLogType $oCrawlerLogType)
+    {
+        $this->_oCrawlerLogType = $oCrawlerLogType;
+        return $this;
+    }
+
+    /**
+     * Return entity crawlerlogtype
+     *
+     * @return Marktjagd_Database_Entity_CrawlerLogType
+     */
+    public function getCrawlerLogType()
+    {
+        return $this->_oCrawlerLogType;
+    }
+
+
+    /**
+     * Set idCrawlerLog, value is casted to int
+     *
+     * @param mixed $mValue Value
+     * @return Marktjagd_Database_Entity_CrawlerLog
+     */
+    public function setIdCrawlerLog($mValue)
+    {
+        $this->_idCrawlerLog = (int) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns idCrawlerLog
+     *
+     * @return int idCrawlerLog
+     */
+    public function getIdCrawlerLog()
+    {
+        return $this->_idCrawlerLog;
+    }
+
+    /**
+     * Set idCrawlerConfig, value is casted to int
+     *
+     * @param mixed $mValue Value
+     * @return Marktjagd_Database_Entity_CrawlerLog
+     */
+    public function setIdCrawlerConfig($mValue)
+    {
+        $this->_idCrawlerConfig = (int) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns idCrawlerConfig
+     *
+     * @return int idCrawlerConfig
+     */
+    public function getIdCrawlerConfig()
+    {
+        return $this->_idCrawlerConfig;
+    }
+
+    /**
+     * Set idCrawlerLogType, value is casted to int
+     *
+     * @param mixed $mValue Value
+     * @return Marktjagd_Database_Entity_CrawlerLog
+     */
+    public function setIdCrawlerLogType($mValue)
+    {
+        $this->_idCrawlerLogType = (int) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns idCrawlerLogType
+     *
+     * @return int idCrawlerLogType
+     */
+    public function getIdCrawlerLogType()
+    {
+        return $this->_idCrawlerLogType;
+    }
+
+    /**
+     * Set start, value is casted to string
+     *
+     * @param mixed $mValue Value
+     * @return Marktjagd_Database_Entity_CrawlerLog
+     */
+    public function setStart($mValue)
+    {
+        $this->_start = (string) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns start
+     *
+     * @param bool $bRaw Return raw data
+     * @return Zend_Date start
+     */
+    public function getStart($bRaw = false)
+    {
+        if ($bRaw) {
+            return $this->_start;
+        } else {
+            return $this->_start ? new Zend_Date($this->_start) : $this->_start;
+        }
+    }
+
+    /**
+     * Set end, value is casted to string
+     *
+     * @param mixed $mValue Value
+     * @return Marktjagd_Database_Entity_CrawlerLog
+     */
+    public function setEnd($mValue)
+    {
+        $this->_end = (string) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns end
+     *
+     * @param bool $bRaw Return raw data
+     * @return Zend_Date end
+     */
+    public function getEnd($bRaw = false)
+    {
+        if ($bRaw) {
+            return $this->_end;
+        } else {
+            return $this->_end ? new Zend_Date($this->_end) : $this->_end;
+        }
+    }
+
+    /**
+     * Returns the mapper class, if no one exists, default will be created.
+     *
+     * @return  Marktjagd_Database_Mapper_CrawlerLog
+     */
+    public function getMapper()
+    {
+        return parent::getMapper();
+    }
+
+    /**
+     * Saves data to database If the primary key is set,
+     * data will be updated.
+     *
+     * @param bool $bNull Save also null values
+     * @return int|mixed
+     */
+    public function save($bNull = false)
+    {
+        return $this->getMapper()->save($this, $bNull);
+    }
+
+    /**
+     * Loads the data by primary key(s). By multiple primary
+     * keys use an array with the values of the primary key columns.
+     *
+     * @param mixed $mId Primary key(s) value(s)
+     * @return bool True if found, otherwise false
+     */
+    public function find($mId)
+    {
+        return $this->getMapper()->find($mId, $this);
+    }
+
+    /**
+     * Set scheduled, value is casted to string
+     *
+     * @param mixed $mValue Value
+     * @return Marktjagd_Database_Entity_CrawlerLog
+     */
+    public function setScheduled($mValue)
+    {
+        $this->_scheduled = (string) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns scheduled
+     *
+     * @param bool $bRaw Return raw data
+     * @return Zend_Date end
+     */
+    public function getScheduled($bRaw = false)
+    {
+        if ($bRaw) {
+            return $this->_scheduled;
+        } else {
+            return $this->_scheduled ? new Zend_Date($this->_scheduled) : $this->_scheduled;
+        }
+    }
+
+    /**
+     * @param int $prio
+     * @return Marktjagd_Database_Entity_CrawlerLog
+     */
+    public function setPrio($prio)
+    {
+        $this->_prio = $prio;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPrio()
+    {
+        return $this->_prio;
+    }
+
+    /**
+     * @param int $processNumber
+     * @return Marktjagd_Database_Entity_CrawlerLog
+     */
+    public function setProcessNumber($processNumber)
+    {
+        $this->_processNumber = $processNumber;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getProcessNumber()
+    {
+        return $this->_processNumber;
+    }
+
+    /**
+     * @param string $errorMessage
+     * @return Marktjagd_Database_Entity_CrawlerLog
+     */
+    public function setErrorMessage($errorMessage)
+    {
+        $this->_errorMessage = $errorMessage;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getErrorMessage()
+    {
+        return $this->_errorMessage;
+    }
+
+    /**
+     * Fügt an eine bestehende ErrorMessage eine weitere an
+     *
+     * @param $errorMessage
+     * @return $this
+     */
+    public function addErrorMessage($errorMessage)
+    {
+        if (strlen($this->_errorMessage)) {
+            $this->_errorMessage .= "\n";
+        }
+
+        $this->_errorMessage .= $errorMessage;
+        return $this;
+    }
+
+    /**
+     * @param string $importEnd
+     * @return Marktjagd_Database_Entity_CrawlerLog
+     */
+    public function setImportEnd($importEnd)
+    {
+        $this->_importEnd = $importEnd;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getImportEnd()
+    {
+        return $this->_importEnd;
+    }
+
+    /**
+     * @param int $importId
+     * @return Marktjagd_Database_Entity_CrawlerLog
+     */
+    public function setImportId($importId)
+    {
+        $this->_importId = $importId;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getImportId()
+    {
+        return $this->_importId;
+    }
+
+    /**
+     * @param string $importStart
+     * @return Marktjagd_Database_Entity_CrawlerLog
+     */
+    public function setImportStart($importStart)
+    {
+        $this->_importStart = $importStart;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getImportStart()
+    {
+        return $this->_importStart;
+    }
+
+
+
+}

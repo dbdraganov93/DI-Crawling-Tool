@@ -1,0 +1,99 @@
+<?php
+
+class Marktjagd_Database_Entity_Status extends Marktjagd_Database_Entity_Abstract
+{
+    // table fields
+    protected $_idStatus;
+    protected $_statusName;
+
+    /**
+     * Contains mapping of table columns to function
+     *
+     * @var array
+     */
+    protected $_aColumnMap = array('idStatus' => 'IdStatus',
+                                   'statusName' => 'StatusName');
+
+
+    /**
+     * Set idStatus, value is casted to int
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_Status
+     */
+    public function setIdStatus($mValue)
+    {
+        $this->_idStatus = (int) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns idStatus
+     *
+     * @return int idStatus
+     */
+    public function getIdStatus()
+    {
+        return $this->_idStatus;
+    }
+
+    /**
+     * Set statusName, value is casted to string
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_Status
+     */
+    public function setStatusName($mValue)
+    {
+        $this->_statusName = (string) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns statusName
+     *
+     * @return string statusName
+     */
+    public function getStatusName()
+    {
+        return $this->_statusName;
+    }
+
+    /**
+     * Returns the mapper class, if no one exists, default will be created.
+     *
+     * @return  Marktjagd_Database_Mapper_Status
+     */
+    public function getMapper()
+    {
+        return parent::getMapper();
+    }
+
+    /**
+     * Saves data to database If the primary key is set,
+     * data will be updated.
+     *
+     * @param bool $bNull Save also null values
+     *
+     * @return void
+     */
+    public function save($bNull = false)
+    {
+        $this->getMapper()->save($this, $bNull);
+    }
+
+    /**
+     * Loads the data by primary key(s). By multiple primary
+     * keys use an array with the values of the primary key columns.
+     *
+     * @param mixed $mId Primary key(s) value(s)
+     *
+     * @return bool True if found, otherwise false
+     */
+    public function find($mId)
+    {
+        return $this->getMapper()->find($mId, $this);
+    }
+}

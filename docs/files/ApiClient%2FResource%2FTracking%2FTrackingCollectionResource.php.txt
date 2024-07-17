@@ -1,0 +1,84 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the TrackingCollectionResource class.
+ *
+ * PHP version 5
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  tracking
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Resource\Tracking;
+
+use Marktjagd\ApiClient\Resource;
+
+/**
+ * Tracking collection resource.
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  tracking
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+class TrackingCollectionResource extends Resource\CollectionResource
+{
+    
+    protected static $loggingEnabled = false;
+
+
+    /**
+     * Sets the resource definition.
+     *
+     * @return void
+     */
+    protected function setResourceDefinition()
+    {
+        $this->hasAttribute(new Resource\ResourceAttributeInteger('hits'));
+    }
+
+    public function toArray()
+    {
+        $array = parent::toArray();
+        $resourceName = self::getResourceName();
+        $resources = array();
+
+        foreach ($this->resources[$resourceName] as $resource)
+        {
+            $resources[] = $resource->toArray();
+        }
+
+        $array[$resourceName] = $resources;
+
+        return $array;
+    }
+
+    public function offsetSet($index, $value)
+    {
+        if (is_string($index))
+        {
+            return parent::offsetSet($index, $value);
+        }
+
+        if (!is_null($index))
+        {
+            throw new Resource\ResourceException('Setting a specific index is not allowed');
+        }
+
+        if (!$value instanceof TrackingResource)
+        {
+            throw new Resource\ResourceException('Object of type TrackingResource expected, ' . gettype($value) . ' given');
+        }
+
+        $this->resources[self::getResourceName()][] = $value;
+    }
+
+}
+

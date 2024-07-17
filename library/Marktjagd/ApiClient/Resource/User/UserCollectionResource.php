@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the UserCollectionResource class.
+ *
+ * PHP version 5
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  user
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Resource\User;
+
+use Marktjagd\ApiClient\Resource;
+
+/**
+ * User collection resource
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  user
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+class UserCollectionResource extends Resource\CollectionResource
+{
+
+    /**
+     * Sets the resource definition.
+     *
+     * @return void
+     */
+    protected function setResourceDefinition()
+    {
+        $this->hasAttribute(new Resource\ResourceAttributeInteger('hits'));
+    }
+
+}

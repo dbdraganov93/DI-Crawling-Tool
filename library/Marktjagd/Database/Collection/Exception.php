@@ -1,0 +1,5 @@
+<?php
+
+class Marktjagd_Database_Collection_Exception extends Marktjagd_Database_Exception
+{
+}

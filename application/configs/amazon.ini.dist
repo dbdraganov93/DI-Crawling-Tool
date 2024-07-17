@@ -1,0 +1,6 @@
+;amazon config for marktjagd (affiliate programm)
+
+mjAffiliate.countryCode     = "DE"
+mjAffiliate.associateTag    = "see amazon affiliate account"
+mjAffiliate.appId           = ""
+mjAffiliate.secretKey       = ""

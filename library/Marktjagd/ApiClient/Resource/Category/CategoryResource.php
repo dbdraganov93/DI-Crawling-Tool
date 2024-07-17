@@ -1,0 +1,53 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the CategoryResource class.
+ *
+ * PHP version 5
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  category
+ * @author      Robert Freigang <robert.freigang@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Resource\Category;
+
+use Marktjagd\ApiClient\Resource;
+
+/**
+ * Category resource.
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  category
+ * @author      Robert Freigang <robert.freigang@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+class CategoryResource extends Resource\Resource
+{
+
+    protected static $hasCollection = true;
+
+    /**
+     * Sets the resource definition.
+     *
+     * @return void
+     */
+    protected function setResourceDefinition()
+    {
+        $this
+            ->hasAttribute(new Resource\ResourceAttributeInteger('article_hits'))
+            ->hasAttribute(new Resource\ResourceAttributeInteger('offer_hits'))
+            ->hasAttribute(new Resource\ResourceAttributeInteger('store_hits'))
+
+            ->hasField(new Resource\ResourceFieldInteger('id'), true)
+            ->hasField(new Resource\ResourceFieldInteger('parent_id'))
+            ->hasField(new Resource\ResourceFieldString('title'));
+    }
+
+}

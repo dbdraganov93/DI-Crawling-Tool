@@ -1,0 +1,202 @@
+<?php
+
+/**
+ * Service-Klasse, die sich um das Abrufen/Crawlen einer Webseite kümmert
+ *
+ * Class Marktjagd_Service_Input_Page
+ */
+class Marktjagd_Service_Input_Page
+{
+    /* @var Marktjagd_Entity_Page */
+
+    protected $page;
+
+    /**
+     * Konstruktor
+     */
+    public function __construct($rawMode = false)
+    {
+        $this->page = new Marktjagd_Entity_Page($rawMode);
+    }
+
+    /**
+     * Öffnet eine HTML Seite
+     *
+     * @param string $url
+     * @param array $params
+     * @throws Exception
+     * @return bool
+     */
+    public function open($url, $params = array())
+    {
+        $page = $this->page;
+
+        // Wartezeit für den Crawler
+        usleep(200 * 1000);
+
+        if ('' == trim($url))
+        {
+            $page->setErrorString('missing paramater: $url');
+            return false;
+        }
+
+        $client = $page->getClient();
+        $client->setUri(($url));
+        $client->setConfig(array(
+            'maxredirects' => $page->getLoadTries(),
+            'timeout' => $page->getTimeout(),
+            'useragent' => $page->getUserAgent()
+        ));
+
+        if ($page->getMethod() == 'GET')
+        {
+            $client->setParameterGet($params);
+        } elseif ($page->getMethod() == 'POST')
+        {
+            $client->setParameterPost($params);
+        } else
+        {
+            $page->setErrorString('method ' . $page->getMethod() . ' is not allowed');
+            return false;
+        }
+
+        // Prüft auf die robots.txt
+        if (!$page->getIgnoreRobots())
+        {
+            $robots = new Marktjagd_Service_Validator_RobotsTxt();
+            if (!$robots->checkRobotsPermission($url))
+            {
+                $page->setErrorString('disallowed by robots.txt');
+                return false;
+            }
+        }
+
+        // Prüft, ob Cookies gesetzt/benutzt werden sollen
+        if ($page->getUseCookies())
+        {
+            // Cookies in Session gespeichert?
+            if (isset($_SESSION['cookiejar']) &&
+                    $_SESSION['cookiejar'] instanceof Zend_Http_CookieJar
+            )
+            {
+
+                $client->setCookieJar($_SESSION['cookiejar']);
+            } else
+            {
+                // Falls nicht, speichere die Cookies
+                $client->setCookieJar();
+            }
+        }
+
+        // Absenden des Requests & Empfangen der Antwort
+        $response = $client->request($page->getMethod());
+
+        if ($page->getUseCookies())
+        {
+            // Speichere die Cookies in der Session für die nächste Seite
+            $_SESSION['cookiejar'] = $client->getCookieJar();
+        }
+
+        if ($page->getStoreHeaderInformations())
+        {
+            $page->setResponseHeader($response->getHeaders());
+        }
+
+        $page->setResponseBody($this->_transformResponse($response->getBody(), $params));
+
+        return true;
+    }
+
+    /**
+     * Bereinigt/Modifiziert die Response anhand der übergebenen oder gesetzten Parameter
+     * @param $response
+     * @param $params
+     * @return string
+     */
+    protected function _transformResponse($response, $params)
+    {
+        $sTextFormat = new Marktjagd_Service_Text_TextFormat();
+        $page = $this->getPage();
+
+        // Konvertiert Zeichensatz in UTF-8
+        if ((array_key_exists('convertCharset', $params) && true === $params['convertCharset']) || (!array_key_exists('convertCharset', $params) && true === $page->getAlwaysConvertCharset())
+        )
+        {
+            $response = $sTextFormat->convertTextToUtf8($response);
+        }
+
+        // Konvertiert HTML-Entities in UTF-8 Zeichen
+        if ((array_key_exists('htmlDecode', $params) && true === $params['htmlDecode']) || (!array_key_exists('htmlDecode', $params) && true === $page->getAlwaysHtmlDecode())
+        )
+        {
+            $response = $sTextFormat->htmlDecode($response);
+        }
+
+        // Entfernt alle HTML Kommentare
+        if ((array_key_exists('stripComments', $params) && true === $params['stripComments']) || (!array_key_exists('stripComments', $params) && true === $page->getAlwaysStripComments())
+        )
+        {
+            $response = $sTextFormat->stripComments($response);
+        }
+
+        // Entfernt alle Zeilenumbrüche
+        if ((array_key_exists('stripNewLines', $params) && true === $params['stripNewLines']) || (!array_key_exists('stripNewLines', $params) && true === $page->getAlwaysStripNewLines())
+        )
+        {
+            $response = $sTextFormat->stripNewLines($response);
+        }
+
+        // Entfernt alle Leerzeichen
+        if ((array_key_exists('stripWhiteSpace', $params) && true === $params['stripWhiteSpace']) || (!array_key_exists('stripWhiteSpace', $params) && true === $page->getAlwaysStripWhiteSpace())
+        )
+        {
+            $response = $sTextFormat->stripWhiteSpace($response);
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param Marktjagd_Entity_Page $page
+     * @return Marktjagd_Service_Input_Page
+     */
+    public function setPage($page)
+    {
+        $this->page = $page;
+        return $this;
+    }
+
+    /**
+     * @return Marktjagd_Entity_Page
+     */
+    public function getPage()
+    {
+        return $this->page;
+    }
+
+    /**
+     * Funktion zur Pürfung der URL-Erreichbarkeit
+     * 
+     * @param string zu prüfende URL $url
+     * @return string|NULL
+     */
+    public function checkUrlReachability($url)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_NOBODY, TRUE);
+        curl_setopt($ch, CURLOPT_HEADER, TRUE);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_exec($ch);
+        $info = curl_getinfo($ch);
+        curl_close($ch);
+
+        if (!preg_match('#200#', $info['http_code']))
+        {
+            return NULL;
+        }
+        
+        return $url;
+    }
+
+}
+

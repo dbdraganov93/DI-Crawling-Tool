@@ -1,0 +1,32 @@
+<?php
+
+class Marktjagd_Database_Collection
+{
+    /**
+     * Creates a collection object.
+     *
+     * @param mixed	$mCollection Name or object (Marktjagd_Database_Abstract, Marktjagd_Database_Mapper_Abstract)
+     * @param array|Zend_Db_Table_Rowset_Abstract $mResults Rowset or array with data
+     * @param string $sIndex Value of object property which should be used as index
+     * @throws Marktjagd_Database_Exception
+     *
+     * @return Marktjagd_Database_Collection_Abstract
+     */
+    public static function factory($mCollection, $mResults = null, $sIndex = '')
+    {
+        // get collection name by class name
+        if ($mCollection instanceof Marktjagd_Database_Entity_Abstract) {
+            $mCollection = str_replace('Entity', 'Collection', get_class($mCollection));
+        } elseif ($mCollection instanceof Marktjagd_Database_Mapper_Abstract) {
+            $mCollection = str_replace('Mapper', 'Collection', get_class($mCollection));
+        } elseif (is_string($mCollection)) {
+            $mCollection = 'Marktjagd_Database_Collection_' . $mCollection;
+        }
+
+        if (!is_string($mCollection)) {
+            throw new Marktjagd_Database_Exception('Invalid collection provided');
+        }
+
+        return new $mCollection($mResults, $sIndex);
+    }
+}

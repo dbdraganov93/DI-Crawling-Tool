@@ -1,0 +1,17 @@
+[testing]
+config.iproto.host              = 'https://iproto.public-elb.di-vostok.offerista.com'
+config.iproto.auth0.host        = ''
+config.iproto.auth0.clientId    = ''
+config.iproto.auth0.clientSecret= ''
+
+[staging]
+config.iproto.host              = 'https://iproto.public-elb.di-stage.offerista.com'
+config.iproto.auth0.host        = ''
+config.iproto.auth0.clientId    = ''
+config.iproto.auth0.clientSecret= ''
+
+[production]
+config.iproto.host              = 'https://iproto.public-elb.di-prod.offerista.com'
+config.iproto.auth0.host        = ''
+config.iproto.auth0.clientId    = ''
+config.iproto.auth0.clientSecret= ''

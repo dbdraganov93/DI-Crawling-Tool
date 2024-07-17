@@ -1,0 +1,75 @@
+<?php
+
+namespace Marktjagd\ApiClient\Request;
+
+/**
+ * RequestLoggerFirePhp
+ *
+ * @author Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ */
+class RequestLoggerFirePhp extends RequestLogger
+{
+
+    protected $firephp;
+
+    /**
+     * @see RequestLogger::initialize()
+     * @throws RuntimeException if FirePHP is not installed
+     */
+    protected function initialize()
+    {
+        if (!class_exists('FirePHP')) {
+            throw new \RuntimeException('FirePHP not installed');
+        }
+        
+        $this->firephp = \FirePHP::getInstance(true);
+    }
+
+    /**
+     * @see RequestLogger::doLog()
+     */
+    protected function doLog(Request $request, $logLevel)
+    {
+        $logMethod = self::getLogLevelName($logLevel);
+
+        $message = Request::getMethodName($request->getMethod()) . ' ' .
+            $request->generateUrl() . ' ' . $request->getResponseStatusCode() . ' ' .
+            $request->getResponseInfo('total_time') . ' sec';
+        $this->firephp->$logMethod($message);
+
+        $requestBody = $request->getRequestBody();
+
+        if (!empty($requestBody))
+        {
+            if (self::isBinary($requestBody))
+            {
+                $requestBody = '[binary data]';
+            }
+
+            $this->firephp->$logMethod($this->decodeJson($requestBody));
+        }
+
+        if ($this->getOption('log_response_body', true))
+        {
+            $this->firephp->$logMethod($this->decodeJson($request->getResponseBody()));
+        }
+
+        return true;
+    }
+
+    /**
+     * Return the decoded message if it was valid JSON. Otherwise the original
+     * message is returned.
+     *
+     * @param string $message message
+     * @return mixed decoded json object or original message
+     */
+    protected function decodeJson($message)
+    {
+        $decodedMessage = json_decode($message);
+
+        return is_null($decodedMessage) ? $message : $decodedMessage;
+    }
+
+}
+

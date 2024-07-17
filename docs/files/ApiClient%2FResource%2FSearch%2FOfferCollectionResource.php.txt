@@ -1,0 +1,85 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the OfferCollectionResource class.
+ *
+ * PHP version 5
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  search
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Resource\Search;
+
+use Marktjagd\ApiClient\Resource;
+
+/**
+ * Offer collection resource
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  search
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+class OfferCollectionResource extends Resource\CollectionResource
+{
+
+    /**
+     * Sets the resource definition.
+     *
+     * @return void
+     */
+    protected function setResourceDefinition()
+    {
+        $this
+            ->hasAttribute(new Resource\ResourceAttributeInteger('hits'))
+            ->hasAttribute(new Resource\ResourceAttributeInteger('collapse_hits'));
+    }
+
+    /**
+     * @see CollectionResource::load()
+     */
+    public function load(\stdClass $response, $className = null)
+    {
+        foreach ($this->attributes as $name => $attribute)
+        {
+            $attribute->setValue(isset($response->{'@attributes'}->$name) ? $response->{'@attributes'}->$name : null);
+        }
+
+        foreach ($this->resources as $name => $resource)
+        {
+            if (isset($response->$name) && $response->$name instanceof \stdClass)
+            {
+                $resource->load($response->$name);
+            }
+        }
+
+        $resourceName = self::getResourceName();
+
+        $this->position = 0;
+        $this->resources[$resourceName] = array();
+
+        if (isset($response->$resourceName))
+        {
+            foreach ($response->$resourceName as $r)
+            {
+                $item = Resource\ResourceFactory::create($r->{'@attributes'}->type);
+                $item->load($r);
+                $this->resources[$resourceName][] = $item;
+            }
+        }
+
+        $this->isNew = false;
+
+        return $this;
+    }
+
+}
+

@@ -1,0 +1,15 @@
+<?php
+
+class Marktjagd_Database_Service_Stellwerk extends Marktjagd_Database_Service_Abstract
+{
+    
+    public function findAll()
+    {
+        $cStellwerk = new Marktjagd_Database_Collection_Stellwerk();
+        $mStellwerk = new Marktjagd_Database_Mapper_Stellwerk();
+        
+        $mStellwerk->fetchAll(NULL, $cStellwerk);
+        
+        return $cStellwerk;
+    }
+}

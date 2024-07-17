@@ -1,0 +1,29 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "additional_properties",
+    "title": "Json schema for additional product properties",
+    "description": "This json schema describes the product feature of 'additional properties'. This feature is used to add new information to products.",
+    "type": "object",
+    "properties": {
+        "energyLabel": {
+            "type": "string",
+            "pattern": "[ABCDEFG]"
+        },
+        "unitPrice": {
+            "type": "object",
+            "required": [
+                "value",
+                "unit"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "value": {
+                    "type": "string"
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

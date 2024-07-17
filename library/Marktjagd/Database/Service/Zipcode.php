@@ -1,0 +1,42 @@
+<?php
+
+class Marktjagd_Database_Service_Zipcode extends Marktjagd_Database_Service_Abstract
+{
+    /**
+     * Ermittelt alle Postleitzahlen aus Deutschland
+     *
+     * @param int $digits
+     * @return array|bool
+     */
+    public function findAllZipcodes($digits = 5)
+    {
+        $mCrawlerZipcode = new Marktjagd_Database_Mapper_Zipcode();
+        return $mCrawlerZipcode->findAllZipcodes($digits);
+    }
+
+    /**
+     * Liefert ein Array mit Postleitzahlen aus Deutschland die sich auf einem
+     * Gitter mit der übergebenen Maschengröße befinden.
+     *
+     * @param int $netSize Maschengröße in km (sollte nicht kleiner als 25km sein)
+     * @return array|bool
+     */
+    public function findZipcodeByGrid($netSize)
+    {
+        $mCrawlerZipcode = new Marktjagd_Database_Mapper_Zipcode();
+        return $mCrawlerZipcode->findZipcodeByGrid($netSize);
+    }
+
+    /**
+     * Ermittelt umliegende Postleitzahlen, ausgehend von der PLZ und der Entfernung
+     *
+     * @param $zipCode
+     * @param $maxDistance
+     * @return array|bool
+     */
+    public function findNeighborhoodZipcodes($zipCode, $maxDistance)
+    {
+        $mCrawlerZipcode = new Marktjagd_Database_Mapper_Zipcode();
+        return $mCrawlerZipcode->findNeighborhoodZipcodes($zipCode, $maxDistance);
+    }
+}

@@ -1,0 +1,66 @@
+version: '2'
+services:
+
+    # Datasources
+
+    mysql-php-gui:
+        container_name: mysql-php-gui-dev
+        image: docker-registry.marktjagd.de/docker/mysql-php-gui:dev
+        ports:
+            - 3307:3307
+        environment:
+            - MYSQL_ROOT_PASSWORD=root
+
+    mysql-crawler:
+        container_name: mysql-crawler-dev
+        image: docker-registry.marktjagd.de/docker/mysql:5.5
+        environment:
+            - MYSQL_ROOT_PASSWORD=root
+
+    # Migration
+
+    wait-mysql-crawler:
+        container_name: wait-mysql-crawler-dev
+        image: docker-registry.marktjagd.de/docker/wait:0.1.0
+        command:
+            -wait tcp://mysql-crawler:3306 -timeout 60s
+        links:
+            - mysql-crawler
+
+    migrate-mysql-crawler:
+        container_name: migrate-mysql-crawler-dev
+        image: docker-registry.marktjagd.de/docker/mysql-crawler-migration:dev
+        links:
+            - mysql-crawler
+
+    # Services
+
+    wildfly-crawler:
+        container_name: wildfly-crawler-st
+        image: docker-registry.marktjagd.de/docker/wildfly-crawler:st
+        ports:
+            - 8080:8080
+            - 9990:9990
+        links:
+            - mysql-crawler
+
+    wait-wildfly:
+        container_name: wait-wildfly-st
+        image: docker-registry.marktjagd.de/docker/wait:0.1.0
+        command:
+            -wait http://wildfly-crawler:8080/api/extraction/1 -timeout 180s
+        links:
+            - wildfly-crawler
+
+    apache-di-gui:
+        container_name: apache-di-gui
+        image: docker-registry.marktjagd.de/docker/apache-php-gui:dev
+        environment:
+            - APPLICATION_ENV=development
+        volumes:
+            - ../../../:/var/www/html/
+        ports:
+            - 80:80
+        links:
+            - mysql-php-gui
+            - wildfly-crawler

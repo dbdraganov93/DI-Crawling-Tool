@@ -1,0 +1,54 @@
+<?php
+
+class Marktjagd_Database_Service_AdAnalysis extends Marktjagd_Database_Service_Abstract
+{
+    /**
+     * Ermittelt alle verfügbaren Unternehmen
+     * 
+     * @return Marktjagd_Database_Collection_AdAnalysis
+     */
+    public function findAll()
+    {
+        $cAdAnalysis = new Marktjagd_Database_Collection_AdAnalysis();
+        $mAdAnalysis = new Marktjagd_Database_Mapper_AdAnalysis();
+        
+        $mAdAnalysis->fetchAll(null, $cAdAnalysis);
+        
+        return $cAdAnalysis;
+    }
+    
+    /**
+     * Findet Eintrag anhand der ID
+     * 
+     * @param string $idAdAnalysis ID des DB-Eintrags
+     * @return Marktjagd_Database_Entity_AdAnalysis DB-Eintrag
+     */
+    public function find($idAdAnalysis)
+    {
+        $eAdAnalysis = new Marktjagd_Database_Entity_AdAnalysis();
+        $mAdAnalysis = new Marktjagd_Database_Mapper_AdAnalysis();
+        
+        $mAdAnalysis->find($idAdAnalysis, $eAdAnalysis);
+        
+        return $eAdAnalysis;
+    }
+    
+    /**
+     * Findet alle Ads innerhalb eines gegebenen Zeitraumes für ein spezifisches Unternehmen
+     * 
+     * @param string $idCompany Unternehmens-ID
+     * @param string $startDate Start-Datum
+     * @param string $endDate End-Datum
+     * @return \Marktjagd_Database_Collection_AdAnalysis Collection mit dem Ergebnis
+     */
+    public function findAdsForCompanyByIdAndTimeAndType($idCompany, $startDate, $endDate, $type = 'brochures')
+    {
+        $cAdAnalysis = new Marktjagd_Database_Collection_AdAnalysis();
+        $mAdAnalysis = new Marktjagd_Database_Mapper_AdAnalysis();
+        
+        $mAdAnalysis->findAdsForCompanyByIdAndTimeAndType($idCompany, $startDate, $endDate, $type, $cAdAnalysis);
+        
+        return $cAdAnalysis;
+    }
+    
+}

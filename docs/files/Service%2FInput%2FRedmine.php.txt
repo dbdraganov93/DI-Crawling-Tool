@@ -1,0 +1,147 @@
+<?php
+
+class Marktjagd_Service_Input_Redmine
+{
+
+    protected $_Ids;
+
+    /**
+     * Funktion, um die Unternehmen zu finden, welche in der Roadmap eingetragen sind
+     * 
+     * @return array $Ids alle in der Roadmap eingetragenen Unternehmens-ID's
+     */
+    public function getCompanies($projectName = 'DI - manuelle/wiederkehrende Aufgaben')
+    {
+        $configIni = new Zend_Config_Ini(APPLICATION_PATH . '/configs/application.ini', 'production');
+        $config = $configIni->redmine->mj->apikey;
+
+        $client = new Redmine\Client('https://redmine.offerista.com', $config);
+
+        $aProject = $client->api('project');
+        $aRoadmap = $client->api('version');
+        $aRoadmapOverview = $aRoadmap->all($aProject->getIdByName($projectName));
+        $aRoadmapEntries = $aRoadmapOverview['versions'];
+
+        foreach ($aRoadmapEntries as $singleEntry) {
+            if (preg_match('#open#', $singleEntry['status']) && preg_match('#ID\'?s?:\s*([0-9]+)#', $singleEntry['name'], $idCompanyMatch)) {
+                $this->_Ids[$idCompanyMatch[1]]['name'] = $singleEntry['name'];
+                $this->_Ids[$idCompanyMatch[1]]['fixedVersionId'] = $singleEntry['id'];
+            }
+        }
+
+        asort($this->_Ids);
+
+        return $this->_Ids;
+    }
+
+    /**
+     * Funktion, um mithilfe der Company-ID die Redmine-ID zu finden
+     * 
+     * @param string $companyId
+     * @return string/bool
+     */
+    public function getRedmineIdByCompanyId($companyId)
+    {
+        $sDbRedmine = new Marktjagd_Database_Service_Redmine();
+
+        return $sDbRedmine->find($companyId)->getIdRedmine();
+    }
+
+    /**
+     * Funktion, um mithilfe der Redmine-ID die Company-ID zu finden
+     * 
+     * @param string $redmineId
+     * @return string/bool
+     */
+    public function getCompanyIdByRedmineId($redmineId)
+    {
+        $sDbRedmine = new Marktjagd_Database_Service_Redmine();
+
+        return $sDbRedmine->findByRedmineId($redmineId)->getIdCompany();
+    }
+
+    /**
+     * Funktion, um Tasks aus der Relation anhand der Redmine-ID zu finden
+     * 
+     * @param string $redmineId
+     * @return array $aTasks
+     */
+    public function getTasksByCompany($redmineId)
+    {
+        $sTask = new Marktjagd_Database_Service_Task();
+        $aTasks = $sTask->findTasksById($redmineId);
+
+        return $aTasks;
+    }
+
+    /**
+     * 
+     * @param string $strTracker
+     * @return int/boolean
+     */
+    public function findTrackerId($strTracker)
+    {
+        $configIni = new Zend_Config_Ini(APPLICATION_PATH . '/configs/application.ini', 'production');
+        $config = $configIni->redmine->mj->apikey;
+
+        $client = new Redmine\Client('https://redmine.offerista.com', $config);
+
+        $aTracker = $client->api('tracker')->all();
+        foreach ($aTracker['trackers'] as $singleTracker) {
+            if (preg_match($strTracker, $singleTracker['name'])) {
+                return $singleTracker['id'];
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 
+     * @param string $strVersion
+     * @return int/boolean
+     */
+    public function findVersionId($strVersion)
+    {
+        $configIni = new Zend_Config_Ini(APPLICATION_PATH . '/configs/application.ini', 'production');
+        $config = $configIni->redmine->mj->apikey;
+
+        $client = new Redmine\Client('https://redmine.offerista.com', $config);
+
+        $aProject = $client->api('project');
+        $aRoadmap = $client->api('version');
+        $aRoadmapOverview = $aRoadmap->all($aProject->getIdByName('Datenintegration'));
+
+        foreach ($aRoadmapOverview['versions'] as $singleVersion) {
+            if (preg_match($strVersion, $singleVersion['name'])) {
+                return $singleVersion['id'];
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Funktion, um alle offenen Tickets einer Version zu finden
+     */
+    public function findAllTicketsForSpecificVersionId($roadmapName = 'automatisch generierte tickets')
+    {
+        $configIni = new Zend_Config_Ini(APPLICATION_PATH . '/configs/application.ini', 'production');
+        $config = $configIni->redmine->mj->apikey;
+
+        $client = new Redmine\Client('https://redmine.offerista.com', $config);
+        
+        $aProject = $client->api('project');
+        $aIssues = $client->api('issue');
+        
+        $aIssuesOpen = $aIssues->all(array('project_id' => $aProject->getIdByName('Datenintegration')));
+        $aIssuesToFix = array();
+        foreach ($aIssuesOpen['issues'] as $singleIssueOpen) {
+            if (preg_match('#' . $roadmapName . '#i', $singleIssueOpen['fixed_version']['name'])) {
+                $aIssuesToFix[] = $singleIssueOpen;
+            }
+        }
+        
+        return $aIssuesToFix;
+    }
+
+}
+

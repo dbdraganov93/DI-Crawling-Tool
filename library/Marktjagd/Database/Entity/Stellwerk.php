@@ -1,0 +1,44 @@
+<?php
+
+class Marktjagd_Database_Entity_Stellwerk extends Marktjagd_Database_Entity_Abstract
+{
+
+    protected $_idCompany;
+    
+    /*
+     * @var Marktjagd_Database_Entity_Company
+     */
+    protected $_oCompany;
+    
+    protected $_aColumnMap = array(
+        'idCompany' => 'IdCompany'
+    );
+    
+    protected $_aRelationMap = array('Company' => 'Marktjagd_Database_Entity_Company');
+    
+    protected $_aRelationPropertyMap = array('Company' => 'Company');
+
+    public function getIdCompany()
+    {
+        return $this->_idCompany;
+    }
+
+    public function getCompany()
+    {
+        return $this->_oCompany;
+    }
+
+    public function setIdCompany($idCompany)
+    {
+        $this->_idCompany = $idCompany;
+        return $this;
+    }
+
+    public function setCompany(Marktjagd_Database_Entity_Company $oCompany)
+    {
+        $this->_oCompany = $oCompany;
+
+        return $this;
+    }
+
+}

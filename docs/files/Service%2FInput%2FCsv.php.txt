@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * Service zum Einlesen und Verarbeiten von CSVs
+ *
+ * Class Marktjagd_Service_Input_Csv
+ */
+class Marktjagd_Service_Input_Csv
+{
+    /**
+     * Ermittelt das Trennzeichen einer CSV
+     *
+     * @param string $filename
+     * @return string
+     * @throws Exception
+     */
+    public function findDelimiter($filename){
+        /* @var $logger Zend_Log */
+        $logger = Zend_Registry::get('logger');
+
+        $fp = @fopen($filename, 'r');
+        if (!$fp) {
+            $logger->log('Error while opening file ' . $filename, Zend_Log::ERR);
+            return false;
+        }
+
+        /**
+         * Versuchen die erste Zeile der Datei mit verschiedenen Trennzeichen zu lesen.
+         * Das erste Trennzeichen für das mehr als zwei Spalten geliefert werden,
+         * wird als gültiges Trennzeichen gewertet.
+         */
+        $delimiters = array(';', ',', "\t", '|');
+
+        foreach ($delimiters as $delimiter) {
+            rewind($fp);
+            $line = fgetcsv($fp, 65000, $delimiter, '"', '"');
+
+            if (count($line) > 2) {
+                fclose($fp);
+                return $delimiter;
+            }
+        }
+
+        fclose($fp);
+
+        $logger->log('Couldn\'t get csv delimiter for file ' . $filename, Zend_Log::ERR);
+        return false;
+    }
+}

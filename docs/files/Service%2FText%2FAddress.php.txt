@@ -1,0 +1,259 @@
+<?php
+
+/**
+ * Beinhaltet Funktionalitäten zum Bearbeiten / Umwandeln / Vergleichen von Adressdaten
+ */
+class Marktjagd_Service_Text_Address {
+
+    public static $EXTRACT_STREET = 'street';
+    public static $EXTRACT_STREET_NR = 'streetnumber';
+    public static $EXTRACT_ZIP = 'zip';
+    public static $EXTRACT_CITY = 'city';
+
+
+    /**
+     * Extrahiert einen Teil der Adresse aus einem String
+     *
+     * @param string $type Art des zu extrahierenden Adressteils
+     * @param string $text Teil der Adresse
+     * @return string
+     */
+    public function extractAddressPart($type, $text)
+    {
+        $sConnector = new Marktjagd_Service_Mastercrawler_Connector();
+        $aParams = array('ContentStringValue' => json_encode($text));
+        $retValue = '';
+
+        // Hausnummer zurückgeben
+        if (strtolower($type) == 'streetnumber' || 'streetnr' || 'street_number') {
+            $oData = $sConnector->useService('Extractor.StreetNumberOldExtractorService', $aParams);
+            $retValue = $oData->StreetNumberValue;
+        }
+
+        // Straße zurückgeben
+        if (strtolower($type) == 'street') {
+            $oData = $sConnector->useService('Extractor.StreetOldExtractorService', $aParams);
+            $retValue = $oData->StreetValue;
+        }
+
+        if (strtolower($type) == 'zip' || strtolower($type) == 'zipcode') {
+            $oData = $sConnector->useService('Extractor.ZipcodeOldExtractorService', $aParams);
+            $retValue = $oData->ZipcodeValue;
+        }
+
+        if (strtolower($type) == 'city') {
+            $oData = $sConnector->useService('Extractor.CityOldExtractorService', $aParams);
+            $retValue = $oData->CityValue;
+        }
+
+        return $retValue;
+
+    }
+
+    /**
+     * Normalisiert Straßennamen
+     * aus Abkürzungen und "ss" wird "straße"
+     * entfernt komplette Großschreibung
+     *
+     * @param $street
+     * @return string
+     */
+    public function normalizeStreet($street)
+    {
+        $sConnector = new Marktjagd_Service_Mastercrawler_Connector();
+        $aParams = array('ContentStringValue' => json_encode($street));
+        $oData = $sConnector->useService('Extractor.StreetOldExtractorService', $aParams);
+        $retValue = $oData->StreetValue;
+
+        return $retValue;
+    }
+
+    public function normalizeEmail($mail) {
+        $sConnector = new Marktjagd_Service_Mastercrawler_Connector();
+        $aParams = array('ContentStringValue' => json_encode($mail));
+        $oData = $sConnector->useService('Extractor.EmailSimpleExtractorService', $aParams);
+        $retValue = $oData->EmailValue;
+
+        return $retValue;
+    }
+
+    /**
+     * Normalisiert die Telefonnummer
+     *
+     * @param $phone
+     * @return string
+     */
+    public function normalizePhoneNumber($phone) {
+        $sConnector = new Marktjagd_Service_Mastercrawler_Connector();
+        $aParams = array('ContentStringValue' => json_encode($phone));
+        $oData = $sConnector->useService('Extractor.PhoneSimpleExtractorService', $aParams);
+        $retValue = $oData->PhoneValue;
+
+        return $retValue;
+    }
+
+    /**
+     * Normalisiert die Hausnummer
+     *
+     * @param string $streetNumber
+     * @return string
+     */
+    public function normalizeStreetNumber($streetNumber)
+    {
+        $sConnector = new Marktjagd_Service_Mastercrawler_Connector();
+        $aParams = array('ContentStringValue' => json_encode($streetNumber));
+        $oData = $sConnector->useService('Extractor.StreetNumberOldExtractorService', $aParams);
+        return $oData->StreetNumberValue;
+    }
+
+    /**
+     * Normalisiert die Stadt
+     * entfernt komplette Großschreibung
+     *
+     * @param $city
+     * @return string
+     */
+    public function normalizeCity($city) {
+        $sConnector = new Marktjagd_Service_Mastercrawler_Connector();
+        $aParams = array('ContentStringValue' => json_encode($city));
+        $oData = $sConnector->useService('Extractor.CityOldExtractorService', $aParams);
+        return $oData->CityValue;
+    }
+
+    /**
+     * Prüft, ob Geokoordinate valide ist
+     *
+     * @param string $coordType
+     * @param string $coordValue
+     * @return string
+     */
+    public function validateGeoCoords($coordType, $coordValue) {
+        switch ($coordType) {
+            case 'latitude':
+            case 'lat': {
+                    if ((float) $coordValue < 45 || (float) $coordValue > 56) {
+                        $coordValue = '';
+                    }
+                    break;
+                }
+            case 'longitude':
+            case 'lng': {
+                    if ((float) $coordValue < 5 || (float) $coordValue > 17) {
+                        $coordValue = '';
+                    }
+                }
+        }
+        return $coordValue;
+    }
+    
+    /**
+     * Entfernungsberechnung zwischen 2 Geokoordinaten nach Thaddeus Vincenty
+     * 
+     * @param float $x1 Breitengrad 1
+     * @param float $y1 Längengrad 1
+     * @param float $x2 Breitengrad 2
+     * @param float $y2 Längengrad 2
+     * @return float Entfernung
+     */
+    public function calculateDistanceFromGeoCoordinates($x1, $y1, $x2, $y2)
+    {
+        $earthFlattening = 1 / 298.257223563;
+        $radius = 6378.137;
+        
+        $F = ($x1 + $x2) / 2;
+        $G = ($x1 - $x2) / 2;
+        $l = ($y1 - $y2) / 2;
+        
+        $S = pow(sin(deg2rad($G)), 2) * pow(cos(deg2rad($l)), 2)
+                + pow(cos(deg2rad($F)), 2) * pow(sin(deg2rad($l)), 2);
+        $C = pow(cos(deg2rad($G)), 2) * pow(cos(deg2rad($l)), 2)
+                + pow(sin(deg2rad($F)), 2) * pow(sin(deg2rad($l)), 2);
+        
+        $w = atan(sqrt($S / $C));
+        
+        $D = 2 * $w * $radius;
+        
+        $T = sqrt($S * $C) / $w;
+        
+        $H1 = (3 * $T - 1) / (2 * $C);
+        $H2 = (3 * $T + 1) / (2 * $S);
+        
+        $distance = $D * (1 + $earthFlattening * $H1 * pow(sin(deg2rad($F)), 2) * pow(cos(deg2rad($G)), 2)
+                - $earthFlattening * $H2 * pow(cos(deg2rad($F)), 2) * pow(sin(deg2rad($G)), 2));
+        
+        return $distance;
+    }
+
+    /**
+     * Erzeugt anhand gegebenem Abstand ein PLZ-Gitter
+     * 
+     * @param string $netSize Maschengröße
+     * @return array
+     */
+    public function getRegionGrid($netSize, $geoLocation = FALSE) {
+        $sDbGeoRegion = new Marktjagd_Database_Service_GeoRegion();
+        $startLng = 6.0;
+        $endLng = 15;
+        $startLat = 47.5;
+        $endLat = 54.8;
+        $radius = 6378.137;
+        $aGeoData = array();
+        $retArr = array();
+        $aGeoRegion = $sDbGeoRegion->findAll();
+        
+        $northSouthDist = ($endLat - $startLat) * (2 * pi() * $radius / 360);
+        $diffY = ($netSize / $northSouthDist) * ($endLat - $startLat);
+        $lat = $startLat;
+        
+        // Erstellung des Geokoordinaten-Feldes
+        while ($lat <= $endLat) {
+            $eastWestDist = acos(cos(deg2rad($endLng - $startLng)) * pow(cos(deg2rad($lat)), 2) + pow(sin(deg2rad($lat)), 2)) * $radius;
+            $diffX = ($netSize / $eastWestDist) * ($endLng - $startLng);
+            
+            $lng = $startLng;
+            
+            while ($lng <= $endLng) {
+                $aGeoData[] = array(
+                    'lat' => $lat,
+                    'lng' => $lng
+                        );
+                $lng += $diffX;
+            }
+            
+            $lat += $diffY;
+        }
+        
+        // Berechnung der PLZ, welche den geringsten Abstand zu den gegebenen Geokoordinaten hat
+        foreach ($aGeoData as $singleGeoData) {
+            $maxDistance = 5000;
+            foreach ($aGeoRegion as $singleGeoRegion) {
+                $distance = $this->calculateDistanceFromGeoCoordinates(
+                        $singleGeoData['lat'],
+                        $singleGeoData['lng'],
+                        $singleGeoRegion->getLatitude(),
+                        $singleGeoRegion->getLongitude());
+                if ($distance < $netSize
+                        && $distance < $maxDistance) {
+                    $maxDistance = $distance;
+                    $aZipcodes[$singleGeoData['lat'] . '|' . $singleGeoData['lng']] = array(
+                        'zipcode' => $singleGeoRegion->getZipcode(),
+                        'distance' => $distance);
+                }
+            }
+            
+        }
+        foreach ($aZipcodes as $geoCoords => $singleZipcode) {
+            if ($geoLocation) {
+                $aGeo = preg_split('#\|#', $geoCoords);
+                $retArr[$singleZipcode['zipcode']]['zip'] = $singleZipcode['zipcode'];
+                $retArr[$singleZipcode['zipcode']]['lat'] = $aGeo[0];
+                $retArr[$singleZipcode['zipcode']]['lng'] = $aGeo[1];
+            } else {
+                $retArr[$singleZipcode['zipcode']] = $singleZipcode['zipcode'];
+            }
+        }
+        
+        return $retArr;
+    }
+}
+

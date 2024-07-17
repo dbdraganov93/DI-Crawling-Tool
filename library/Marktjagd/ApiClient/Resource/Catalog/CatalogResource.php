@@ -1,0 +1,109 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the CatalogResource class.
+ *
+ * PHP version 5
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  catalog
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Resource\Catalog;
+
+use Marktjagd\ApiClient\Resource;
+use Marktjagd\ApiClient\Request\Request;
+
+/**
+ * Catalog resource
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  catalog
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+class CatalogResource extends Resource\Resource
+{
+
+    const
+        TYPE_COMPANY = 'company',
+        TYPE_DISTRIBUTION = 'distribution',
+        TYPE_STORE = 'store',
+        TIME_CONSTRAINT_FUTURE = 'future',
+        TIME_CONSTRAINT_UPCOMING = 'upcoming',
+        TIME_CONSTRAINT_CURRENT = 'current',
+        TIME_CONSTRAINT_EXPIRED = 'expired',
+        TIME_CONSTRAINT_ARCHIVED = 'archived';
+
+    protected static $hasCollection = true;
+
+    /**
+     * Sets the resource definition
+     *
+     * @return void
+     */
+    protected function setResourceDefinition()
+    {
+        $this
+            ->hasField(new Resource\ResourceFieldInteger('id'), true)
+            ->hasField(new Resource\ResourceFieldString('type'))
+            ->hasField(new Resource\ResourceFieldString('type_id'))
+            ->hasField(new Resource\ResourceFieldString('status'))
+            ->hasField(new Resource\ResourceFieldInteger('company_id'))
+            ->hasField(new Resource\ResourceFieldString('title'))
+            ->hasField(new Resource\ResourceFieldString('time_constraint'))
+            ->hasField(new Resource\ResourceFieldBoolean('is_online'))
+            ->hasField(new Resource\ResourceFieldBoolean('is_affiliate'))
+            ->hasField(new Resource\ResourceFieldInteger('article_number'))
+            ->hasField(new Resource\ResourceFieldString('datetime_from'))
+            ->hasField(new Resource\ResourceFieldString('datetime_to'))
+            ->hasField(new Resource\ResourceFieldString('datetime_visible_from'))
+            ->hasField(new Resource\ResourceFieldString('datetime_visible_to'))
+            ->hasField(new Resource\ResourceFieldString('datetime_created'))
+            ->hasField(new Resource\ResourceFieldString('datetime_modified'))
+            ->hasField(new Resource\ResourceFieldString('datetime_removed'))
+            ->hasField(new Resource\ResourceFieldFloat('distance'));
+    }
+
+    /**
+     * Creates a new catalog. If a catalog with similar data already exists, this
+     * catalog is loaded instead.
+     *
+     * @return bool TRUE on success, FALSE otherwise
+     */
+    public function create()
+    {
+        $name = static::getName();
+        $primaryKey = $this->getPrimaryKey(Request::METHOD_PUT);
+
+        $this->request = new Request($name . (empty($primaryKey) ? '' : "/$primaryKey"));
+        $this->request->setRequestBody(json_encode(array($name => $this->toArray())));
+
+        if (!$this->request->put() || !(
+            $this->request->isResponseStatusCodeCreated() || $this->request->isResponseStatusCodeOk()
+            ))
+        {
+            return false;
+        }
+
+        $this->load($this->request->getResponse()->$name);
+        $this->isNew = false;
+        $this->isModified = false;
+
+        // logging
+        if ($this->request->isResponseStatusCodeCreated())
+        {
+            $this->log(null, $this);
+        }
+
+        return true;
+    }
+
+}

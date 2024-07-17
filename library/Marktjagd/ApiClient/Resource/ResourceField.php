@@ -1,0 +1,61 @@
+<?php
+
+/**
+ * Contains Description of ResourceFieldclass.
+ *
+ * PHP version 5
+ *
+ * @category Resource
+ * @package  Resource
+ * @author   Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license  Martktjagd GmbH
+ * @link     http://www.marktjagd.det
+ */
+
+namespace Marktjagd\ApiClient\Resource;
+
+/**
+ * Description of ResourceFieldclass
+ *
+ * @category Resource
+ * @package  Resource
+ * @author   Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license  Martktjagd GmbH
+ * @link     http://www.marktjagd.de
+ */
+class ResourceField
+{
+
+    protected
+        $name,
+        $value;
+
+    public function __construct($name, $default = null)
+    {
+        $this->name  = $name;
+        $this->value = $default;
+    }
+
+    public function __toString()
+    {
+        return $this->getValue();
+    }
+
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    public function getValue()
+    {
+        return $this->value;
+    }
+
+    public function setValue($value)
+    {
+        $this->value = $value;
+
+        return $this;
+    }
+
+}

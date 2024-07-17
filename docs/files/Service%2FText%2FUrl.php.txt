@@ -1,0 +1,34 @@
+<?php
+/**
+ * Beinhaltet Funktionen zum Prüfen / Umwandeln von Urls
+ */
+class Marktjagd_Service_Text_Url
+{
+    /**
+     * Prüft, ob eine URL eine interne URL ist
+     *
+     * @param $url
+     * @return bool
+     */
+    public function isInternalUrl($url)
+    {
+        if (preg_match('#\/opt\/crawler\/framework\/#', $url)
+            || preg_match('#https\:\/\/gui\.di\.marktjagd\.de#', $url)
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Konvertiert eine interne URL in einen absoluten Pfad
+     *
+     * @param $url
+     * @return string
+     */
+    public function convertInternalUrlToAbsolutePath($url)
+    {
+        return preg_replace('#https\:\/\/gui\.di\.marktjagd\.de\/(.*?)$#', '/opt/crawler/framework/public/$1', $url);
+    }
+}

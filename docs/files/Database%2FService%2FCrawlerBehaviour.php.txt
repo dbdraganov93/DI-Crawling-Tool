@@ -1,0 +1,16 @@
+<?php
+
+class Marktjagd_Database_Service_CrawlerBehaviour extends Marktjagd_Database_Service_Abstract
+{
+    /**
+     * Ermittelt alle verfügbaren Crawler-Behaviours
+     * @return Marktjagd_Database_Collection_CrawlerBehaviour
+     */
+    public function findAll()
+    {
+        $cCrawlerBehaviour = new Marktjagd_Database_Collection_CrawlerBehaviour();
+        $mCrawlerBehaviour = new Marktjagd_Database_Mapper_CrawlerBehaviour();
+        $mCrawlerBehaviour->fetchAll(null, $cCrawlerBehaviour);
+        return $cCrawlerBehaviour;
+    }
+}

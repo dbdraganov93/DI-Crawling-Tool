@@ -1,0 +1,31 @@
+<?php
+
+class Marktjagd_Database_Service_Partner extends Marktjagd_Database_Service_Abstract
+{
+    /**
+     * Findet einen Partner anhand der Company-Id
+     * @param $idCompany
+     * @return Marktjagd_Database_Entity_Partner
+     */
+    public function findByCompanyId($idCompany)
+    {
+        $ePartner = new Marktjagd_Database_Entity_Partner();
+        $mPartner = new Marktjagd_Database_Mapper_Partner();
+        $mPartner->findByCompanyId($idCompany, $ePartner);
+        return $ePartner;
+    }
+
+    /**
+     * Liest alle Partner aus der Datenbank aus
+     *
+     * @return Marktjagd_Database_Collection_Partner
+     */
+    public function findAll()
+    {
+        $cPartner = new Marktjagd_Database_Collection_Partner();
+        $mPartner = new Marktjagd_Database_Mapper_Partner();
+        $mPartner->fetchAll(null, $cPartner);
+
+        return $cPartner;
+    }
+}

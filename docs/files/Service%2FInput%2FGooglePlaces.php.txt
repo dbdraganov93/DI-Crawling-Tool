@@ -1,0 +1,287 @@
+<?php
+
+/**
+ * Service zum Import von GooglePlaces Daten
+ */
+class Marktjagd_Service_Input_GooglePlaces {
+
+    protected $_aStoreNumber = array(
+        'Store Code',
+        'Geschäftscode',
+        'Complete"Store Code"'
+    );
+    protected $_aStoreName = array(
+        'Name',
+        'name'
+    );
+    protected $_aAddressLine1 = array(
+        'Address Line 1',
+        'Adresszeile 1',
+        'address_line_1'
+    );
+    protected $_aAddressLine2 = array(
+        'Address Line 2',
+        'Adresszeile 2'
+    );
+    protected $_aCity = array(
+        'City',
+        'CITY',
+        'Stadt',
+        'city',
+    );
+    protected $_aState = array(
+        'State',
+        'Bundesland',
+        'Bundesstaat',
+        'Bundesland/-staat'
+    );
+    protected $_aCountry = array(
+        'Country Code',
+        'Land'
+    );
+    protected $_aZipcode = array(
+        'Postal Code',
+        'Postleitzahl',
+        'postal_code'
+    );
+    protected $_aPhone = array(
+        'Main Phone',
+        'Telefonnummer',
+        'main_phone'
+    );
+    protected $_aAltPhone = array(
+        'Alt Phone',
+        'Alternative Telefonnummer'
+    );
+    protected $_aMobilePhone = array(
+        'Mobil Phone',
+        'Mobiltelefon'
+    );
+    protected $_aFax = array(
+        'Fax'
+    );
+    protected $_aHomepage = array(
+        'Home Page',
+        'Homepage'
+    );
+    protected $_aMail = array(
+        'Email',
+        'E-Mail'
+    );
+    protected $_aOpenings = array(
+        'Hours',
+        'Öffnungszeiten',
+        'hours'
+    );
+    protected $_aImages = array(
+        'Images',
+        'Bilder'
+    );
+    protected $_aPayment = array(
+        'Payment Types',
+        'Zahlungsmethode'
+    );
+    protected $_aCategories = array(
+        'Categories',
+        'Kategorien',
+        'Primäre Kategorie',
+        'Primary category'
+    );
+    protected $_aDescription = array(
+        'Description',
+        'Beschreibung',
+        'description'
+    );
+    protected $_aLatitude = array(
+        'Latitude',
+        'Breitengrad',
+        'c:Latitude:latitude'
+    );
+    protected $_aLongitude = array(
+        'Longitude',
+        'Längengrad',
+        'c:Longitude:longitude'
+    );
+
+    /**
+     * Generiert aus einer GooglePlaces-CSV eine Marktjagd-CSV
+     *
+     * @param int $companyId
+     * @param string $filePath Pfad zur GooglePlacesCsv
+     * @return bool|string
+     */
+    public function generateMjCsv($companyId, $filePath) {
+        $cStore = $this->generateMjCollection($companyId, $filePath);
+
+        $sCsv = new Marktjagd_Service_Output_MarktjagdCsvStore($companyId);
+        $fileName = $sCsv->generateCsvByCollection($cStore);
+
+        return $fileName;
+    }
+
+    /**
+     * Generiert aus einer GooglePlaces-CSV eine Marktjagd-Collection
+     *
+     * @param int $companyId
+     * @param string $filePath Pfad zur GooglePlacesCsv
+     * @return bool|Marktjagd_Collection_Api_Store
+     */
+    public function generateMjCollection($companyId, $filePath) {
+        $cStore = new Marktjagd_Collection_Api_Store($companyId);
+        $count = 0;
+        $headline = array();
+        if (($fh = fopen($filePath, "r")) !== FALSE) {
+
+            $sCsv = new Marktjagd_Service_Input_Csv();
+            $delimiter = $sCsv->findDelimiter($filePath);
+            if (!$delimiter) {
+                return false;
+            }
+
+            while (($data = fgetcsv($fh, 1000, $delimiter)) !== FALSE) {
+                if ($count == 0) {
+                    $headline = $data;
+                    $count++;
+                    continue;
+                }
+
+                if (count($data) != count($headline)) {
+                    continue;
+                }
+
+                foreach ($data as &$singleData) {
+                    if (mb_detect_encoding($singleData) == 'windows-1254') {
+                        $singleData = iconv('windows-1254', 'utf8', $singleData);
+                    }
+                }
+
+                $data = @array_combine($headline, $data);
+
+                $store = new Marktjagd_Entity_Api_Store();
+                $store = $this->_addAttribute($store, $data, $this->_aStoreNumber, 'setStoreNumber');
+                $store = $this->_addAttribute($store, $data, $this->_aStoreName, 'setTitle');
+                $store = $this->_addAttribute($store, $data, $this->_aCity, 'setCity');
+                $store = $this->_addAttribute($store, $data, $this->_aZipcode, 'setZipcode');
+
+                // Straße und Hausnummer
+                $streetWithNr = '';
+                foreach ($this->_aAddressLine1 as $keyAddressLine1) {
+                    if (array_key_exists($keyAddressLine1, $data)) {
+                        $streetWithNr .= ($data[$keyAddressLine1]);
+                        unset($data[$keyAddressLine1]);
+                    }
+                }
+
+                foreach ($this->_aAddressLine2 as $keyAddressLine2) {
+                    if (array_key_exists($keyAddressLine2, $data)) {
+                        // Wenn Adresszeile keine Zahl enthält, dann Inhalt ab in den subtitle
+                        if (preg_match('#[0-9]#', $data[$keyAddressLine2])) {
+                            if (strlen($streetWithNr)) {
+                                $streetWithNr .= ' ';
+                            }
+                            $streetWithNr .= ($data[$keyAddressLine2]);
+                        } else {
+                            $store->setSubtitle($data[$keyAddressLine2]);
+                        }
+                        unset($data[$keyAddressLine2]);
+                    }
+                }
+
+                $sStreet = new Marktjagd_Service_Text_Address();
+                $street = $sStreet->extractAddressPart('street', $streetWithNr);
+                $streetNr = $sStreet->extractAddressPart('streetnumber', $streetWithNr);
+                $store->setStreet($street)
+                        ->setStreetNumber($streetNr);
+
+                $store = $this->_addAttribute($store, $data, $this->_aPhone, 'setPhone');
+                $store = $this->_addAttribute($store, $data, $this->_aFax, 'setFax');
+                $store = $this->_addAttribute($store, $data, $this->_aHomepage, 'setWebsite');
+                $store = $this->_addAttribute($store, $data, $this->_aMail, 'setEmail');
+
+                // Öffnungszeiten
+                $sOpeningsRaw = '';
+                foreach ($this->_aOpenings as $keyOpenings) {
+                    if (array_key_exists($keyOpenings, $data)) {
+                        $sOpeningsRaw .= $data[$keyOpenings];
+                        unset($data[$keyOpenings]);
+                    }
+                }
+
+                $store->setStoreHours($this->convertGoogleTimes($sOpeningsRaw));
+                
+                $store = $this->_addAttribute($store, $data, $this->_aPayment, 'setPayment');
+                $store = $this->_addAttribute($store, $data, $this->_aDescription, 'setText');
+                $store = $this->_addAttribute($store, $data, $this->_aImages, 'setImage');
+                $store = $this->_addAttribute($store, $data, $this->_aLatitude, 'setLatitude');
+                $store = $this->_addAttribute($store, $data, $this->_aLongitude, 'setLongitude');
+
+                $cStore->addElement($store);
+                $count++;
+            }
+
+            fclose($fh);
+        }
+
+        return $cStore;
+    }
+
+    /**
+     * Mappt Attribute automatisch auf das Storeobjekt
+     *
+     * @param Marktjagd_Entity_Api_Store $store Storeobjekt
+     * @param array $data Array mit Daten aus der gelieferten CSV
+     * @param array $aKey Array mit den zu suchenden Keys
+     * @param string $methodName Methodenname zum Setzen des Attributs
+     * @return Marktjagd_Entity_Api_Store
+     */
+    protected function _addAttribute($store, $data, $aKey, $methodName) {
+        foreach ($aKey as $key) {
+            if (array_key_exists($key, $data)) {
+                if (strlen($data[$key])) {
+                    $store->$methodName($data[$key]);
+                }
+                unset($data[$key]);
+
+                return $store;
+            }
+        }
+
+        return $store;
+    }
+    
+    public function convertGoogleTimes($sOpeningsRaw) {
+        $aMapOpeningDay = array(
+                    '1' => 'So',
+                    '2' => 'Mo',
+                    '3' => 'Di',
+                    '4' => 'Mi',
+                    '5' => 'Do',
+                    '6' => 'Fr',
+                    '7' => 'Sa'
+                );
+                $aOpenings = explode(',', $sOpeningsRaw);
+                $sOpening = '';
+
+                foreach ($aOpenings as $key => $eOpening) {
+                    if ($key > 0) {
+                        $sOpening .= ', ';
+                    }
+
+                    $aTimes = explode(':', $eOpening);
+                    if (count($aTimes) == 5) {
+                        $sOpening .= $aMapOpeningDay[$aTimes[0]] . ' ';
+                        $sOpening .= $aTimes[1] . ':' . $aTimes[2] . '-';
+
+                        if ($aTimes[3] == '00' && $aTimes[4] == '00'
+                        ) {
+                            $aTimes[3] = '24';
+                        }
+
+                        $sOpening .= $aTimes[3] . ':' . $aTimes[4];
+                    }
+                }
+                return $sOpening;
+    }
+
+}
+

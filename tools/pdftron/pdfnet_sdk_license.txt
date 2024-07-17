@@ -1,0 +1,18 @@
+------------------------------------
+PDFNet SDK Registration Information:
+------------------------------------
+
+Company: Marktjagd GmbH(marktjagd.de)
+Contact: Jan Großmann
+License Model: Enterprise CPU License 
+Quantity: 1 
+License Type: PDFNet Core SDK 
+Platform(s): Linux
+AMS (Annual Maintenance Subscription): 03/03/2014 (Mar 03, 2014)
+License Key: 
+Marktjagd GmbH(marktjagd.de):ENTCPU:1::L:AMS(20140303):EB4FEC423C0F78B962E2400F400DD2EC55CB1CD68AAD0430CE54C2BEF5C7
+
+------------------------------------
+To register the Software simply copy the entire License Key (as specified above) and paste it as the parameter in the call to PDFNet.Initialize().
+For example: PDFNet.Initialize("Marktjagd GmbH(marktjagd.de):ENTCPU:1::L:AMS(20140303):EB4FEC423C0F78B962E2400F400DD2EC55CB1CD68AAD0430CE54C2BEF5C7");
+Note: Please make sure that the License Key is specified on a single line.

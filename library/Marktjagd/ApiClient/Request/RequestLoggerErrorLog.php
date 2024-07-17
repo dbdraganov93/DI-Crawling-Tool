@@ -1,0 +1,108 @@
+<?php
+
+namespace Marktjagd\ApiClient\Request;
+
+/**
+ * RequestLoggerErrorLog
+ *
+ * @author Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ */
+class RequestLoggerErrorLog extends RequestLogger
+{
+
+    const
+        DATE_FORMAT = 'd-M-Y H:i:s',
+        MAX_LENGTH_REQUEST_BODY = 20480;
+
+    /**
+     * The logfile that is used to log events.
+     *
+     * @var string
+     */
+    protected $logFile = null;
+
+    /**
+     * Initializes the request logger.
+     *
+     * @see RequestLogger::initialize()
+     * @throws RuntimeException if the logfile is not writable
+     */
+    protected function initialize()
+    {
+        if ($this->hasOption('log_file'))
+        {
+            $logFile = $this->getOption('log_file');
+
+            if (substr($logFile, 0, 1) != '/')
+            {
+                // prepend errorlog directory if log file is a relative path
+                $errorlog = ini_get('error_log');
+
+                if (!empty($errorlog))
+                {
+                    $logFile = dirname($errorlog) . '/' . $logFile;
+                }
+            }
+
+            if (is_file($logFile) && !is_writable($logFile) || !is_writable(dirname($logFile)))
+            {
+                throw new \RuntimeException(sprintf('Log file %s is not writable', $logFile));
+            }
+
+            $this->logFile = $logFile;
+        }
+    }
+
+    /**
+     * @see RequestLogger::doLog()
+     */
+    protected function doLog(Request $request, $logLevel)
+    {
+        $date = '[' . date(self::DATE_FORMAT) . ']';
+
+        $message = $date . ' API ' . ucfirst(self::getLogLevelName($logLevel)) . ': ' .
+            Request::getMethodName($request->getMethod()) . ' ' .
+            strtok($request->getResource(), '/') . ' ' .
+            $request->getResponseStatusCode();
+
+        $message .= "\n\tURL: " . $request->generateUrl();
+        $message .= "\n\tReferrer: " . $request->getReferrer();
+        $message .= "\n\tResponse status code: " . $request->getResponseStatusCode();
+        $message .= "\n\tTotal request time: " . $request->getResponseInfo('total_time') . ' sec';
+
+        $requestBody = $request->getRequestBody();
+
+        if (!empty($requestBody))
+        {
+            if (self::isBinary($requestBody))
+            {
+                $requestBody = '[binary data]';
+            }
+            elseif (strlen($requestBody) > self::MAX_LENGTH_REQUEST_BODY)
+            {
+                $requestBody = substr_replace($requestBody, ' [truncated]', self::MAX_LENGTH_REQUEST_BODY);
+            }
+
+            $message .= "\n\tRequest body:\n\t\t" . $requestBody;
+        }
+
+        if ($this->getOption('log_response_body', true))
+        {
+            $message .= "\n\tResponse body:\n\t\t" . $request->getResponseBody();
+        }
+
+        $message .= "\n";
+
+        if (!is_null($this->logFile))
+        {
+            error_log($message, 3, $this->logFile);
+        }
+        else
+        {
+            error_log($message);
+        }
+
+        return true;
+    }
+
+}

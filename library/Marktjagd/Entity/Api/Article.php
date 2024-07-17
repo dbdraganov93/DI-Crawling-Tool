@@ -1,0 +1,715 @@
+<?php
+
+class Marktjagd_Entity_Api_Article extends Marktjagd_Entity_Api_Abstract {
+
+    protected $articleId;
+    protected $articleNumber;
+    protected $title;
+    protected $price;
+    protected $text;
+    protected $ean;
+    protected $manufacturer;
+    protected $articleNumberManufacturer;
+    protected $suggestedRetailPrice;
+    protected $trademark;
+    protected $tags;
+    protected $color;
+    protected $size;
+    protected $amount;
+    protected $start;
+    protected $end;
+    protected $visibleStart;
+    protected $visibleEnd;
+    protected $url;
+    protected $shipping;
+    protected $image;
+    protected $storeNumber;
+    protected $distribution;
+    protected $national;
+    protected $languageCode;
+    protected $titleDe;
+    protected $titleFr;
+    protected $titleIt;
+    protected $textDe;
+    protected $textFr;
+    protected $textIt;
+    protected $sizeDe;
+    protected $sizeFr;
+    protected $sizeIt;
+    protected $amountDe;
+    protected $amountFr;
+    protected $amountIt;
+    protected $colorDe;
+    protected $colorFr;
+    protected $colorIt;
+    protected $shippingDe;
+    protected $shippingFr;
+    protected $shippingIt;
+    protected $urlDe;
+    protected $urlFr;
+    protected $urlIt;
+    protected $priceIsVariable = false;
+
+    /* @var string */
+    protected $additionalProperties;
+
+    /**
+     * @return mixed
+     */
+    public function getArticleId()
+    {
+        return $this->articleId;
+    }
+
+    /**
+     * @param mixed $articleId
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setArticleId($articleId)
+    {
+        $this->articleId = $articleId;
+        return $this;
+    }
+
+    /**
+     * @param string $amount
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setAmount($amount) {
+        $this->amount = $amount;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAmount() {
+        return $this->amount;
+    }
+
+    /**
+     * @param string $articleNumber
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setArticleNumber($articleNumber) {
+        $this->articleNumber = $articleNumber;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getArticleNumber() {
+        return $this->articleNumber;
+    }
+
+    /**
+     * @param string $articleNumberManufacturer
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setArticleNumberManufacturer($articleNumberManufacturer) {
+        $this->articleNumberManufacturer = $articleNumberManufacturer;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getArticleNumberManufacturer() {
+        return $this->articleNumberManufacturer;
+    }
+
+    /**
+     * @param string $color
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setColor($color) {
+        $this->color = $color;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getColor() {
+        return $this->color;
+    }
+
+    /**
+     * @param string $distribution
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setDistribution($distribution) {
+        $this->distribution = $distribution;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDistribution() {
+        return $this->distribution;
+    }
+
+    /**
+     * @param string $ean
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setEan($ean) {
+        $this->ean = $ean;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEan() {
+        return $this->ean;
+    }
+
+    /**
+     * @param string $end
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setEnd($end) {
+        $this->end = $end;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEnd() {
+        return $this->end;
+    }
+
+    /**
+     * @param string $image
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setImage($image) {
+        $this->image = $image;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getImage() {
+        return $this->image;
+    }
+
+    /**
+     * @param string $manufacturer
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setManufacturer($manufacturer) {
+        $this->manufacturer = $manufacturer;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getManufacturer() {
+        return $this->manufacturer;
+    }
+
+    /**
+     * @param string $price
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setPrice($price) {
+        $this->price = $price;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPrice() {
+        return $this->price;
+    }
+
+    /**
+     * @param string $shipping
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setShipping($shipping) {
+        $this->shipping = $shipping;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getShipping() {
+        return $this->shipping;
+    }
+
+    /**
+     * @param string $size
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setSize($size) {
+        $this->size = $size;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSize() {
+        return $this->size;
+    }
+
+    /**
+     * @param string $start
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setStart($start) {
+        $this->start = $start;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getStart() {
+        return $this->start;
+    }
+
+    /**
+     * @param string $storeNumber
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setStoreNumber($storeNumber) {
+        $this->storeNumber = $storeNumber;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getStoreNumber() {
+        return $this->storeNumber;
+    }
+
+    /**
+     * @param string $suggestedRetailPrice
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setSuggestedRetailPrice($suggestedRetailPrice) {
+        $this->suggestedRetailPrice = $suggestedRetailPrice;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSuggestedRetailPrice() {
+        return $this->suggestedRetailPrice;
+    }
+
+    /**
+     * @param string $tags
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setTags($tags) {
+        $this->tags = $tags;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTags() {
+        return $this->tags;
+    }
+
+    /**
+     * @param string $text
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setText($text) {
+        $this->text = $text;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getText() {
+        return $this->text;
+    }
+
+    /**
+     * Fügt Text zu einem bestehenden Textfeld eines Artikels hinzu und ergänzt bei vorhandenem Text eine Leerzeile
+     *
+     * @param string $textToAdd
+     * @param string $seperator
+     */
+    public function addText($textToAdd, $seperator = '<br>') {
+        if (strlen($this->text)) {
+            $this->text .= $seperator;
+        }
+
+        $this->text .= $textToAdd;
+    }
+
+    /**
+     * @param string $title
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setTitle($title) {
+        $this->title = $title;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTitle() {
+        return $this->title;
+    }
+
+    /**
+     * @param string $trademark
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setTrademark($trademark) {
+        $this->trademark = $trademark;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTrademark() {
+        return $this->trademark;
+    }
+
+    /**
+     * @param string $url
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setUrl($url) {
+        $this->url = $url;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUrl() {
+        return $this->url;
+    }
+
+    /**
+     * Setter für Endzeitpunkt der Anzeige des Artikels
+     * @param string $visibleEnd
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setVisibleEnd($visibleEnd) {
+        $this->visibleEnd = $visibleEnd;
+        return $this;
+    }
+
+    /**
+     * Getter für Endzeitpunkt der Anzeige des Artikels
+     * @return string
+     */
+    public function getVisibleEnd() {
+        return $this->visibleEnd;
+    }
+
+    /**
+     * Setter für Startzeitpunkt der Anzeige des Artikels
+     * @param string $visibleStart
+     * @return Marktjagd_Entity_Api_Article
+     */
+    public function setVisibleStart($visibleStart) {
+        $this->visibleStart = $visibleStart;
+        return $this;
+    }
+
+    /**
+     * Getter für Startzeitpunkt der Anzeige des Artikels
+     * @return string
+     */
+    public function getVisibleStart() {
+        return $this->visibleStart;
+    }
+    
+    public function setNational($national) {
+        $this->national = $national;
+        return $this;
+    }
+    
+    public function getNational() {
+        return $this->national;
+    }
+
+    function getLanguageCode() {
+        return $this->languageCode;
+    }
+
+    function getTitleDe() {
+        return $this->titleDe;
+    }
+
+    function getTitleFr() {
+        return $this->titleFr;
+    }
+
+    function getTitleIt() {
+        return $this->titleIt;
+    }
+
+    function getTextDe() {
+        return $this->textDe;
+    }
+
+    function getTextFr() {
+        return $this->textFr;
+    }
+
+    function getTextIt() {
+        return $this->textIt;
+    }
+
+    function getSizeDe() {
+        return $this->sizeDe;
+    }
+
+    function getSizeFr() {
+        return $this->sizeFr;
+    }
+
+    function getSizeIt() {
+        return $this->sizeIt;
+    }
+
+    function getAmountDe() {
+        return $this->amountDe;
+    }
+
+    function getAmountFr() {
+        return $this->amountFr;
+    }
+
+    function getAmountIt() {
+        return $this->amountIt;
+    }
+
+    function getColorDe() {
+        return $this->colorDe;
+    }
+
+    function getColorFr() {
+        return $this->colorFr;
+    }
+
+    function getColorIt() {
+        return $this->colorIt;
+    }
+
+    function getShippingDe() {
+        return $this->shippingDe;
+    }
+
+    function getShippingFr() {
+        return $this->shippingFr;
+    }
+
+    function getShippingIt() {
+        return $this->shippingIt;
+    }
+
+    function getUrlDe() {
+        return $this->urlDe;
+    }
+
+    function getUrlFr() {
+        return $this->urlFr;
+    }
+
+    function getUrlIt() {
+        return $this->urlIt;
+    }
+
+    public function getAdditionalProperties(): ?string
+    {
+        return $this->additionalProperties;
+    }
+
+    public function setAdditionalProperties(string $additionalProperties)
+    {
+        $this->additionalProperties = $additionalProperties;
+        return $this;
+    }
+    
+    function setLanguageCode($languageCode) {
+        $this->languageCode = $languageCode;
+        return $this;
+    }
+
+    function setTitleDe($titleDe) {
+        $this->titleDe = $titleDe;
+        return $this;
+    }
+
+    function setTitleFr($titleFr) {
+        $this->titleFr = $titleFr;
+        return $this;
+    }
+
+    function setTitleIt($titleIt) {
+        $this->titleIt = $titleIt;
+        return $this;
+    }
+
+    function setTextDe($textDe) {
+        $this->textDe = $textDe;
+        return $this;
+    }
+
+    function setTextFr($textFr) {
+        $this->textFr = $textFr;
+        return $this;
+    }
+
+    function setTextIt($textIt) {
+        $this->textIt = $textIt;
+        return $this;
+    }
+
+    function setSizeDe($sizeDe) {
+        $this->sizeDe = $sizeDe;
+        return $this;
+    }
+
+    function setSizeFr($sizeFr) {
+        $this->sizeFr = $sizeFr;
+        return $this;
+    }
+
+    function setSizeIt($sizeIt) {
+        $this->sizeIt = $sizeIt;
+        return $this;
+    }
+
+    function setAmountDe($amountDe) {
+        $this->amountDe = $amountDe;
+        return $this;
+    }
+
+    function setAmountFr($amountFr) {
+        $this->amountFr = $amountFr;
+        return $this;
+    }
+
+    function setAmountIt($amountIt) {
+        $this->amountIt = $amountIt;
+        return $this;
+    }
+
+    function setColorDe($colorDe) {
+        $this->colorDe = $colorDe;
+        return $this;
+    }
+
+    function setColorFr($colorFr) {
+        $this->colorFr = $colorFr;
+        return $this;
+    }
+
+    function setColorIt($colorIt) {
+        $this->colorIt = $colorIt;
+        return $this;
+    }
+
+    function setShippingDe($shippingDe) {
+        $this->shippingDe = $shippingDe;
+        return $this;
+    }
+
+    function setShippingFr($shippingFr) {
+        $this->shippingFr = $shippingFr;
+        return $this;
+    }
+
+    function setShippingIt($shippingIt) {
+        $this->shippingIt = $shippingIt;
+        return $this;
+    }
+    
+    function setUrlDe($urlDe) {
+        $this->urlDe = $urlDe;
+        return $this;
+    }
+
+    function setUrlFr($urlFr) {
+        $this->urlFr = $urlFr;
+        return $this;
+    }
+
+    function setUrlIt($urlIt) {
+        $this->urlIt = $urlIt;
+        return $this;
+    }
+
+    public function setPriceIsVariable(bool $priceIsVariable): Marktjagd_Entity_Api_Article
+    {
+        $this->priceIsVariable = $priceIsVariable;
+        return $this;
+    }
+
+    public function getPriceIsVariable(): bool
+    {
+        return boolval($this->priceIsVariable);
+    }
+        
+    /**
+     * Generiert den Hash für einen Artikel
+     * @return string
+     */
+    public function getHash() {
+        if (strlen($this->storeNumber)) {
+            if (strlen($this->articleNumber)) {
+                $hash = md5(
+                        $this->articleNumber
+                        . $this->price
+                        . $this->start
+                        . $this->end
+                );
+            } else {
+                $hash = md5(
+                        $this->title
+                        . $this->start
+                        . $this->end
+                        . $this->text
+                        . $this->price
+                );
+            }
+        } else {
+            if (strlen($this->articleNumber)) {
+                $hash = md5(
+                        $this->articleNumber
+                        . $this->start
+                        . $this->end
+                );
+            } else {
+                $hash = md5(
+                        $this->title
+                        . $this->start
+                        . $this->end
+                        . $this->text
+                        . $this->amount
+                );
+            }
+        }
+
+        return $hash;
+    }
+}

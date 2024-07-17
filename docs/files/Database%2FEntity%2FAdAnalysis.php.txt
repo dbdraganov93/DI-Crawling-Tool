@@ -1,0 +1,127 @@
+<?php
+
+class Marktjagd_Database_Entity_AdAnalysis extends Marktjagd_Database_Entity_Abstract
+{
+    protected $_idAdAnalysis;
+    protected $_idCompany;
+    protected $_targetAd;
+    protected $_currentAd;
+    protected $_adType;
+    protected $_timeChecked;
+    
+    protected $_aColumnMap = array(
+        'idAdAnalysis' => 'IdAdAnalysis',
+        'idCompany' => 'IdCompany',
+        'targetAd' => 'TargetAd',
+        'currentAd' => 'CurrentAd',
+        'adType' => 'AdType',
+        'timeChecked' => 'TimeChecked'
+    );
+    
+    protected $_aRelationMap = array(
+        'Company' => 'Marktjagd_Database_Entity_Company');
+    
+    protected $_aRelationPropertyMap = array(
+        'Company' => 'Company');
+    
+    public function getIdAdAnalysis()
+    {
+        return $this->_idAdAnalysis;
+    }
+
+    public function getIdCompany()
+    {
+        return $this->_idCompany;
+    }
+
+    public function getTargetAd()
+    {
+        return $this->_targetAd;
+    }
+
+    public function getCurrentAd()
+    {
+        return $this->_currentAd;
+    }
+
+    public function getAdType()
+    {
+        return $this->_adType;
+    }
+
+    public function getTimeChecked()
+    {
+        return $this->_timeChecked;
+    }
+
+    public function setIdAdAnalysis($idAdAnalysis)
+    {
+        $this->_idAdAnalysis = $idAdAnalysis;
+        return $this;
+    }
+
+    public function setIdCompany($idCompany)
+    {
+        $this->_idCompany = $idCompany;
+        return $this;
+    }
+
+    public function setTargetAd($targetAd)
+    {
+        $this->_targetAd = $targetAd;
+        return $this;
+    }
+
+    public function setCurrentAd($currentAd)
+    {
+        $this->_currentAd = $currentAd;
+        return $this;
+    }
+
+    public function setAdType($adType)
+    {
+        $this->_adType = $adType;
+        return $this;
+    }
+
+    public function setTimeChecked($timeChecked)
+    {
+        $this->_timeChecked = $timeChecked;
+        return $this;
+    }
+
+    public function setCompany(Marktjagd_Database_Entity_Company $oCompany)
+    {
+        $this->_oCompany = $oCompany;
+        return $this;
+    }
+
+    /**
+     * 
+     * @return Marktjagd_Database_Mapper_AdAnalysis
+     */
+    public function getMapper()
+    {
+        return parent::getMapper();
+    }
+
+    /**
+     * 
+     * @param type $bNull
+     * @param type $bForceInsert
+     */
+    public function save($bNull = false, $bForceInsert = false)
+    {
+        $this->getMapper()->save($this, $bNull, $bForceInsert);
+    }
+
+    /**
+     * 
+     * @param type $mId
+     * @return type
+     */
+    public function find($mId)
+    {
+        return $this->getMapper()->find($mId, $this);
+    }
+}

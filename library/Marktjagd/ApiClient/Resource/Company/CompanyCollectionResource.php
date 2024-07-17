@@ -1,0 +1,55 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the CompanyCollectionResource class.
+ *
+ * PHP version 5
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  company
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Resource\Company;
+
+use Marktjagd\ApiClient\Resource;
+
+/**
+ * Company collection resource.
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  company
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @author      Robert Freigang <robert.freigang@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+class CompanyCollectionResource extends Resource\CollectionResource
+{
+
+    /**
+     * Returns the name of the company collection resource.
+     *
+     * @return string resource name
+     */
+    protected static function getName()
+    {
+        return 'companies';
+    }
+
+    /**
+     * Sets the resource definition.
+     *
+     * @return void
+     */
+    protected function setResourceDefinition()
+    {
+        $this->hasAttribute(new Resource\ResourceAttributeInteger('hits'));
+    }
+
+}

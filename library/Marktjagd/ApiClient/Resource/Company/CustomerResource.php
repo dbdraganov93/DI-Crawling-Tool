@@ -1,0 +1,71 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the CustomerResource class.
+ *
+ * PHP version 5
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  company
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Resource\Company;
+
+use Marktjagd\ApiClient\Resource;
+use Marktjagd\ApiClient\Request\Request;
+
+/**
+ * Customer resource.
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  company
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+class CustomerResource extends Resource\Resource
+{
+
+    const
+        PAYMENT_METHOD_INVOICE = 'invoice',
+        PAYMENT_METHOD_BANK = 'bank';
+
+    /**
+     * Sets the resource definition.
+     *
+     * @return void
+     */
+    protected function setResourceDefinition()
+    {
+        $this
+            ->hasField(new Resource\ResourceFieldInteger('company_id'), true, Request::METHOD_ALL)
+            ->hasField(new Resource\ResourceFieldString('number'))
+            ->hasField(new Resource\ResourceFieldString('contact_title'))
+            ->hasField(new Resource\ResourceFieldString('contact_gender'))
+            ->hasField(new Resource\ResourceFieldString('contact_first_name'))
+            ->hasField(new Resource\ResourceFieldString('contact_last_name'))
+            ->hasField(new Resource\ResourceFieldString('contact_position'))
+            ->hasField(new Resource\ResourceFieldString('contact_email'))
+            ->hasField(new Resource\ResourceFieldString('contact_phone_number'))
+            ->hasField(new Resource\ResourceFieldString('contact_fax_number'))
+            ->hasField(new Resource\ResourceFieldString('invoice_suffix'))
+            ->hasField(new Resource\ResourceFieldString('invoice_company'))
+            ->hasField(new Resource\ResourceFieldString('invoice_street'))
+            ->hasField(new Resource\ResourceFieldString('invoice_street_number'))
+            ->hasField(new Resource\ResourceFieldString('invoice_zipcode'))
+            ->hasField(new Resource\ResourceFieldString('invoice_city'))
+            ->hasField(new Resource\ResourceFieldString('invoice_description'))
+            ->hasField(new Resource\ResourceFieldString('payment_method'))
+            ->hasField(new Resource\ResourceFieldString('bank_account_owner'))
+            ->hasField(new Resource\ResourceFieldString('bank_name'))
+            ->hasField(new Resource\ResourceFieldString('bank_code'))
+            ->hasField(new Resource\ResourceFieldString('bank_account'));
+    }
+
+}

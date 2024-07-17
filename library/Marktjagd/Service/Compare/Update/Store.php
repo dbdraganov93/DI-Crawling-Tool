@@ -1,0 +1,92 @@
+<?php
+
+/**
+ * Klasse zum Update von Standorten
+ *
+ * Class Marktjagd_Service_Compare_Update_Store
+ */
+class Marktjagd_Service_Compare_Update_Store
+{
+
+    public function updateCollection($crawlCollection, $companyId)
+    {
+        $sCompare = new Marktjagd_Service_Compare_Collection_Store();
+        $sApi = new Marktjagd_Service_Input_MarktjagdApi();
+        $sDbRetailerInfos = new Marktjagd_Database_Service_AdditionalRetailerInfos();
+        $sAddress = new Marktjagd_Service_Text_Address();
+        $crawlerConfigFile = new Zend_Config_Ini(APPLICATION_PATH . '/configs/application.ini', APPLICATION_ENV);
+
+        $aAdditionalRetailerInfos = $sDbRetailerInfos->findAllStoreInfosByCompanyId($companyId);
+        if (count($aAdditionalRetailerInfos)) {
+            $needsUpdateStores = array();
+            foreach ($aAdditionalRetailerInfos as $updateStore) {
+                $validSeconds = $crawlerConfigFile->crawler->stores->update->validDays * 86400;
+
+                if (strlen($updateStore->getValidityLength())) {
+                    switch ($updateStore->getValidityLength()) {
+                        case (preg_match('#(\d+)\s+tag#i', $updateStore->getValidityLength(), $dayAmountMatch) ? TRUE : FALSE):
+                            $validSeconds = $dayAmountMatch[1] * 86400;
+                            break;
+                        case (preg_match('#(\d+)\s*woche#i', $updateStore->getValidityLength(), $weekAmountMatch) ? TRUE : FALSE):
+                            $validSeconds = $weekAmountMatch[1] * 86400 / 7;
+                            break;
+                        case (preg_match('#(\d+)\s*monat#i', $updateStore->getValidityLength(), $monthAmountMatch) ? TRUE : FALSE):
+                            $validSeconds = $weekAmountMatch[1] * 2592000;
+                    }
+                }
+
+                if (strtotime($updateStore->getTimeAdded()) + $validSeconds > time()
+                ) {
+                    $aStore = $sApi->findStoreByStoreId($updateStore->getIdStore(), $companyId);
+                    $unvHash = $sCompare->generateAddressHash2('', $aStore['zipcode'], $sAddress->normalizeStreet($aStore['street']), $sAddress->normalizeStreetNumber($aStore['street_number']));
+                    if (preg_match('#ignore#', $updateStore->getAction())) {
+                        $needsUpdateStores[$unvHash] = 'ignore';
+                    }
+                    else {
+                        $needsUpdateStores[$unvHash] = json_decode($updateStore->getInfosToChange());
+                    }
+                }
+            }
+            // iterate over crawled entities and update if needed
+            $updatedCrawlCollection = new Marktjagd_Collection_Api_Store();
+
+            $elements = $crawlCollection->getElements();
+
+            foreach ($elements as $element) {
+                $crawlHash = $sCompare->generateAddressHash2('', $element->getZipcode(), $sAddress->normalizeStreet($element->getStreet()), $sAddress->normalizeStreetNumber($element->getStreetNumber())
+                );
+
+                if (array_key_exists($crawlHash, $needsUpdateStores)) {
+                    // update store
+                    if (is_string($needsUpdateStores[$crawlHash]) && preg_match('#ignore#', $needsUpdateStores[$crawlHash])) {
+                        // deleted -> skip
+                        continue;
+                    }
+                    foreach ($needsUpdateStores[$crawlHash] as $singleKeyToChange => $singleValueToChange) {
+                        if (preg_match('#\[\[NULL\]\]#', $singleValueToChange)) {
+                            $element->{'set' . ucwords($singleKeyToChange)}(NULL);
+                        }
+                        else {
+                            if (preg_match('#storeHours$#', $singleKeyToChange)) {
+                                $sTimes = new Marktjagd_Service_Text_Times();
+                                $element->setStoreHours(
+                                        $sTimes->generateMjOpenings(
+                                                $sTimes->generateMjOpenings($element->getStoreHours())
+                                                . ',' .  $sTimes->generateMjOpenings($singleValueToChange)));
+                            } else {
+                                $element->{'set' . ucwords($singleKeyToChange)}($singleValueToChange);
+                            }
+                        }
+                    }
+                }
+                $updatedCrawlCollection->addElement($element);
+            }
+        }
+        else {
+            $updatedCrawlCollection = $crawlCollection;
+        }
+
+        return $updatedCrawlCollection;
+    }
+
+}

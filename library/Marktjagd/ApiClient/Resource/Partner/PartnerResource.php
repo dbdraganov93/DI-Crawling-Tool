@@ -1,0 +1,95 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the PartnerResource class.
+ *
+ * PHP version 5
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  partner
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Resource\Partner;
+
+use Marktjagd\ApiClient\Resource;
+use Marktjagd\ApiClient\Request\Request;
+
+/**
+ * Partner resource
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  partner
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ *
+ * @method int getId() Returns the partner ID
+ */
+class PartnerResource extends Resource\Resource
+{
+
+    const
+        OWN = 'own',
+        OTHER = 'other';
+
+    protected static
+        $hasCollection = true,
+        $instance;
+
+    /**
+     * Returns the own partner instance.
+     *
+     * @return PartnerResource own partner instance
+     */
+    public static function getInstance()
+    {
+        if (is_null(self::$instance))
+        {
+            self::$instance = self::find(null);
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * Sets the resource definition
+     *
+     * @return void
+     */
+    protected function setResourceDefinition()
+    {
+        $this
+            ->hasField(new Resource\ResourceFieldInteger('id'), true, Request::METHOD_GET)
+            ->hasField(new Resource\ResourceFieldInteger('parent_id'))
+            ->hasField(new Resource\ResourceFieldString('status'))
+            ->hasField(new Resource\ResourceFieldString('name'))
+            ->hasField(new Resource\ResourceFieldString('title'))
+            ->hasField(new Resource\ResourceFieldString('description'))
+            ->hasField(new Resource\ResourceFieldString('domain'))
+            ->hasField(new Resource\ResourceFieldString('terms'))
+            ->hasField(new Resource\ResourceFieldString('terms_of_use'))
+            ->hasField(new Resource\ResourceFieldString('privacy'))
+            ->hasField(new Resource\ResourceFieldString('contract'))
+            ->hasField(new Resource\ResourceFieldString('imprint'))
+            ->hasField(new Resource\ResourceFieldString('datetime_commission_start'))
+            ->hasField(new Resource\ResourceFieldFloat('commission_limit'))
+            ->hasField(new Resource\ResourceFieldBoolean('billing'))
+            ->hasField(new Resource\ResourceFieldFloat('publisher_share'))
+            ->hasField(new Resource\ResourceFieldFloat('sales_share'))
+            ->hasField(new Resource\ResourceFieldFloat('min_cpc_article'))
+            ->hasField(new Resource\ResourceFieldBoolean('min_cpc_article_fix'))
+            ->hasField(new Resource\ResourceFieldFloat('min_cpc_brochure'))
+            ->hasField(new Resource\ResourceFieldBoolean('min_cpc_brochure_fix'))
+            ->hasField(new Resource\ResourceFieldFloat('min_cpc_coupon'))
+            ->hasField(new Resource\ResourceFieldBoolean('min_cpc_coupon_fix'))
+
+            ->hasResource(Resource\ResourceFactory::create('images'));
+    }
+
+}

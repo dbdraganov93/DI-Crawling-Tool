@@ -1,0 +1,118 @@
+<h1 class="page-header">Laufende / Geplante Crawler</h1>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Laufende Crawler</h3>
+            </div>
+            <div class="panel-body">
+                <?php if (count($this->cRunningProcesses)): ?>
+                    <table class="table table-responsive table-striped table-hover dataTable no-footer">
+                        <thead>
+                            <tr>
+                                <th>Unternehmen</th>
+                                <th>Typ</th>
+                                <th>gestartet durch</th>
+                                <th>eingetragen am</th>
+                                <th>gestartet am</th>
+                                <th>Fortschritt</th>
+                            </tr>
+                        </thead>
+                        <?php
+                        $type = array(
+                            0 => 'manueller Start',
+                            1 => 'Scheduler'
+                        );
+                        /* @var $eRunningProcesses Marktjagd_Database_Entity_CrawlerLog */
+                        foreach ($this->cRunningProcesses as $eRunningProcesses):
+                            ?>
+                            <tr class="active"
+                                onclick="window.location = '/Crawler/logging/detail/idCrawlerLog/<?php echo $eRunningProcesses->getIdCrawlerLog() ?>'"
+                                style ="cursor:pointer;">
+                                <td><?php echo $eRunningProcesses->getCrawlerConfig()->getCompany()->getName() ?></td>
+                                <td><?php
+                                    $aCrawlerType = array(
+                                        1 => 'Artikel',
+                                        2 => 'Prospekt',
+                                        3 => 'Standort',
+                                    );
+                                    echo $aCrawlerType[$eRunningProcesses->getCrawlerConfig()->getCrawlerType()->getIdCrawlerType()]
+                                    ?></td>
+                                <td><?php echo $type[$eRunningProcesses->getPrio()] ?></td>
+                                <td><?php echo $eRunningProcesses->getScheduled() ?></td>
+                                <td><?php echo $eRunningProcesses->getStart() ?></td>
+                                <?php
+                                $sCrawlerConfig = new Marktjagd_Database_Service_CrawlerConfig();
+                                $eCrawlerConfig = $sCrawlerConfig->findById($eRunningProcesses->getIdCrawlerConfig());
+
+                                $min = 0;
+                                $max = ((int) $eCrawlerConfig->getRuntime() * 60);
+                                // mind. Laufdauer 1min => da sonst Berechnung nicht möglich
+                                if ($max == 0) {
+                                    $max = 60;
+                                }
+
+                                $current = time() - strtotime($eRunningProcesses->getStart(true));
+                                $percent = ($current / $max) * 100;
+
+                                if ($percent > 100) {
+                                    $percent = 100;
+                                }
+
+                                $estimated = round(
+                                        (strtotime($eRunningProcesses->getStart(true)) + $max - time()) / 60);
+
+                                if ($estimated < 0) {
+                                    $estimated = 0;
+                                }
+                                ?>
+                                <td><div class="progress progress-striped active">
+                                        <div class="progress-bar" role="progressbar"
+                                             aria-valuenow="<?php echo $current ?>"
+                                             aria-valuemin="0"
+                                             aria-valuemax="100"
+                                             style="width: <?php echo $percent ?>%;">
+                                            <div class="progress-label"><?php
+                                                if ($percent == 100) {
+                                                    echo 'noch einige Augenblicke';
+                                                } else {
+                                                    echo round($percent)
+                                                    ?> % (noch <?php echo round($estimated) ?> min)<?php }
+                                                ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                    <?php endforeach; ?>
+                    </table>
+                <?php else: ?>
+                    keine laufenden Crawler
+<?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-4">
+        <?php
+        echo $this->partial('logging/scheduled.phtml', array(
+            'cScheduled' => $this->cScheduledArticles,
+            'type' => 'Artikel-Crawler'))
+        ?>
+    </div>
+    <div class="col-lg-4">
+<?php
+echo $this->partial('logging/scheduled.phtml', array(
+    'cScheduled' => $this->cScheduledBrochures,
+    'type' => 'Prospekt-Crawler'))
+?>
+    </div>
+    <div class="col-lg-4">
+<?php
+echo $this->partial('logging/scheduled.phtml', array(
+    'cScheduled' => $this->cScheduledStores,
+    'type' => 'Standort-Crawler'))
+?>
+    </div>
+</div>
