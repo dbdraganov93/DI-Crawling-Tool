@@ -1,0 +1,13 @@
+stages:
+  - test
+
+phpcs:
+  stage: test
+  image: php:latest
+  before_script:
+    - apt-get update && apt-get install -y git unzip
+    - curl -sS https://getcomposer.org/installer | php
+    - php composer.phar require "squizlabs/php_codesniffer=*"
+  script:
+    - CHANGED_FILES=$(git diff --name-only $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME $CI_MERGE_REQUEST_TARGET_BRANCH_NAME | grep \.php$)
+    - if [ -n "$CHANGED_FILES" ]; then vendor/bin/phpcs --standard=phpcs.xml $CHANGED_FILES; fi
