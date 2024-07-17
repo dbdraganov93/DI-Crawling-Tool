@@ -1,0 +1,52 @@
+<?php
+/* @var $eCrawlerLog Marktjagd_Database_Entity_CrawlerLog */
+$eCrawlerLog = $this->eCrawlerLog
+?>
+<h1 class="page-header">Statusübersicht</h1>
+<div class="panel panel-<?php echo $this->status; ?>">
+    <div class="panel-heading">
+        <h3 class="panel-title"><?php echo ucwords($this->crawlerType) ?>-Crawler <?php
+            echo $eCrawlerLog->getCrawlerConfig()->getCompany()->getName()
+            . ' (ID: ' . $eCrawlerLog->getCrawlerConfig()->getIdCompany() . ')'
+            ?> <?php echo date('d.m.Y H:i', strtotime($eCrawlerLog->getScheduled(true))) ?> Uhr</h3>
+    </div>
+    <div class="panel-body">
+        <b>Art des Crawlerstarts:</b> <?php echo $this->type[$eCrawlerLog->getPrio()] ?><br>
+        <b>Crawlerstatus:</b> <?php
+            $status = array(
+                1 => 'Crawler läuft',
+                2 => 'Crawler erfolgreich',
+                3 => 'Crawler fehlgeschlagen',
+                4 => 'Crawler erfolgreich, kein Import',
+                5 => 'Crawler konnte nicht gestartet werden',
+                6 => 'Crawler wartet',
+                7 => 'Import anlegen fehlgeschlagen',
+                8 => 'Import wird durchgeführt',
+                9 => 'Import fehlerhaft',
+                10 => 'Import erfolgreich',
+                11 => 'Crawler erfolgreich, Änderung vorhanden'
+            );
+
+            echo $status[$eCrawlerLog->getCrawlerLogType()->getIdCrawlerLogType()]
+            ?><br><br>
+
+        <b>Zeitpunkt Scheduler-Eintrag:</b> <?php echo $eCrawlerLog->getScheduled(true) ? date('d.m.Y H:i:s', strtotime($eCrawlerLog->getScheduled(true))) . ' Uhr' : '' ?><br>
+        <b>Zeitpunkt Crawler-Start:</b> <?php echo $eCrawlerLog->getStart(true) ? date('d.m.Y H:i:s', strtotime($eCrawlerLog->getStart(true))) . ' Uhr' : '' ?><br>
+        <b>Zeitpunkt Crawler-Ende:</b> <?php echo $eCrawlerLog->getEnd(true) ? date('d.m.Y H:i:s', strtotime($eCrawlerLog->getEnd(true))) . ' Uhr' : '' ?><br>
+        <b>Zeitpunkt Import-Start:</b> <?php echo $eCrawlerLog->getImportStart(true) ? date('d.m.Y H:i:s', strtotime($eCrawlerLog->getImportStart(true))) . ' Uhr' : '' ?><br>
+        <b>Zeitpunkt Import-Ende:</b> <?php echo $eCrawlerLog->getImportEnd(true) ? date('d.m.Y H:i:s', strtotime($eCrawlerLog->getImportEnd(true))) . ' Uhr' : '' ?><br><br>
+
+        <?php
+        if (strlen($eCrawlerLog->getErrorMessage()) > 0) {
+            echo '<b>Fehlermeldung:</b><br><pre>' . $eCrawlerLog->getErrorMessage() . '</pre>';
+        }
+
+        $userInfo = Zend_Auth::getInstance()->getStorage()->read();
+
+        if (($eCrawlerLog->getIdCrawlerLogType() == '3' || $eCrawlerLog->getIdCrawlerLogType() == '5' || $eCrawlerLog->getIdCrawlerLogType() == '7' || $eCrawlerLog->getIdCrawlerLogType() == '9') && $userInfo->role['level'] <= 50
+        ) {
+            echo $this->crawlerStart;
+        }
+        ?>
+    </div>
+</div>

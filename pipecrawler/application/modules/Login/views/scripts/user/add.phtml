@@ -1,0 +1,10 @@
+<h1 class="page-header">GUI-Nutzer <?php echo $this->isUpdate=='1'?'aktualisieren':'anlegen';?></h1>
+<div class="col-lg-4">
+    <?php
+        if ($this->action == 'form') {
+            echo $this->message;
+        } else {
+            echo $this->form;
+        }
+     ?>
+</div>

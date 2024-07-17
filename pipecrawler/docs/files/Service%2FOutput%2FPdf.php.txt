@@ -1,0 +1,408 @@
+<?php
+
+/**
+ * Service zum Bearbeiten von PDFs
+ */
+class Marktjagd_Service_Output_Pdf {
+
+    /**
+     * Fügt den Inhalt der übergebenen PDF-Dateien zu einer neuen PDF-Datei zusammen
+     *
+     * @param array $aFiles Array mit Pfaden der aneinanderzuhängenden PDF's
+     * @param string $outputFolder Pfad in dem das zusammengefügte PDF ausgegeben werden soll
+     * @return string Pfad zu dem neuen PDF-File
+     */
+    public function merge($aFiles, $outputFolder) {
+        $filePathJoined = $outputFolder . md5(implode(',', $aFiles)) . '.pdf';
+
+        if (count($aFiles) > 1) {
+            foreach ($aFiles as &$singleFile) {
+                $singleFile = '\'' . $singleFile . '\'';
+            }
+            
+            exec('java -jar ' . APPLICATION_PATH . '/../tools/pdfbox/pdfbox-simple-jar-with-dependencies.jar -j '
+                    . implode(' ', $aFiles) . ' ' . $filePathJoined, $retValue, $retVar);
+
+            if (count($retValue)) {
+                throw new Exception('error while joining pages in folder: ' . $outputFolder . '-' . implode("\n", $retValue));
+            }
+        } else {
+            return $aFiles[0];
+        }
+
+        return $filePathJoined;
+    }
+
+    /**
+     * Entfernt den Druckrand eines PDF-Files
+     * 
+     * @param string $filePath Pfad des zu trimmenden PDF-Files
+     * @return string Pfad zu dem neuen PDF-File
+     */
+    public function trim($filePath) {
+        exec('java -jar ' . APPLICATION_PATH . '/../tools/pdfbox/pdfbox-simple-jar-with-dependencies.jar -t '
+                . $filePath . ' ' . $filePath, $retValue, $retVar);
+
+        if (count($retValue)) {
+            throw new Exception('error while trimming brochure: ' . $filePath . '-' . implode("\n", $retValue));
+        }
+
+        return $filePath;
+    }
+
+    /**
+     * Tauscht "Nicht-Links" gegen Links aus und löscht die "Nicht-Links"
+     * 
+     * @param string $filePath
+     * @return string
+     * @throws Exception
+     */
+    public function exchange($filePath) {
+        exec('java -jar ' . APPLICATION_PATH . '/../tools/pdfbox/pdfbox-simple-jar-with-dependencies.jar -r '
+                . $filePath . ' ' . $filePath, $retValue, $retVar);
+
+        if (count($retValue)) {
+            throw new Exception('error while replacing annotations for brochure: ' . $filePath . '-' . implode("\n", $retValue));
+        }
+
+        return $filePath;
+    }
+    
+    /**
+     * Fügt Links aus json-File in PDF ein
+     * 
+     * @param string $filePath
+     * @param type $jsonCoordinatesFile
+     * @return string
+     * @throws Exception
+     */
+    public function setAnnotations($filePath, $jsonCoordinatesFile) {
+        $filePathLinked = preg_replace('#\.pdf#', '_linked.pdf', $filePath);
+        exec('java -jar ' . APPLICATION_PATH . '/../tools/pdfbox/pdfbox-simple-jar-with-dependencies.jar -i '
+                . $filePath . ' ' . $jsonCoordinatesFile . ' ' . $filePathLinked, $retValue, $retVar);
+
+        if (count($retValue)) {
+            throw new Exception('error while inserting links to brochure: ' . $filePath . '-' . implode("\n", $retValue));
+        }
+
+        return $filePathLinked;
+    }
+    
+    /**
+     * Gibt Annotationsinformationen aus pdf zurück
+     * 
+     * @param string $filePath
+     * @return type
+     * @throws Exception
+     */
+    public function getAnnotationInfos($filePath) {
+        exec('java -jar ' . APPLICATION_PATH . '/../tools/pdfbox/pdfbox-simple-jar-with-dependencies.jar -a '
+                . $filePath, $retValue, $retVar);
+
+        if (preg_match('#^Usage\s*of#', $retValue[0])) {
+            throw new Exception('error while getting annotation informations for brochure: ' . $filePath . '-' . implode("\n", $retValue));
+        }
+
+        return json_decode(end($retValue));
+    }
+    
+    /**
+     * 
+     * @param type $filePath
+     * @return type
+     * @throws Exception
+     */
+    public function createPdf($filePath) {
+        exec('java -jar ' . APPLICATION_PATH . '/../tools/pdfbox/pdfbox-simple-jar-with-dependencies.jar -c '
+                . $filePath, $retValue, $retVar);
+        
+        if (preg_match('#^Usage\s*of#', $retValue[0])) {
+            throw new Exception('error while creating pdf for image: ' . $filePath . '-' . implode("\n", $retValue));
+        }
+
+        return $retValue;
+    }
+
+    /**
+     * Fügt ein PDF in ein anderes PDF ein 
+     *
+     * @param string $inputPDF Pfad zur PDF in welches die Seiten eingefügt werden sollen
+     * @param string $insertPDF Pfad zur PDF welches eingefügt werden soll
+     * @param int $insertAfterPage Seite, nach welcher die Seiten im Ausgangs-PDF eingefügt werden sollen
+     * @param int $exchange Anzahl der Seiten, die AUSGETAUSCHT werden sollen
+     * @return string Pfad zur den neuen PDF-Dateie
+     */
+    public function insert($inputPDF, $insertPDF, $insertAfterPage, $exchange = 0) {
+        // example: pdftk A=bigpdf.pdf B=insert.pdf cat A1-180 B A181-end output output.pdf
+        $logger = Zend_Registry::get('logger');
+
+        if ($insertAfterPage < 1) {
+            $logger->log('Couldn\'t insert PDF before page 1');
+            return false;
+        }
+
+        $newInsertPage = $insertAfterPage + 1;
+
+        $outputFile = dirname($inputPDF) . '/' . basename($inputPDF, '.pdf') . '_insert.pdf';
+
+        $cmd = 'pdftk A=' . $inputPDF . ' B=' . $insertPDF . ' cat A1-' . $insertAfterPage . ' B A' . ($newInsertPage + $exchange) . '-end output ' . $outputFile;
+
+        exec($cmd, $result, $returnVar);
+
+        if ($returnVar == 0) {
+            $logger->log('inserting new page(s) finished successfully.' . "\n", Zend_Log::INFO);
+        } else {
+            $logger->log("inserting new page(s) failed ($returnVar): " . implode("\n", $result), Zend_Log::CRIT);
+            exit(-1);
+        }
+
+        return $outputFile;
+    }
+
+    /**
+     * Ermittelt die Anzahl der Seiten eines PDF
+     *
+     * @param string $inputPDF Pfad zur PDF in welches die Seiten gezählt werden sollen     
+     * @return array Anzahl der Seiten im PDf
+     */
+    public function getPageCount($inputPDF) {
+        return intval(exec('pdftk ' . $inputPDF . ' dump_data | grep "NumberOfPages" | cut -d":" -f2'));
+    }
+
+    /**
+     * Auslesen der Links des Template-Pdfs und Übertragung auf andere
+     * 
+     * @param string $pathPdfTemplate Template-PDF aus dem die Links ausgelesen werden
+     * @param array $aPathPdfToLink PDFs auf die die Links übertragen werden sollen
+     * @param bool $mergeLinks Links zusammenfassen?
+     * @param bool $cleanPdf Template-PDF bereinigen?
+     * @return array $aLinkedFiles
+     * @throws Exception
+     */
+    public function copyLinks($pathPdfTemplate, $aPathPdfToLink = array(), $mergeLinks = FALSE, $cleanPdf = FALSE) {
+        $keyFile = '~/.ssh/pdftron_private_key';
+        $aLinkedFiles = array();
+        $clean = '';
+        if ($cleanPdf) {
+            $clean = ' \'clean\'';
+        }
+
+        $pattern = '#\/([^\/]+?\.pdf)$#';
+        if (!preg_match($pattern, $pathPdfTemplate, $pdfTemplateNameMatch)) {
+            throw new Exception('unable to match pdf name.');
+        }
+
+        exec('scp -P 2210 -o LogLevel=QUIET -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no '
+                . '-r -i ' . $keyFile . ' '
+                . $pathPdfTemplate . ' pdftron@service:/tmp', $result, $retVar);
+
+        if ($retVar) {
+            throw new Exception('error copying template pdf to pdftron: ' . implode("\n", $result));
+        }
+
+        unset($result);
+        unset($retVar);
+        exec('ssh -p 2210 -o LogLevel=QUIET -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no '
+                . ' -i ' . $keyFile . ' '
+                . 'pdftron@service LD_LIBRARY_PATH=. ./extractData.php '
+                . '/tmp/' . $pdfTemplateNameMatch[1] . ' info', $result, $retVar);
+
+        if ($retVar) {
+            throw new Exception('error while getting pdf infos: ' . implode("\n", $result));
+        }
+
+        $aTemplatePdfData = json_decode(end($result), TRUE);
+
+        if (!count($aTemplatePdfData)) {
+            throw new Exception('invalid pdf template data.');
+        }
+
+        $coordinatesFileHandle = (APPLICATION_PATH . '/../public/files/template.csv');
+        $csvFileName = 'template.csv';
+
+        $fh = fopen($coordinatesFileHandle, 'w');
+
+        fputcsv($fh, array(
+            'pageNo',
+            'pageWidth',
+            'pageHeight',
+            'startX',
+            'endX',
+            'startY',
+            'endY',
+            'link'
+                ), ';');
+
+        foreach ($aTemplatePdfData['dimension'] as $singleSiteKey => &$singleSiteValue) {
+            unset($result);
+            unset($retVar);
+            exec('ssh -p 2210 -o LogLevel=QUIET -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no '
+                    . ' -i ' . $keyFile . ' '
+                    . 'pdftron@service LD_LIBRARY_PATH=. ./extractData.php '
+                    . '/tmp/' . $pdfTemplateNameMatch[1] . ' link ' . (string) ((int) $singleSiteKey + 1), $result, $retVar);
+
+            if ($retVar) {
+                throw new Exception('error while getting link infos: ' . implode("\n", $result));
+            }
+
+            $pageLinkResult = json_decode(end($result), true);
+
+            if (count($pageLinkResult)) {
+                $aMergedLinks = array();
+                $count = 0;
+                foreach ($pageLinkResult as $singlePageLink) {
+                    if ($mergeLinks) {
+                        if (!array_key_exists($singlePageLink['url'], $aMergedLinks)) {
+                            $count++;
+                            $aMergedLinks[$singlePageLink['url']][$count]['url'] = $singlePageLink['url'];
+                            $aMergedLinks[$singlePageLink['url']][$count]['left'] = $singlePageLink['left'];
+                            $aMergedLinks[$singlePageLink['url']][$count]['top'] = $singlePageLink['top'];
+                            $aMergedLinks[$singlePageLink['url']][$count]['width'] = $singlePageLink['width'];
+                            $aMergedLinks[$singlePageLink['url']][$count]['height'] = $singlePageLink['height'];
+                            continue;
+                        } else {
+                            foreach ($aMergedLinks[$singlePageLink['url']] as &$singleArray) {
+                                if (preg_match('#' . $singleArray['url'] . '#', $singlePageLink['url'])) {
+                                    if ((($singlePageLink['left'] > $singleArray['left']) && ($singleArray['left'] + $singleArray['width'] + 0.25 < $singlePageLink['left'])) || ((($singleArray['left'] > $singlePageLink['left']) && ($singlePageLink['left'] + $singlePageLink['width'] + 0.25 < $singlePageLink['left'])))) {
+                                        $count++;
+                                        $aMergedLinks[$singlePageLink['url']][$count]['url'] = $singlePageLink['url'];
+                                        $aMergedLinks[$singlePageLink['url']][$count]['left'] = $singlePageLink['left'];
+                                        $aMergedLinks[$singlePageLink['url']][$count]['top'] = $singlePageLink['top'];
+                                        $aMergedLinks[$singlePageLink['url']][$count]['width'] = $singlePageLink['width'];
+                                        $aMergedLinks[$singlePageLink['url']][$count]['height'] = $singlePageLink['height'];
+                                        continue 2;
+                                    } elseif ((($singlePageLink['top'] > $singleArray['top']) && ($singlePageLink['top'] - $singlePageLink['height'] - 0.25 > $singleArray['top'])) || ((($singlePageLink['top'] < $singleArray['top']) && ($singleArray['top'] - $singleArray['height'] - 0.25 > $singlePageLink['top'])))) {
+                                        $count++;
+                                        $aMergedLinks[$singlePageLink['url']][$count]['url'] = $singlePageLink['url'];
+                                        $aMergedLinks[$singlePageLink['url']][$count]['left'] = $singlePageLink['left'];
+                                        $aMergedLinks[$singlePageLink['url']][$count]['top'] = $singlePageLink['top'];
+                                        $aMergedLinks[$singlePageLink['url']][$count]['width'] = $singlePageLink['width'];
+                                        $aMergedLinks[$singlePageLink['url']][$count]['height'] = $singlePageLink['height'];
+                                        continue 2;
+                                    }
+                                }
+
+                                if ($singlePageLink['left'] < $singleArray['left']) {
+                                    $singleArray['left'] = $singlePageLink['left'];
+                                }
+                                if ($singlePageLink['top'] < $singleArray['top']) {
+                                    $singleArray['top'] = $singlePageLink['top'];
+                                }
+                                if ($singlePageLink['width'] + $singlePageLink['left'] > $singleArray['left'] + $singleArray['width']) {
+                                    $singleArray['width'] = $singlePageLink['width'] + $singlePageLink['left'] - $singleArray['left'];
+                                }
+                                if ($singlePageLink['top'] - $singlePageLink['height'] < $singleArray['top'] - $singleArray['height']) {
+                                    $singleArray['height'] = $singlePageLink['top'] + $singlePageLink['height'] - $singleArray['top'];
+                                }
+                            }
+                        }
+                    } else {
+                        $aMergedLinks[$count][$count]['url'] = $singlePageLink['url'];
+                        $aMergedLinks[$count][$count]['left'] = $singlePageLink['left'];
+                        $aMergedLinks[$count][$count]['top'] = $singlePageLink['top'];
+                        $aMergedLinks[$count][$count]['width'] = $singlePageLink['width'];
+                        $aMergedLinks[$count][$count]['height'] = $singlePageLink['height'];
+                        $count++;
+                    }
+                }
+
+                // AUSWERTUNG!!!
+                foreach ($aMergedLinks as $singleMergedLinksArray) {
+                    foreach ($singleMergedLinksArray as $singlePageLink) {
+                        fputcsv($fh, array(
+                            $singleSiteKey + 1,
+                            $singleSiteValue['width'],
+                            $singleSiteValue['height'],
+                            $singlePageLink['left'] * $singleSiteValue['width'],
+                            ($singlePageLink['left'] + $singlePageLink['width']) * $singleSiteValue['width'],
+                            $singlePageLink['top'] * $singleSiteValue['height'],
+                            ($singlePageLink['top'] + $singlePageLink['height']) * $singleSiteValue['height'],
+                            $singlePageLink['url']
+                                ), ';');
+                    }
+                }
+            }
+        }
+
+        fclose($fh);
+
+        unset($result);
+        unset($retVar);
+        exec('scp -P 2210 -o LogLevel=QUIET -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no '
+                . '-r -i ' . $keyFile . ' '
+                . $coordinatesFileHandle . ' pdftron@service:/tmp', $result, $retVar);
+
+        if ($retVar) {
+            throw new Exception('error while copying csv to pdftron ' . implode("\n", $result));
+        }
+
+        foreach ($aPathPdfToLink as $singlePdfToLink) {
+            $pattern = '#\/([^\/]+?\.pdf)$#';
+            if (!preg_match($pattern, $singlePdfToLink, $pdfToLinkNameMatch)) {
+                throw new Exception('unable to match pdf name.');
+            }
+
+            unset($result);
+            unset($retVar);
+            exec('scp -P 2210 -o LogLevel=QUIET -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no '
+                    . '-r -i ' . $keyFile . ' '
+                    . $singlePdfToLink . ' pdftron@service:/tmp', $result, $retVar);
+
+            if ($retVar) {
+                throw new Exception('error while copying files to pdftron: ' . implode("\n", $result));
+            }
+
+            unset($result);
+            unset($retVar);
+            exec('ssh -p 2210 -o LogLevel=QUIET -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no '
+                    . ' -i ' . $keyFile . ' '
+                    . 'pdftron@service LD_LIBRARY_PATH=. ./addLink.php '
+                    . '/tmp/' . $pdfToLinkNameMatch[1] . ' /tmp/' . $pdfToLinkNameMatch[1] . ' /tmp/' . $csvFileName . ' \'bot\'' . $clean, $result, $retVar);
+            if ($retVar) {
+                throw new Exception('error while running addLink.php: ' . implode("\n", $result));
+            }
+            unset($result);
+            unset($retVar);
+            exec('scp -P 2210 -o LogLevel=QUIET -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no '
+                    . '-r -i ' . $keyFile . ' '
+                    . 'pdftron@service:/tmp/' . $pdfToLinkNameMatch[1] . ' ' . $singlePdfToLink, $result, $retVar);
+
+            $aLinkedFiles[] = $singlePdfToLink;
+
+            if ($retVar) {
+                throw new Exception('error while copying files from pdftron ' . implode("\n", $result));
+            }
+        }
+
+        return $aLinkedFiles;
+    }
+
+    /**
+     * 
+     */
+    public function splitPdf($filePath) {
+        exec('java -jar ' . APPLICATION_PATH . '/../tools/pdfbox/pdfbox-simple-jar-with-dependencies.jar -u '
+                . $filePath, $retValue, $retVar);
+        
+        if (preg_match('#^Usage\s*of#', $retValue[0])) {
+            throw new Exception('error while splitting pdf: ' . $filePath . '-' . implode("\n", $retValue));
+        }
+
+        return $retValue;
+    }
+    
+    /**
+     * Modifiziert Links im Prospekt
+     */
+    public function modifyLinks($filePath, $jsonFilePath) {
+        exec('java -jar ' . APPLICATION_PATH . '/../tools/pdfbox/pdfbox-simple-jar-with-dependencies.jar -m '
+                . $filePath . ' ' . $jsonFilePath . ' ' . preg_replace('#\.pdf#', '_modified.pdf', $filePath), $retValue, $retVar);
+        
+        if (preg_match('#^Usage\s*of#', $retValue[0])) {
+            throw new Exception('error while splitting pdf: ' . $filePath . '-' . implode("\n", $retValue));
+        }
+
+        return preg_replace('#\.pdf#', '_modified.pdf', $filePath);
+    }
+}
+

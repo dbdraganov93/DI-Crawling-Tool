@@ -1,0 +1,12 @@
+<?php
+
+class Marktjagd_Database_Service_CrawlerType extends Marktjagd_Database_Service_Abstract
+{
+    public function findAll()
+    {
+        $cCrawlerType = new Marktjagd_Database_Collection_CrawlerType();
+        $mCrawlerType = new Marktjagd_Database_Mapper_CrawlerType();
+        $mCrawlerType->fetchAll(null, $cCrawlerType);
+        return $cCrawlerType;
+    }
+}

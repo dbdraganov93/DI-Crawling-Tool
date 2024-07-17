@@ -1,0 +1,73 @@
+<?php
+
+/**
+ * Service Connector zwischen Mastercrawler und PHP-Franework
+ */
+class Marktjagd_Service_Mastercrawler_Connector
+{
+    /**
+     * @param $serviceName string
+     * @param $aParams array
+     * @return object
+     * @throws Exception
+     */
+    public function useService($serviceName, $aParams)
+    {
+        $maxAttempts = 7;
+        $attempts = 0;
+        $sleepTime = 1;
+
+        $oData = null;
+
+        do {
+            try
+            {
+                $oData = $this->_useSingleService($serviceName, $aParams);
+                return $oData;
+            } catch (Exception $e) {
+                sleep($sleepTime);
+                $attempts++;
+                $sleepTime = $sleepTime * 2;
+            }
+        } while($attempts < $maxAttempts);
+
+        throw new Exception('Could not reach java service ' . $serviceName
+            . ' after ' . $attempts . ' at mastercrawler server');
+    }
+
+    private function _useSingleService($serviceName, $aParams)
+    {
+        $configIni = new Zend_Config_Ini(APPLICATION_PATH . '/configs/application.ini', APPLICATION_ENV);
+        $baseUrl = $configIni->masterCrawler->urlBase . ':' . $configIni->masterCrawler->port;
+        $serviceUrl = $baseUrl . $configIni->masterCrawler->urlService;
+
+        $aPostParams = array (
+            'input' => $aParams,
+            'service' => $serviceName
+        );
+
+        $requestJson = json_encode($aPostParams);
+
+        $ch = curl_init($serviceUrl);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $requestJson);
+
+        curl_setopt($ch, CURLOPT_ENCODING, "");
+        curl_setopt( $ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $responseStatus = json_decode(curl_exec($ch));
+
+        if (null == $responseStatus
+            || $responseStatus->code != 'success'
+        ) {
+            // Falls Status ERROR
+            throw new Exception('could not connect to mastercrawler for service ' . $serviceName . "\n"
+                . print_r($requestJson, true));
+        }
+
+        curl_close($ch);
+
+        return $responseStatus->data->data;
+    }
+}
+

@@ -1,0 +1,124 @@
+<?php
+
+class Marktjagd_Database_Entity_Author extends Marktjagd_Database_Entity_Abstract
+{
+    // table fields
+    protected $_idAuthor;
+    protected $_firstName;
+    protected $_lastName;
+
+    /**
+     * Contains mapping of table columns to function
+     *
+     * @var array
+     */
+    protected $_aColumnMap = array('idAuthor' => 'IdAuthor',
+                                   'firstName' => 'FirstName',
+                                   'lastName' => 'LastName');
+
+
+    /**
+     * Set idAuthor, value is casted to int
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_Author
+     */
+    public function setIdAuthor($mValue)
+    {
+        $this->_idAuthor = (int) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns idAuthor
+     *
+     * @return int idAuthor
+     */
+    public function getIdAuthor()
+    {
+        return $this->_idAuthor;
+    }
+
+    /**
+     * Set firstName, value is casted to string
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_Author
+     */
+    public function setFirstName($mValue)
+    {
+        $this->_firstName = (string) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns firstName
+     *
+     * @return string firstName
+     */
+    public function getFirstName()
+    {
+        return $this->_firstName;
+    }
+
+    /**
+     * Set lastName, value is casted to string
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_Author
+     */
+    public function setLastName($mValue)
+    {
+        $this->_lastName = (string) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns lastName
+     *
+     * @return string lastName
+     */
+    public function getLastName()
+    {
+        return $this->_lastName;
+    }
+
+    /**
+     * Returns the mapper class, if no one exists, default will be created.
+     *
+     * @return  Marktjagd_Database_Mapper_Author
+     */
+    public function getMapper()
+    {
+        return parent::getMapper();
+    }
+
+    /**
+     * Saves data to database If the primary key is set,
+     * data will be updated.
+     *
+     * @param bool $bNull Save also null values
+     *
+     * @return void
+     */
+    public function save($bNull = false)
+    {
+        $this->getMapper()->save($this, $bNull);
+    }
+
+    /**
+     * Loads the data by primary key(s). By multiple primary
+     * keys use an array with the values of the primary key columns.
+     *
+     * @param mixed $mId Primary key(s) value(s)
+     *
+     * @return bool True if found, otherwise false
+     */
+    public function find($mId)
+    {
+        return $this->getMapper()->find($mId, $this);
+    }
+}

@@ -1,0 +1,43 @@
+<?php
+
+class Marktjagd_Database_Service_QualityCheckCompanyInfos extends Marktjagd_Database_Abstract {
+    
+    /**
+     * Ermittelt alle verfügbaren Unternehmenseinstellungen
+     * 
+     * @return Marktjagd_Database_Collection_QualityCheckCompanyInfos
+     */
+    public function findAll()
+    {
+        $cQualityCheckCompanyInfos = new Marktjagd_Database_Collection_QualityCheckCompanyInfos();
+        $mQualityCheckCompanyInfos = new Marktjagd_Database_Mapper_QualityCheckCompanyInfos();
+        $mQualityCheckCompanyInfos->fetchAll(null, $cQualityCheckCompanyInfos);
+        
+        return $cQualityCheckCompanyInfos;
+    }
+    
+    /**
+     * Findet zur angegebenen Unternehmens-ID die QualityCheck-Settings
+     * 
+     * @param string $companyId
+     * @return Marktjagd_Database_Entity_QualityCheckCompanyInfos
+     */
+    public function findByCompanyId($companyId) {
+        $eQualityCheckCompanyInfos = new Marktjagd_Database_Entity_QualityCheckCompanyInfos();
+        $mQualityCheckCompanyInfos = new Marktjagd_Database_Mapper_QualityCheckCompanyInfos();
+
+        $mQualityCheckCompanyInfos->findByCompanyId($companyId, $eQualityCheckCompanyInfos);
+        
+        return $eQualityCheckCompanyInfos;
+    }
+    
+    public function findCompaniesWithBrochureCheck()
+    {
+        $cQualityCheckCompanyInfos = new Marktjagd_Database_Collection_QualityCheckCompanyInfos();
+        $mQualityCheckCompanyInfos = new Marktjagd_Database_Mapper_QualityCheckCompanyInfos();
+
+        $mQualityCheckCompanyInfos->findCompaniesWithBrochureCheck($cQualityCheckCompanyInfos);
+
+        return $cQualityCheckCompanyInfos;
+    }
+}

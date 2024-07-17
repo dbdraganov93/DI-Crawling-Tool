@@ -1,0 +1,970 @@
+<?php
+
+use Marktjagd\ApiClient\Resource;
+
+\Marktjagd\ApiClient\Resource\ResourceFactory::setClasses(array());
+
+/**
+ * Service zum Abfragen von Daten aus der Marktjagd-API
+ */
+class Marktjagd_Service_Input_MarktjagdApi
+{
+
+    /**
+     * Fragt bei der Api Standorte für ein Unternehmen anhand der Distribution ab
+     * Wird $excludeDistribution=true gesetzt, werden alle Standorte, außer die der übergebenen Distribution ermittelt
+     *
+     * @param int $companyId
+     * @param string $distribution
+     * @param bool $excludeDistribution
+     * @param int $count
+     * @param bool $visibleOnly
+     * @return Marktjagd_Collection_Api_Store|bool
+     */
+    public function findStoresByDistribution($companyId, $distribution, $excludeDistribution = false, $count = 500, $visibleOnly = true)
+    {
+        /* @var $logger Zend_Log */
+        $logger = Zend_Registry::get('logger');
+
+        $sPartner = new Marktjagd_Database_Service_Partner();
+        $ePartner = $sPartner->findByCompanyId($companyId);
+
+        /* @var $apiClient Marktjagd_Entity_MarktjagdApi */
+        $apiClient = new Marktjagd_Entity_MarktjagdApi();
+        $apiClient->setEnvironment($ePartner);
+
+        $cStores = new Marktjagd_Collection_Api_Store();
+        $cDistribution = $this->findDistributionsByCompany($companyId);
+
+        $distributionParam = 'distribution_id';
+        if ($excludeDistribution) {
+            $distributionParam = 'distribution_id_exclude';
+        }
+
+        if (!$cDistribution) {
+            $logger->log('Couldn\'t find any distribution for company ' . $companyId
+                    . ' and distribution ' . $distribution, Zend_Log::ERR);
+        }
+
+        $distributionId = false;
+        foreach ($cDistribution->getElements() as $eDistribution) {
+            /* @var $eDistribution Marktjagd_Entity_Api_Distribution */
+            if ($eDistribution->getTitle() == $distribution) {
+                $distributionId = $eDistribution->getDistributionId();
+                continue;
+            }
+        }
+
+        if ($distribution && !$distributionId) {
+            $logger->log('Couldn\'t find distribution ' . $distribution . ' for company ' . $companyId, Zend_Log::ERR);
+            return false;
+        }
+
+        $page = 1;
+        do {
+            $params = array(
+                'with_offer_flags' => false,
+                'company_id' => $companyId,
+                'count' => $count,
+                'page' => $page++
+            );
+
+            if ($distributionId) {
+                $params[$distributionParam] = $distributionId;
+            }
+
+            if ($visibleOnly) {
+                $params['status'] = Resource\Store\StoreResource::STATUS_VISIBLE;
+            }
+
+            $stores = Resource\Store\StoreResource::findAll(
+                            $params
+            );
+
+            if (\Marktjagd\ApiClient\Request\Request::getInstance()->hasErrors()) {
+                $logger->log('Error while getStores: company '
+                        . $companyId . ' - '
+                        . print_r(\Marktjagd\ApiClient\Request\Request::getInstance()->getErrors(), true), Zend_Log::ERR);
+            }
+
+            foreach ($stores as $store) {
+                $aStore = $store->toArray();
+
+                // Öffnungszeiten als string
+                $storeHours = array();
+                if (is_array($aStore['hours']) && array_key_exists('hour', $aStore['hours'])) {
+                    foreach ($aStore['hours']['hour'] as $storeHour) {
+                        $dayStr = $storeHour['day_from'];
+                        if ($storeHour['day_from'] != $storeHour['day_to']) {
+                            $dayStr .= "-" . $storeHour['day_to'];
+                        }
+
+                        $storeHours[] = $dayStr
+                                . " "
+                                . $storeHour['time_from']
+                                . "-"
+                                . $storeHour['time_to'];
+                    }
+                }
+
+                $eStore = new Marktjagd_Entity_Api_Store();
+                $eStore->setId($aStore['id'])
+                        ->setStoreNumber($aStore['number'])
+                        ->setTitle($aStore['title'])
+                        ->setSubtitle($aStore['subtitle'])
+                        ->setText($aStore['description'])
+                        ->setStreet($aStore['street'])
+                        ->setStreetNumber($aStore['street_number'])
+                        ->setZipcode($aStore['zipcode'])
+                        ->setCity($aStore['city'])
+                        ->setLatitude($aStore['latitude'])
+                        ->setLongitude($aStore['longitude'])
+                        ->setPayment($aStore['payment'])
+                        ->setWebsite($aStore['homepage'])
+                        ->setEmail($aStore['email'])
+                        ->setPhone($aStore['phone_number'])
+                        ->setFax($aStore['fax_number'])
+                        ->setStoreHours(implode(',', $storeHours))
+                        ->setStoreHoursNotes($aStore['hours_text'])
+                        ->setDistribution($distribution)
+                        ->setParking($aStore['parking'])
+                        ->setBarrierFree($aStore['barrier_free'])
+                        ->setBonusCard($aStore['bonus_card'])
+                        ->setSection($aStore['section'])
+                        ->setService($aStore['service'])
+                        ->setToilet($aStore['toilet']);
+
+                $cStores->addElement($eStore);
+            }
+        }
+        while (count($stores) == $count);
+
+        return $cStores;
+    }
+
+    /**
+     * Ermittelt alle Distributionen für eine Company
+     *
+     * @param int $companyId
+     * @param int $count
+     * @return bool|Marktjagd_Collection_Api_Distribution
+     */
+    function findDistributionsByCompany($companyId, $count = 500)
+    {
+        /* @var $logger Zend_Log */
+        $logger = Zend_Registry::get('logger');
+
+        /* @var $apiClient Marktjagd_Entity_MarktjagdApi */
+        $apiClient = new Marktjagd_Entity_MarktjagdApi();
+        $apiClient->setEnvironmentByCompanyId($companyId);
+        $cDistribution = new Marktjagd_Collection_Api_Distribution();
+
+        $page = 1;
+
+        do {
+            $distributions = \Marktjagd\ApiClient\Resource\Distribution\DistributionResource::findAll(
+                            array(
+                                'company_id' => $companyId,
+                                'count' => $count,
+                                'page' => $page++,
+                                'status' => Resource\Distribution\DistributionResource::STATUS_VISIBLE,
+                                'is_static' => false
+                            )
+            );
+
+            if (\Marktjagd\ApiClient\Request\Request::getInstance()->hasErrors()) {
+                $logger->log(
+                        'Error while getDistributions: company '
+                        . $companyId . ' - '
+                        . print_r(\Marktjagd\ApiClient\Request\Request::getInstance()->getErrors(), true), Zend_Log::ERR
+                );
+                return false;
+            }
+
+            foreach ($distributions as $distribution) {
+                $aDistribution = $distribution->toArray();
+                $eDistribution = new Marktjagd_Entity_Api_Distribution();
+                $eDistribution->setCompanyId($aDistribution['company_id'])
+                        ->setDistributionId($aDistribution['id'])
+                        ->setTitle($aDistribution['title'])
+                        ->setStoreCount($aDistribution['store_number']);
+                $cDistribution->addElement($eDistribution);
+            }
+        }
+        while (count($distributions) == $count);
+
+        return $cDistribution;
+    }
+
+    /**
+     * Findet alle Stores für eine Company
+     *
+     * @param $companyId
+     * @param int $count
+     * @param bool $visibleOnly
+     * @return Marktjagd_Collection_Api_Store
+     */
+    public function findStoresByCompany($companyId, $count = 500, $visibleOnly = true)
+    {
+        // Alle Vertriebsbereiche ermitteln
+        $cDistributions = $this->findDistributionsByCompany($companyId);
+        $aDistributionMap = array();
+
+        foreach ($cDistributions->getElements() as $eDistribution) {
+            // Für jeden Vertriebsbereich seperat die Standorte ermitteln und Zugehörigkeit merken
+            /* @var $eDistribution Marktjagd_Entity_Api_Distribution */
+            $cDistributionStores = $this->findStoresByDistribution($companyId, $eDistribution->getTitle(), false, $count, $visibleOnly);
+            foreach ($cDistributionStores->getElements() as $eDistributionStore) {
+                /* @var $eDistributionStore Marktjagd_Entity_Api_Store */
+                $aDistributionMap[$eDistributionStore->getId()][] = $eDistribution->getTitle();
+            }
+        }
+
+        // Nochmal alle Standorte ermitteln und Vertriebsbereiche entsprechend zuordnen
+        $cStoresWithDistribution = new Marktjagd_Collection_Api_Store();
+        $cStoresWithoutDistribution = $this->findStoresByDistribution($companyId, false, false, $count, $visibleOnly);
+        foreach ($cStoresWithoutDistribution->getElements() as $eStoreWithoutDistribution) {
+            /* @var $eStoreWithoutDistribution Marktjagd_Entity_Api_Store */
+            if (array_key_exists($eStoreWithoutDistribution->getId(), $aDistributionMap)) {
+                $eStoreWithoutDistribution->setDistribution(implode(',', $aDistributionMap[$eStoreWithoutDistribution->getId()]));
+            }
+            $cStoresWithDistribution->addElement($eStoreWithoutDistribution);
+        }
+
+        return $cStoresWithDistribution;
+    }
+
+    /**
+     * Prüft, ob das Verhalten (keep, archive, remove) zum übergebenen Typ (articles, stores, brochures) passt
+     *
+     * @param string $type
+     * @param string $behaviour
+     * @return bool
+     */
+    public function isValidBehaviour($type, $behaviour)
+    {
+        $isValid = false;
+        $aTypeBehaviour = array(
+            'articles' => array(
+                'keep',
+                'archive',
+                'remove'
+            ),
+            'brochures' => array(
+                'keep',
+                'archive',
+                'remove'
+            ),
+            'stores' => array(
+                'keep',
+                'remove'
+            ),
+        );
+
+        if ($behaviour == 'auto') {
+            $isValid = true;
+        }
+
+        if (!array_key_exists($type, $aTypeBehaviour)) {
+            return false;
+        }
+
+        if (in_array($behaviour, $aTypeBehaviour[$type])) {
+            $isValid = true;
+        }
+
+        return $isValid;
+    }
+
+    /**
+     * Ermittelt alle Brochure-IDs aktiver Prospekte für ein Unternehmen
+     *
+     * @param int $companyId Unternehmens-ID
+     * @param int $count Anzahl der Einträge pro Seite
+     * @return array|bool
+     */
+    public function findActiveBrochuresByCompany($companyId, $count = 500)
+    {
+        /* @var $logger Zend_Log */
+        $logger = Zend_Registry::get('logger');
+
+        /* @var $apiClient Marktjagd_Entity_MarktjagdApi */
+        $apiClient = new Marktjagd_Entity_MarktjagdApi();
+        $apiClient->setEnvironmentByCompanyId($companyId);
+
+        $retArr = array();
+        $page = 1;
+        do {
+            $brochures = \Marktjagd\ApiClient\Resource\Brochure\BrochureResource::findAll(
+                            array(
+                                'company_id' => $companyId,
+                                'time_constraint' => array('current', 'upcoming', 'future', 'expired'),
+                                'status' => 'visible',
+                                'count' => $count,
+                                'page' => $page++,
+                                'page_number' => '1',
+                                'sort' => 'modified',
+                                'order' => 'desc'
+                            )
+            );
+
+            if (\Marktjagd\ApiClient\Request\Request::getInstance()->hasErrors()) {
+                $logger->log(
+                        'Error while findActiveBrochuresByCompany: company '
+                        . $companyId . ' - '
+                        . print_r(\Marktjagd\ApiClient\Request\Request::getInstance()->getErrors(), true), Zend_Log::ERR
+                );
+                return false;
+            }
+
+            foreach ($brochures as $brochure) {
+                $aBrochure = $brochure->toArray();
+                $retArr[$aBrochure['id']]['brochureNumber'] = $aBrochure['number'];
+                $retArr[$aBrochure['id']]['title'] = $aBrochure['title'];
+                $retArr[$aBrochure['id']]['type'] = $aBrochure['type'];
+                $retArr[$aBrochure['id']]['type_id'] = $aBrochure['type_id'];
+                $retArr[$aBrochure['id']]['validFrom'] = $aBrochure['datetime_from'];
+                $retArr[$aBrochure['id']]['validTo'] = $aBrochure['datetime_to'];
+                $retArr[$aBrochure['id']]['visibleFrom'] = $aBrochure['datetime_visible_from'];
+                $retArr[$aBrochure['id']]['visibleTo'] = $aBrochure['datetime_visible_to'];
+                $retArr[$aBrochure['id']]['lastModified'] = $aBrochure['datetime_modified'];
+                $retArr[$aBrochure['id']]['created'] = $aBrochure['datetime_created'];
+            }
+        }
+        while (count($brochures) == $count);
+
+        return $retArr;
+    }
+
+    /**
+     * Ermittelt alle Artikel-IDs aktiver Artikel für ein Unternehmen
+     *
+     * @param int $companyId Unternehmens-ID
+     * @param int $count Anzahl der Einträge pro Seite
+     * @throws Zend_Exception
+     * @throws Zend_Log_Exception
+     * @return array|bool
+     */
+    public function findActiveArticlesByCompany($companyId, $count = 500)
+    {
+        /* @var $logger Zend_Log */
+        $logger = Zend_Registry::get('logger');
+
+        /* @var $apiClient Marktjagd_Entity_MarktjagdApi */
+        $apiClient = new Marktjagd_Entity_MarktjagdApi();
+        $apiClient->setEnvironmentByCompanyId($companyId);
+
+        $retArr = array();
+        $dateCreated = '';
+        $retArr['lastModified'] = '';
+        $page = 1;
+        do {
+            $articles = \Marktjagd\ApiClient\Resource\Article\ArticleResource::findAll(
+                            array(
+                                'company_id' => $companyId,
+                                'time_constraint' => array('current', 'upcoming', 'future', 'expired'),
+                                'status' => 'visible',
+                                'count' => $count,
+                                'page' => $page++,
+                                'sort' => 'modified',
+                                'order' => 'desc'
+                            )
+            );
+
+            if (\Marktjagd\ApiClient\Request\Request::getInstance()->hasErrors()) {
+                $logger->log(
+                        'Error while findActiveArticlesByCompany: company '
+                        . $companyId . ' - '
+                        . print_r(\Marktjagd\ApiClient\Request\Request::getInstance()->getErrors(), true), Zend_Log::ERR
+                );
+                return false;
+            }
+
+            foreach ($articles as $article) {
+                $aArticle = $article->toArray();
+                if (!strlen($retArr['lastModified'])) {
+                    $retArr['lastModified'] = $aArticle['datetime_modified'];
+                    if (strtotime($dateCreated) < strtotime($aArticle['datetime_created'])) {
+                        $dateCreated = $aArticle['datetime_created'];
+                    }
+                }
+                $retArr[$aArticle['id']]['articleNumber'] = $aArticle['number'];
+                $retArr[$aArticle['id']]['title'] = $aArticle['title'];
+                $retArr[$aArticle['id']]['validFrom'] = $aArticle['datetime_from'];
+                $retArr[$aArticle['id']]['validTo'] = $aArticle['datetime_to'];
+                $retArr[$aArticle['id']]['visibleFrom'] = $aArticle['datetime_visible_from'];
+                $retArr[$aArticle['id']]['visibleTo'] = $aArticle['datetime_visible_to'];
+            }
+        }
+        while (count($articles) == $count);
+
+        if (!strlen($retArr['lastModified'])) {
+            $retArr['lastModified'] = $dateCreated;
+        }
+
+        return $retArr;
+    }
+
+    /**
+     * Findet alle Stores eines Unternehmens
+     * 
+     * @param string $companyId Unternehmens-ID
+     * @param int $count Anzahl der Einträge pro Seite
+     * @return boolean|array $retArr Store-Array
+     */
+    public function findAllStoresForCompany($companyId, $count = 500, $status = 'visible')
+    {
+        /* @var $logger Zend_Log */
+        $logger = Zend_Registry::get('logger');
+
+        /* @var $apiClient Marktjagd_Entity_MarktjagdApi */
+        $apiClient = new Marktjagd_Entity_MarktjagdApi();
+        $apiClient->setEnvironmentByCompanyId($companyId);
+
+        $retArr = array();
+        $page = 1;
+        do {
+            $stores = \Marktjagd\ApiClient\Resource\Store\StoreResource::findAll(
+                            array(
+                                'company_id' => $companyId,
+                                'count' => $count,
+                                'page' => $page++,
+                                'sort' => 'modified',
+                                'order' => 'desc',
+                                'with_offer_flags' => 'false',
+                                'status' => $status
+                            )
+            );
+
+            if (\Marktjagd\ApiClient\Request\Request::getInstance()->hasErrors()) {
+                $logger->log(
+                        'Error while findAllStoresForCompany: company '
+                        . $companyId . ' - '
+                        . print_r(\Marktjagd\ApiClient\Request\Request::getInstance()->getErrors(), true), Zend_Log::ERR
+                );
+                return false;
+            }
+            foreach ($stores as $store) {
+                $aStore = $store->toArray();
+
+                $storeHours = array();
+                if (is_array($aStore['hours']) && array_key_exists('hour', $aStore['hours'])) {
+                    foreach ($aStore['hours']['hour'] as $storeHour) {
+                        $dayStr = $storeHour['day_from'];
+                        if ($storeHour['day_from'] != $storeHour['day_to']) {
+                            $dayStr .= "-" . $storeHour['day_to'];
+                        }
+
+                        $storeHours[] = $dayStr
+                                . " "
+                                . $storeHour['time_from']
+                                . "-"
+                                . $storeHour['time_to'];
+                    }
+                }
+
+                $retArr[$aStore['id']]['number'] = $aStore['number'];
+                $retArr[$aStore['id']]['title'] = $aStore['title'];
+                $retArr[$aStore['id']]['subtitle'] = $aStore['subtitle'];
+                $retArr[$aStore['id']]['street'] = $aStore['street'];
+                $retArr[$aStore['id']]['street_number'] = $aStore['street_number'];
+                $retArr[$aStore['id']]['zipcode'] = $aStore['zipcode'];
+                $retArr[$aStore['id']]['city'] = $aStore['city'];
+                $retArr[$aStore['id']]['datetime_modified'] = $aStore['datetime_modified'];
+                $retArr[$aStore['id']]['phone_number'] = $aStore['phone_number'];
+                $retArr[$aStore['id']]['fax_number'] = $aStore['fax_number'];
+                $retArr[$aStore['id']]['store_hours_notes'] = $aStore['hours_text'];
+                $retArr[$aStore['id']]['email'] = $aStore['email'];
+                $retArr[$aStore['id']]['text'] = $aStore['description'];
+                $retArr[$aStore['id']]['payment'] = $aStore['payment'];
+                $retArr[$aStore['id']]['website'] = $aStore['homepage'];
+                $retArr[$aStore['id']]['parking'] = $aStore['parking'];
+                $retArr[$aStore['id']]['barrier_free'] = $aStore['barrier_free'];
+                $retArr[$aStore['id']]['bonus_card'] = $aStore['bonus_card'];
+                $retArr[$aStore['id']]['section'] = $aStore['section'];
+                $retArr[$aStore['id']]['service'] = $aStore['service'];
+                $retArr[$aStore['id']]['toilet'] = $aStore['toilet'];
+
+                if (count($storeHours)) {
+                    $retArr[$aStore['id']]['store_hours'] = implode(',', $storeHours);
+                }
+                else {
+                    $retArr[$aStore['id']]['store_hours'] = null;
+                }
+
+                if (count($store->getImages()) > 0) {
+                    $retArr[$aStore['id']]['has_images'] = count($store->getImages());
+                }
+                else {
+                    $retArr[$aStore['id']]['has_images'] = null;
+                }
+            }
+        }
+        while (count($stores) == $count);
+
+        return $retArr;
+    }
+
+    /**
+     * Findet den letzten Standort-/Prospekt-/Produkt-Import eines Unternehmens
+     * 
+     * @param int $companyId Unternehmens-ID
+     * @param string $type zu prüfender Typ [store,article,brochure]
+     * @param string $status Status des Imports
+     * @param int $count Anzahl der zu prüfenden Importe
+     * @return bool|string Startzeitpunkt des letzten spezifizierten Imports
+     */
+    public function findLastImport($companyId, $type, $status = 'done', $count = 1)
+    {
+        /* @var $apiClient Marktjagd_Entity_MarktjagdApi */
+        $apiClient = new Marktjagd_Entity_MarktjagdApi();
+        $apiClient->setEnvironmentByCompanyId($companyId);
+
+        $lastImport = json_decode(\Marktjagd\ApiClient\Resource\Import\ImportResource::findAll(
+                                array(
+                                    'company_id' => $companyId,
+                                    'count' => $count,
+                                    'type' => $type,
+                                    'status' => $status,
+                                    'order' => 'desc'
+                        ))->getRequest()->getResponseBody())->imports;
+
+        if (property_exists($lastImport, 'import') && !is_null($lastImport->import)) {
+            return $lastImport->import[0]->datetime_started;
+        }
+        return false;
+    }
+
+    /**
+     * Updatet Datenbank bezüglich Companies und Tarifkategorien
+     */
+    public function updateCrawler()
+    {
+        echo "crawler update started.\n";
+        $sDbCompany = new Marktjagd_Database_Service_Company();
+        $sDbQualityCheckErrorsInfos = new Marktjagd_Database_Service_QualityCheckCompanyInfos();
+
+        $companies = $this->_getAllCompanies();
+        $aDbCompanies = $sDbCompany->findAll();
+
+        foreach ($companies as $idCompany => $singleCompany) {
+            if (preg_match('#UIM#', $singleCompany['title'])) {
+                continue;
+            }
+
+            $eCompany = new Marktjagd_Database_Entity_Company();
+            $forceInsert = false;
+
+            if (!$eCompany->find($idCompany)) {
+                $forceInsert = true;
+            }
+
+            $eCompany->setIdCompany($idCompany)
+                    ->setName($singleCompany['title'])
+                    ->setProductCategory($singleCompany['product_category'])
+                    ->setIdCompany($singleCompany['partner_id']);
+
+            if (array_key_exists($idCompany, $companies)) {
+                if (preg_match('#visible#', $companies[$idCompany]['status'])) {
+                    $eCompany->setStatus('active');
+                }
+                else {
+                    $eCompany->setStatus('inactive');
+                }
+            }
+
+            $eCompany->save(false, $forceInsert);
+
+            if (!$sDbQualityCheckErrorsInfos->findByCompanyId($idCompany)->getIdCompany()) {
+                $eCompanyQualityCheck = new Marktjagd_Database_Entity_QualityCheckCompanyInfos();
+                $eCompanyQualityCheck->setIdCompany($idCompany)
+                        ->setStores(1)
+                        ->setBrochures(0)
+                        ->setProducts(0)
+                        ->setLimitStores(0.75)
+                        ->setLimitBrochures(0)
+                        ->setLimitProducts(0)
+                        ->setFreshnessStores(0)
+                        ->setFreshnessBrochures(0)
+                        ->setFreshnessProducts(0)
+                        ->setFutureBrochures(0)
+                        ->setFutureProducts(0);
+
+                $eCompanyQualityCheck->save();
+            }
+        }
+
+        $strFreshlyDeletedCompanies = '';
+        foreach ($aDbCompanies as $singleDbCompany) {
+            if (!array_key_exists($singleDbCompany->getIdCompany(), $companies) && !preg_match('#removed#', $singleDbCompany->getStatus()) && !preg_match('#(UIM)#', $singleDbCompany->getName())) {
+                $eCompany = new Marktjagd_Database_Entity_Company();
+                $eCompany->setIdCompany($singleDbCompany->getIdCompany())
+                        ->setName($singleDbCompany->getName())
+                        ->setProductCategory($singleDbCompany->getProductCategory())
+                        ->setStatus('removed');
+
+                $eCompany->save();
+                if (strlen($strFreshlyDeletedCompanies)) {
+                    $strFreshlyDeletedCompanies .= ',';
+                }
+                $strFreshlyDeletedCompanies .= $singleDbCompany->getIdCompany();
+            }
+        }
+
+        if (strlen($strFreshlyDeletedCompanies)) {
+            $config = new Zend_Config_Ini(APPLICATION_PATH . '/configs/application.ini', APPLICATION_ENV);
+
+            $mail = new Zend_Mail('utf-8');
+
+            $strMySql = "DELETE FROM CrawlerConfig <br/>"
+                    . "WHERE idCrawlerConfig IN ( <br/>"
+                    . "SELECT idCrawlerConfig FROM CrawlerConfig <br/>"
+                    . "WHERE idCompany IN (" . $strFreshlyDeletedCompanies . "));";
+
+            $mail->setBodyHtml($strMySql)
+                    ->setFrom($config->log->mail->from, 'DI Robot')
+                    ->addTo($config->log->mail->to)
+                    ->addCC($config->log->mail->cc)
+                    ->setSubject('Report kürzlich gelöschter Unternehmen')
+                    ->send();
+        }
+
+        $sRedmine = new Marktjagd_Service_Input_Redmine();
+        $aCompanies = $sRedmine->getCompanies();
+
+        foreach ($aCompanies as $singleCompanyKey => $singleCompanyValue) {
+            $eRedmine = new Marktjagd_Database_Entity_Redmine();
+            $eRedmine->setIdCompany($singleCompanyKey)
+                    ->setIdRedmine($singleCompanyValue['fixedVersionId']);
+
+            $forceInsert = FALSE;
+            if (!$eRedmine->find($singleCompanyKey)) {
+                $forceInsert = TRUE;
+            }
+            $eRedmine->save(FALSE, $forceInsert);
+        }
+
+        echo "update successful.\n";
+    }
+
+    /**
+     * Findet alle Unternehmen inklusive Tarifkategorie
+     *
+     * @return array Unternehmens-Array inklusive Tarifkategorie
+     */
+    protected function _getAllCompanies()
+    {
+        $sPartner = new Marktjagd_Database_Service_Partner();
+        $cPartner = $sPartner->findAll();
+
+        $aCompanies = array();
+
+        /** @var Marktjagd_Database_Entity_Partner $ePartner */
+        foreach ($cPartner as $ePartner) {
+            $apiClient = new Marktjagd_Entity_MarktjagdApi() ;
+            $apiClient->setEnvironment($ePartner);
+            $count = 500;
+            $page = 1;
+
+            do {
+                $companies = Resource\Company\CompanyResource::findAll(
+                    array(
+                        'count' => $count,
+                        'page' => $page++,
+                        'status' => array(
+                            Resource\Company\CompanyResource::STATUS_VISIBLE,
+                            Resource\Company\CompanyResource::STATUS_HIDDEN),
+                        'with_offer_flags' => 'false'
+                    ));
+
+                $product = Resource\Product\ProductResource::findAll(
+                    array(
+                        'count' => $count
+                    ));
+
+                foreach ($companies as $company) {
+                    foreach ($product as $singleProduct) {
+
+                        if ($singleProduct->id == $company->product_id) {
+                            $aCompanies[$company->id]['title'] = $company->title;
+                            $aCompanies[$company->id]['product_category'] = $singleProduct->category;
+                            $aCompanies[$company->id]['status'] = $company->status;
+                            if (preg_match('#TOP#', $singleProduct->title)) {
+                                $aCompanies[$company->id]['product_category'] = $singleProduct->title;
+                            }
+
+                            $aCompanies[$company->id]['partner_id'] = $ePartner->getIdPartner();
+                        }
+                    }
+                }
+            }
+            while (count($companies) == $count);
+        }
+
+        asort($aCompanies, SORT_STRING);
+
+        return $aCompanies;
+    }
+
+    /**
+     * Findet alle aktiven Unternehmen inklusive Tarifkategorie
+     *
+     * @return array Unternehmens-Array inklusive Tarifkategorie
+     */
+    public function getAllActiveCompanies()
+    {
+
+        $sPartner = new Marktjagd_Database_Service_Partner();
+        $cPartner = $sPartner->findAll();
+
+        $aCompanies = array();
+
+        /** @var Marktjagd_Database_Entity_Partner $ePartner */
+        foreach ($cPartner as $ePartner) {
+            $apiClient = new Marktjagd_Entity_MarktjagdApi();
+            $apiClient->setEnvironment($ePartner);
+            $count = 500;
+            $page = 1;
+
+            do {
+                $companies = Resource\Company\CompanyResource::findAll(
+                    array(
+                        'count' => $count,
+                        'page' => $page++,
+                        'status' => Resource\Store\StoreResource::STATUS_VISIBLE,
+                        'with_offer_flags' => 'false'
+                    ));
+
+                $product = Resource\Product\ProductResource::findAll(
+                    array(
+                        'count' => $count
+                    ));
+
+                foreach ($companies as $company) {
+                    foreach ($product as $singleProduct) {
+                        if (preg_match('#^(Basis)#', $singleProduct->title)) {
+                            continue;
+                        }
+                        if ($singleProduct->id == $company->product_id) {
+                            $aCompanies[$company->id]['title'] = $company->title;
+                            $aCompanies[$company->id]['product_category'] = $singleProduct->category;
+                            $aCompanies[$company->id]['url'] = $company->homepage;
+                            if (preg_match('#top#i', $singleProduct->title)) {
+                                $aCompanies[$company->id]['product_category'] = $singleProduct->title;
+                            }
+
+                            if ($singleProduct->cpc_brochure != 0) {
+                                $aCompanies[$company->id]['brochure'] = TRUE;
+                            }
+
+                            if ($singleProduct->cpc_article != 0) {
+                                $aCompanies[$company->id]['article'] = TRUE;
+                            }
+
+                            $aCompanies[$company->id]['logo_url'] = $company->images->image[0]->dimensions->dimension[0]->url;
+                            $aCompanies[$company->id]['partner_id'] = $ePartner->getIdPartner();
+                        }
+                    }
+                }
+            }
+            while (count($companies) == $count);
+        }
+
+        ksort($aCompanies);
+
+        return $aCompanies;
+    }
+
+    /**
+     * Findet Standorte eines Unternehmens mit aktiven Prospekten und ordnet diese den Prospekten zu
+     * 
+     * @param string $brochureId Prospekt-ID
+     * @param string $companyId Unternehmens-ID
+     * @param int $count Anzahl der Einträge pro Seite
+     * @return array|bool Brochure-Array mit den entsprechenden Store-Infos
+     */
+    public function findStoresWithActiveBrochures($brochureId, $companyId, $count = 500)
+    {
+        $retArr = false;
+
+        /* @var $logger Zend_Log */
+        $logger = Zend_Registry::get('logger');
+
+        /* @var $apiClient Marktjagd_Entity_MarktjagdApi */
+        $apiClient = new Marktjagd_Entity_MarktjagdApi();
+        $apiClient->setEnvironmentByCompanyId($companyId);
+
+        $page = 1;
+        do {
+            $brochures = \Marktjagd\ApiClient\Resource\Store\StoreResource::findAll(
+                            array(
+                                'company_id' => $companyId,
+                                'brochure_id' => $brochureId,
+                                'status' => 'visible',
+                                'count' => $count,
+                                'page' => $page++
+            ));
+
+            if (\Marktjagd\ApiClient\Request\Request::getInstance()->hasErrors()) {
+                $logger->log(
+                        'Error while findActiveBrochuresByCompany: company '
+                        . $companyId . ' - '
+                        . print_r(\Marktjagd\ApiClient\Request\Request::getInstance()->getErrors(), true), Zend_Log::ERR
+                );
+                return false;
+            }
+
+            foreach ($brochures as $brochure) {
+                $aBrochure = $brochure->toArray();
+                $retArr[$aBrochure['id']]['number'] = $aBrochure['number'];
+                $retArr[$aBrochure['id']]['title'] = $aBrochure['title'];
+                $retArr[$aBrochure['id']]['street'] = $aBrochure['street'];
+                $retArr[$aBrochure['id']]['street_number'] = $aBrochure['street_number'];
+                $retArr[$aBrochure['id']]['zipcode'] = $aBrochure['zipcode'];
+                $retArr[$aBrochure['id']]['city'] = $aBrochure['city'];
+                $retArr[$aBrochure['id']]['lng'] = $aBrochure['longitude'];
+                $retArr[$aBrochure['id']]['lat'] = $aBrochure['latitude'];
+            }
+        }
+        while (count($brochures) == $count);
+
+        return $retArr;
+    }
+
+    /**
+     * Findet Standorte eines Unternehmens mit aktiven Produkten
+     * 
+     * @param string $companyId Unternehmens-ID
+     * @param int $count Anzahl der Einträge pro Seite
+     * @return array|bool Store-Array mit aktiven Produkten
+     */
+    public function findStoresWithActiveProducts($companyId, $count = 500)
+    {
+        /* @var $logger Zend_Log */
+        $logger = Zend_Registry::get('logger');
+
+        $retArr = false;
+
+        /* @var $apiClient Marktjagd_Entity_MarktjagdApi */
+        $apiClient = new Marktjagd_Entity_MarktjagdApi();
+        $apiClient->setEnvironmentByCompanyId($companyId);
+
+        $page = 1;
+        do {
+            $products = \Marktjagd\ApiClient\Resource\Store\StoreResource::findAll(
+                            array(
+                                'company_id' => $companyId,
+                                'has_articles' => '1',
+                                'status' => 'visible',
+                                'count' => $count,
+                                'page' => $page++
+                            )
+            );
+
+            if (\Marktjagd\ApiClient\Request\Request::getInstance()->hasErrors()) {
+                $logger->log(
+                        'Error while findActiveBrochuresByCompany for company '
+                        . $companyId . ' - '
+                        . print_r(\Marktjagd\ApiClient\Request\Request::getInstance()->getErrors(), true), Zend_Log::ERR
+                );
+                return false;
+            }
+
+            foreach ($products as $product) {
+                $aProduct = $product->toArray();
+                $retArr[$aProduct['id']]['number'] = $aProduct['number'];
+                $retArr[$aProduct['id']]['title'] = $aProduct['title'];
+                $retArr[$aProduct['id']]['street'] = $aProduct['street'];
+                $retArr[$aProduct['id']]['street_number'] = $aProduct['street_number'];
+                $retArr[$aProduct['id']]['zipcode'] = $aProduct['zipcode'];
+                $retArr[$aProduct['id']]['city'] = $aProduct['city'];
+                $retArr[$aProduct['id']]['lng'] = $aProduct['longitude'];
+                $retArr[$aProduct['id']]['lat'] = $aProduct['latitude'];
+            }
+        }
+        while (count($products) == $count);
+
+        return $retArr;
+    }
+
+    public function findStoreByStoreId($storeId, $companyId)
+    {
+        $logger = Zend_Registry::get('logger');
+
+        /* @var $apiClient Marktjagd_Entity_MarktjagdApi */
+        $apiClient = new Marktjagd_Entity_MarktjagdApi();
+        $apiClient->setEnvironmentByCompanyId($companyId);
+
+        $store = \Marktjagd\ApiClient\Resource\Store\StoreResource::find($storeId);
+
+        if (\Marktjagd\ApiClient\Request\Request::getInstance()->hasErrors()) {
+            $errors = \Marktjagd\ApiClient\Request\Request::getInstance()->getErrors();
+            $firstError = $errors[0]->getArguments();
+            if (!preg_match('#Not exist#', $firstError['message'])) {
+                $logger->log(
+                        'Error while findStoreByStoreId: store '
+                        . $storeId . ' - '
+                        . print_r(\Marktjagd\ApiClient\Request\Request::getInstance()->getErrors(), true), Zend_Log::ERR
+                );
+            }
+            return false;
+        }
+        return $store->toArray();
+    }
+
+    /**
+     * @param $companyId
+     * @param int $count
+     * @return array|bool
+     */
+    public function findStoresWithBrochures($companyId, $count = 500)
+    {
+        /* @var $logger Zend_Log */
+        $logger = Zend_Registry::get('logger');
+
+        $retArr = false;
+
+        /* @var $apiClient Marktjagd_Entity_MarktjagdApi */
+        $apiClient = new Marktjagd_Entity_MarktjagdApi();
+        $apiClient->setEnvironmentByCompanyId($companyId);
+
+        $page = 1;
+
+        do {
+            $brochures = \Marktjagd\ApiClient\Resource\Store\StoreResource::findAll(
+                            array(
+                                'company_id' => $companyId,
+                                'has_brochures' => '1',
+                                'status' => 'visible',
+                                'time_constraint' => 'current',
+                                'count' => $count,
+                                'page' => $page++
+            ));
+
+            if (\Marktjagd\ApiClient\Request\Request::getInstance()->hasErrors()) {
+                $logger->log(
+                        'Error while findStoresWithBrochures: company '
+                        . $companyId . ' - '
+                        . print_r(\Marktjagd\ApiClient\Request\Request::getInstance()->getErrors(), true), Zend_Log::ERR
+                );
+                return false;
+            }
+
+            foreach ($brochures as $brochure) {
+                $aBrochure = $brochure->toArray();
+                $retArr[$aBrochure['id']]['number'] = $aBrochure['number'];
+                $retArr[$aBrochure['id']]['title'] = $aBrochure['title'];
+                $retArr[$aBrochure['id']]['street'] = $aBrochure['street'];
+                $retArr[$aBrochure['id']]['street_number'] = $aBrochure['street_number'];
+                $retArr[$aBrochure['id']]['zipcode'] = $aBrochure['zipcode'];
+                $retArr[$aBrochure['id']]['city'] = $aBrochure['city'];
+                $retArr[$aBrochure['id']]['lng'] = $aBrochure['longitude'];
+                $retArr[$aBrochure['id']]['lat'] = $aBrochure['latitude'];
+            }
+        }
+        while (count($brochures) == $count);
+
+        return $retArr;
+    }
+}
+

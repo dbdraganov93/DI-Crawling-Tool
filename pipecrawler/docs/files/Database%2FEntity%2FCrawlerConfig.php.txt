@@ -1,0 +1,487 @@
+<?php
+
+class Marktjagd_Database_Entity_CrawlerConfig extends Marktjagd_Database_Entity_Abstract {
+
+    // table fields
+    protected $_idCrawlerConfig;
+    protected $_idCompany;
+    protected $_idCrawlerType;
+    protected $_idCrawlerBehaviour;
+    protected $_crawlerStatus;
+    protected $_idAuthor;
+    protected $_description;
+    protected $_fileName;
+    protected $_execution;
+    protected $_runtime;
+    protected $_lastModified;
+    protected $_statusChanged;
+    protected $_ticketCreate;
+
+    /**
+     * Contains mapping of table columns to function
+     *
+     * @var array
+     */
+    protected $_aColumnMap = array('idCrawlerConfig' => 'IdCrawlerConfig',
+        'idCompany' => 'IdCompany',
+        'idCrawlerType' => 'IdCrawlerType',
+        'idCrawlerBehaviour' => 'IdCrawlerBehaviour',
+        'crawlerStatus' => 'CrawlerStatus',
+        'idAuthor' => 'IdAuthor',
+        'description' => 'Description',
+        'fileName' => 'FileName',
+        'execution' => 'Execution',
+        'runtime' => 'Runtime',
+        'lastModified' => 'LastModified',
+        'statusChanged' => 'StatusChanged',
+        'ticketCreate' => 'TicketCreate',);
+
+    /**
+     * Relationship map
+     *
+     * @var array
+     */
+    protected $_aRelationMap = array('CrawlerType' => 'Marktjagd_Database_Entity_CrawlerType',
+        'Author' => 'Marktjagd_Database_Entity_Author',
+        'Company' => 'Marktjagd_Database_Entity_Company',
+        'CrawlerBehaviour' => 'Marktjagd_Database_Entity_CrawlerBehaviour');
+
+    /**
+     * Relation property map
+     *
+     * @var array
+     */
+    protected $_aRelationPropertyMap = array('CrawlerType' => 'CrawlerType',
+        'Author' => 'Author',
+        'Company' => 'Company',
+        'CrawlerBehaviour' => 'CrawlerBehaviour');
+
+    /**
+     * Relationship object for table CrawlerType
+     *
+     * @var Marktjagd_Database_Entity_CrawlerType
+     */
+    protected $_oCrawlerType;
+
+    /**
+     * Relationship object for table Author
+     *
+     * @var Marktjagd_Database_Entity_Author
+     */
+    protected $_oAuthor;
+
+    /**
+     * Relationship object for table Company
+     *
+     * @var Marktjagd_Database_Entity_Company
+     */
+    protected $_oCompany;
+
+    /**
+     * Relationship object for table CrawlerBehaviour
+     *
+     * @var Marktjagd_Database_Entity_CrawlerBehaviour
+     */
+    protected $_oCrawlerBehaviour;
+
+    /**
+     * Set entity crawlertype
+     *
+     * @param Marktjagd_Database_Entity_CrawlerType         $oCrawlerType
+     *
+     * @return Marktjagd_Database_Entity_CrawlerConfig
+     */
+    public function setCrawlerType(Marktjagd_Database_Entity_CrawlerType $oCrawlerType) {
+        $this->_oCrawlerType = $oCrawlerType;
+        return $this;
+    }
+
+    /**
+     * Return entity crawlertype
+     *
+     * @return Marktjagd_Database_Entity_CrawlerType
+     */
+    public function getCrawlerType() {
+        return $this->_oCrawlerType;
+    }
+
+    /**
+     * Set entity author
+     *
+     * @param Marktjagd_Database_Entity_Author         $oAuthor
+     *
+     * @return Marktjagd_Database_Entity_CrawlerConfig
+     */
+    public function setAuthor(Marktjagd_Database_Entity_Author $oAuthor) {
+        $this->_oAuthor = $oAuthor;
+        return $this;
+    }
+
+    /**
+     * Return entity author
+     *
+     * @return Marktjagd_Database_Entity_Author
+     */
+    public function getAuthor() {
+        return $this->_oAuthor;
+    }
+
+    /**
+     * Set entity company
+     *
+     * @param Marktjagd_Database_Entity_Company         $oCompany
+     *
+     * @return Marktjagd_Database_Entity_CrawlerConfig
+     */
+    public function setCompany(Marktjagd_Database_Entity_Company $oCompany) {
+        $this->_oCompany = $oCompany;
+        return $this;
+    }
+
+    /**
+     * Return entity company
+     *
+     * @return Marktjagd_Database_Entity_Company
+     */
+    public function getCompany() {
+        return $this->_oCompany;
+    }
+
+    /**
+     * Set entity crawlerbehaviour
+     *
+     * @param Marktjagd_Database_Entity_CrawlerBehaviour         $oCrawlerBehaviour
+     *
+     * @return Marktjagd_Database_Entity_CrawlerConfig
+     */
+    public function setCrawlerBehaviour(Marktjagd_Database_Entity_CrawlerBehaviour $oCrawlerBehaviour) {
+        $this->_oCrawlerBehaviour = $oCrawlerBehaviour;
+        return $this;
+    }
+
+    /**
+     * Return entity crawlerbehaviour
+     *
+     * @return Marktjagd_Database_Entity_CrawlerBehaviour
+     */
+    public function getCrawlerBehaviour() {
+        return $this->_oCrawlerBehaviour;
+    }
+
+    /**
+     * Set idCrawlerConfig, value is casted to int
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_CrawlerConfig
+     */
+    public function setIdCrawlerConfig($mValue) {
+        $this->_idCrawlerConfig = (int) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns idCrawlerConfig
+     *
+     * @return int idCrawlerConfig
+     */
+    public function getIdCrawlerConfig() {
+        return $this->_idCrawlerConfig;
+    }
+
+    /**
+     * Set idCompany, value is casted to int
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_CrawlerConfig
+     */
+    public function setIdCompany($mValue) {
+        $this->_idCompany = (int) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns idCompany
+     *
+     * @return int idCompany
+     */
+    public function getIdCompany() {
+        return $this->_idCompany;
+    }
+
+    /**
+     * Set idCrawlerType, value is casted to int
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_CrawlerConfig
+     */
+    public function setIdCrawlerType($mValue) {
+        $this->_idCrawlerType = (int) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns idCrawlerType
+     *
+     * @return int idCrawlerType
+     */
+    public function getIdCrawlerType() {
+        return $this->_idCrawlerType;
+    }
+
+    /**
+     * Set idCrawlerBehaviour, value is casted to int
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_CrawlerConfig
+     */
+    public function setIdCrawlerBehaviour($mValue) {
+        $this->_idCrawlerBehaviour = (int) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns idCrawlerBehaviour
+     *
+     * @return int idCrawlerBehaviour
+     */
+    public function getIdCrawlerBehaviour() {
+        return $this->_idCrawlerBehaviour;
+    }
+
+    /**
+     * Set idStatus, value is casted to int
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_CrawlerConfig
+     */
+    public function setCrawlerStatus($mValue) {
+        $this->_crawlerStatus = $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns idStatus
+     *
+     * @return int idStatus
+     */
+    public function getCrawlerStatus() {
+        return $this->_crawlerStatus;
+    }
+
+    /**
+     * Set idAuthor, value is casted to int
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_CrawlerConfig
+     */
+    public function setIdAuthor($mValue) {
+        $this->_idAuthor = (int) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns idAuthor
+     *
+     * @return int idAuthor
+     */
+    public function getIdAuthor() {
+        return $this->_idAuthor;
+    }
+
+    /**
+     * Set description, value is casted to string
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_CrawlerConfig
+     */
+    public function setDescription($mValue) {
+        $this->_description = (string) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns description
+     *
+     * @return string description
+     */
+    public function getDescription() {
+        return $this->_description;
+    }
+
+    /**
+     * Set fileName, value is casted to string
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_CrawlerConfig
+     */
+    public function setFileName($mValue) {
+        $this->_fileName = (string) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns fileName
+     *
+     * @return string fileName
+     */
+    public function getFileName() {
+        return $this->_fileName;
+    }
+
+    /**
+     * Set execution, value is casted to string
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_CrawlerConfig
+     */
+    public function setExecution($mValue) {
+        $this->_execution = (string) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns execution
+     *
+     * @return string execution
+     */
+    public function getExecution() {
+        return $this->_execution;
+    }
+
+    /**
+     * Set runtime, value is casted to int
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_CrawlerConfig
+     */
+    public function setRuntime($mValue) {
+        $this->_runtime = (int) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns runtime
+     *
+     * @return int runtime
+     */
+    public function getRuntime() {
+        return $this->_runtime;
+    }
+
+    /**
+     * Set lastModified, value is casted to string
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_CrawlerConfig
+     */
+    public function setLastModified($mValue) {
+        $this->_lastModified = (string) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns lastModified
+     *
+     * @param bool $bRaw Return raw data
+     *
+     * @return Zend_Date lastModified
+     */
+    public function getLastModified($bRaw = false) {
+        if ($bRaw) {
+            return $this->_lastModified;
+        } else {
+            return $this->_lastModified ? new Zend_Date($this->_lastModified) : $this->_lastModified;
+        }
+    }
+
+    /**
+     * Set statusChanged, value is casted to string
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_CrawlerConfig
+     */
+    public function setStatusChanged($mValue) {
+        $this->_statusChanged = (string) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns statusChanged
+     *
+     * @param bool $bRaw Return raw data
+     *
+     * @return Zend_Date statusChanged
+     */
+    public function getStatusChanged($bRaw = false) {
+        if ($bRaw) {
+            return $this->_statusChanged;
+        } else {
+            return $this->_statusChanged ? new Zend_Date($this->_statusChanged) : $this->_statusChanged;
+        }
+    }
+
+    /**
+     * 
+     * @param bool $ticketValue
+     * @return Marktjagd_Database_Entity_CrawlerConfig
+     */
+    public function setTicketCreate($ticketValue = false) {
+        $this->_ticketCreate = $ticketValue;
+        return $this;
+    }
+
+    /**
+     * 
+     * @return bool ticketCreate
+     */
+    public function getTicketCreate() {
+        return $this->_ticketCreate;
+    }
+
+    /**
+     * Returns the mapper class, if no one exists, default will be created.
+     *
+     * @return  Marktjagd_Database_Mapper_CrawlerConfig
+     */
+    public function getMapper() {
+        return parent::getMapper();
+    }
+
+    /**
+     * Saves data to database If the primary key is set,
+     * data will be updated.
+     *
+     * @param bool $bNull Save also null values
+     *
+     * @return int|mixed|void
+     */
+    public function save($bNull = false) {
+        return $this->getMapper()->save($this, $bNull);
+    }
+
+    /**
+     * Loads the data by primary key(s). By multiple primary
+     * keys use an array with the values of the primary key columns.
+     *
+     * @param mixed $mId Primary key(s) value(s)
+     *
+     * @return bool True if found, otherwise false
+     */
+    public function find($mId) {
+        return $this->getMapper()->find($mId, $this);
+    }
+
+}
+

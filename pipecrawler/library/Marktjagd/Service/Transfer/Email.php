@@ -1,0 +1,272 @@
+<?php
+
+/**
+ * E-Mail-Funktionalitäten zum Einlesen / Verschieben / Archivieren von E-Mails
+ *
+ * Class Marktjagd_Service_Transfer_Email
+ */
+class Marktjagd_Service_Transfer_Email
+{
+
+    protected $_mail;
+    protected $_companyId;
+    protected $_folderName;
+    protected $_pattern;
+    protected $_logger;
+
+    /**
+     * @param $folderName
+     */
+    public function __construct($folderName = 'INBOX')
+    {
+        $config = $this->getMJImapConfig();
+        $this->_folderName = $folderName;
+        $this->_mail = new Zend_Mail_Storage_Imap($config);
+    }
+
+    /**
+     * Funktion, welche die MJ-Email-IMAP-Konfiguration zurück gibt
+     *
+     * @return array
+     */
+    public function getMJImapConfig()
+    {
+        $configIni = new Zend_Config_Ini(APPLICATION_PATH . '/configs/application.ini', 'production');
+        $config = array(
+            'host' => $configIni->mail->imap->host,
+            'user' => $configIni->mail->imap->user,
+            'password' => $configIni->mail->imap->pass,
+            'ssl' => $configIni->mail->imap->ssl
+        );
+
+        return $config;
+    }
+
+    /**
+     * Funktion, welche mithilfe der übergebenen Parameter eine Email-Collection erzeugt
+     *
+     * @param string $companyId Unternehmens-ID aus der UV
+     * @param string $folderName Absoluter Pfad der E-Mails auf dem Mailserver
+     * @param string $pattern Pattern, welches der Mailanhang haben muss, damit er runtergeladen wird
+     * @return Marktjagd_Collection_Email
+     */
+    public function generateEmailCollection($companyId, $folderName='', $pattern = NULL)
+    {
+        $this->_logger = Zend_Registry::get('logger');
+        $this->_companyId = $companyId;
+        if (strlen($folderName)) {
+            $this->_folderName = $folderName;
+        }
+        $this->_pattern = $pattern;
+        $cEmails = $this->searchFiles();
+
+        return $cEmails;
+    }
+
+    /**
+     * Funktion, um Richtigkeit des Anhangs zu überprüfen
+     *
+     * @param string $attachmentName Name des zu überprüfenden Anhangs
+     * @param string $pattern Pattern, welches zur Überprüfung des Anhangs benötigt wird
+     * @return bool
+     */
+    protected function validateAttachment($attachmentName, $pattern)
+    {
+        if (!preg_match($pattern, $attachmentName)) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Funktion, um die Anhänge der E-Mails am gegebenen Ort zu erzeugen
+     *
+     * @param string $filePath Speicherpfad des Anhangs
+     * @param array $fileName Name der Datei, welche aus den Anhangsdaten erzeugt wird
+     * @param array $fileContent Inhalt der Anhangsdaten
+     * @return array
+     */
+    protected function generateAttachments($filePath, $fileName, $fileContent)
+    {
+        $filePaths = array();
+        $content = $fileContent;
+        $amountAttachments = count($content);
+        for ($i = 0; $i < $amountAttachments; $i++) {
+            if (!is_dir($filePath)) {
+                @mkdir($filePath, 0775, true);
+            }
+
+            // Anhangsvalidierung
+            if ($this->_pattern) {
+                if (!$this->validateAttachment($fileName[$i], $this->_pattern)) {
+                    $this->_logger->err($fileName[$i] . ': invalid attachment');
+                    continue;
+                }
+            }
+
+            $fh = fopen($filePath . $fileName[$i], 'w');
+            fwrite($fh, $content[$i]);
+            fclose($fh);
+        }
+
+        // Download-Verzeichnis auslesen und in Array einfügen
+        $dirHandle = opendir($filePath);
+        while (($file = readdir($dirHandle)) != FALSE) {
+            if (preg_match('#^(\.)#', $file)) {
+                continue;
+            }
+            $filePaths[$file] = $filePath . $file;
+        }
+        return $filePaths;
+    }
+
+    /**
+     * Funktion, um bestimmten Ordner zu generieren und E-Mail dahin zu verschieben
+     *
+     * @param Marktjagd_Entity_Email $eEmail Mail-Entität zum Verschieben
+     * @param string $destinationFolder Absoluter Pfad des Zielordners auf dem Mailserver
+     * @return bool
+     */
+    public function moveMail(&$eEmail, $destinationFolder)
+    {
+        $this->_mail->selectFolder($this->_folderName);
+        $currentFolder = $this->_mail->getCurrentFolder();
+        $mailId = $this->_mail->getNumberByUniqueId($eEmail->getUniqueId());
+        if (!strlen($destinationFolder)) {
+            $this->_logger->err('unable to move mail from '
+                . $eEmail->getSendDate() . ' with the subject "'
+                . $eEmail->getSubject() . '": invalid folder name');
+            return false;
+        }
+
+        // Überprüfen ob Zielordner existiert
+        // wenn nicht, dann anlegen
+        try {
+            $this->_mail->getFolders($destinationFolder);
+        } catch (Zend_Mail_Storage_Exception $e) {
+            $this->_mail->createFolder($destinationFolder);
+        }
+
+        $this->_mail->moveMessage($mailId, $destinationFolder);
+        $this->_mail->selectFolder($destinationFolder);
+
+        // Inhalt der erzeugten Mail-Entitäten mit den verschobenen Mails vergleichen und entsprechend UniqueId ändern
+        foreach ($this->_mail as $newMessageKey => $newMessageValue) {
+            $header = $newMessageValue->getHeaders();
+            if ($header['message-id'] == $eEmail->getMessageId()) {
+                $eEmail->setUniqueId($this->_mail->getUniqueId($newMessageKey));
+            }
+        }
+        $this->_mail->selectFolder($currentFolder);
+        return true;
+    }
+
+    /**
+     * Archivierungsfunktion
+     *
+     * @param Marktjagd_Entity_Email $eEmail E-Mail-Entität (ZEND-Funktionalität)
+     * @return bool
+     */
+    public function archiveMail($eEmail)
+    {
+        $destinationFolder = $this->_folderName . '/Archive/' . strtolower(date('Y/m'));
+        $this->moveMail($eEmail, $destinationFolder);
+        return true;
+    }
+
+    /**
+     * Funktion um E-Mails im angegebenen Ordner samt Anhang zu suchen
+     *
+     * @return Marktjagd_Collection_Email
+     */
+    protected function searchFiles()
+    {
+        $cEmails = new Marktjagd_Collection_Email();
+        $filePath = __DIR__ . '/../../../../public/files/pdf/'
+            . $this->_companyId . '/' . date('Y-m-d-H-i-s') . '/';
+        if (!is_dir($filePath)) {
+            @mkdir($filePath, 0775, true);
+        }
+        $this->_mail->selectFolder($this->_folderName);
+        $messageCount = $this->_mail->countMessages();
+        $count = 1;
+        if (!$messageCount) {
+            $this->_logger->err('no new mails in ' . $this->_folderName, Zend_Log::INFO);
+            return $cEmails;
+        }
+
+        // E-Mail-Entitäten mit nötigen Infos anlegen
+        foreach ($this->_mail as $messageKey => $message) {
+            $this->_logger->log('Opening message ' . $count++ . ' of ' . $messageCount . '.', Zend_Log::INFO);
+            $eEmail = new Marktjagd_Entity_Email();
+            $header = $message->getHeaders();
+            $uniqueId = $this->_mail->getUniqueId($messageKey);
+            $eEmail->setUniqueId($uniqueId)
+                ->setMessageId($header['message-id'])
+                ->setFromAddress($header['from'])
+                ->setToAddress($header['to'])
+                ->setSendDate($header['date'])
+                ->setSubject($header['subject']);
+
+            // wenn E-Mail aus mehreren Teilen besteht, hat sie einen Anhang
+            if ($message->isMultipart()) {
+                $aFileNames = array();
+                $aContents = array();
+                $text = $message->getContent($message->getPart(1)->getContent());
+                $eEmail->setText($header["content-transfer-encoding"] == 'base64' ? base64_decode($text) : $text);
+                $amountParts = $message->countParts();
+                // Anhangsteile auslesen mit Namen und Inhalt
+                for ($j = 2; $j <= $amountParts; $j++) {
+                    $part = $message->getPart($j);
+                    $aHeader = $part->getHeaders();
+                    $pattern = '#name=\"(.+?)\"#';
+                    if (!preg_match($pattern, $aHeader['content-type'], $match)) {
+                        continue;
+                    }
+                    $aFileNames[] = $match[1];
+                    $aContents[] = base64_decode($part);
+                }
+
+                // Anhänge erzeugen
+                if (!is_dir($filePath . $uniqueId . '/')) {
+                    @mkdir($filePath . $uniqueId . '/', 0775, true);
+                }
+                $aFilePaths = $this->generateAttachments($filePath . $uniqueId . '/', $aFileNames, $aContents);
+
+                // Lokale Anhangspfade generieren
+                foreach ($aFilePaths as $filePathKey => $filePathValue) {
+                    $eEmail->setLocalAttachmentPath($filePathKey, $filePathValue);
+                }
+            } else {
+                $text = $message->getContent();
+                $eEmail->setText($header["content-transfer-encoding"] == 'base64' ? base64_decode($text) : $text);
+            }
+            $cEmails->addElement($eEmail);
+        }
+        return $cEmails;
+    }
+
+    public function sendMail($aInfos = NULL)
+    {
+        $mail = new Zend_Mail();
+        $mail->setBodyText($aInfos['text']);
+        $mail->setFrom($aInfos['from']);
+        $mail->addTo($aInfos['to']);
+        $mail->setSubject($aInfos['subject']);
+
+        if (array_key_exists('attachment', $aInfos)) {
+            foreach ($aInfos['attachment'] as $singleAttachment) {
+                $content = file_get_contents($singleAttachment);
+                $attachment = new Zend_Mime_Part($content);
+                $attachment->type = getimagesize($singleAttachment)['mime'];
+                $attachment->disposition = Zend_Mime::DISPOSITION_ATTACHMENT;
+                $attachment->encoding = Zend_Mime::ENCODING_BASE64;
+                $attachment->filename = pathinfo($singleAttachment)['basename'];
+
+                $mail->addAttachment($attachment);
+            }
+        }
+
+        $mail->send();
+    }
+}

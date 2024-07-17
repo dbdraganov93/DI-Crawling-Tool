@@ -1,0 +1,458 @@
+<?php
+
+/*
+ * Class Marktjagd_Service_Output_QualityCheck
+ */
+
+class Marktjagd_Service_Output_QualityCheck
+{
+
+    /**
+     * Ermittelt die Anzahl der sichtbaren Standorte/Prospekte/Produkte im angegebenen Zeitraum
+     * 
+     * @param array $aParams Array, welches Unternehmens-ID, Start- und Enddatum enthält
+     * @param string $strClass zu prüfender Typ
+     * @param bool $checkTotalAmount falls true, wird die Gesamtanzahl im Zeitraum geprüft
+     * @return array $aCheckedAmountClasses Ergebnis-Array
+     * @throws Exception
+     */
+    public function checkAmountInfos($aParams, $strClass, $checkTotalAmount = false)
+    {
+        $dateNow = date_create(date('d.m.Y'));
+        $dateFuture = date('Y-m-d', strtotime('+1 week')) . ' 00:00:00';
+        $dateStart = date_create($aParams['companyDetailStart']);
+        $dateEnd = date_create($aParams['companyDetailEnd']);
+        $daysUntilFutureDate = (int) date_diff($dateNow, $dateEnd)->format('%R%a');
+        $daysFromFutureDate = (int) date_diff($dateNow, $dateStart)->format('%R%a');
+
+        if ($daysFromFutureDate > 0) {
+            $aParams['companyDetailStart'] = date('d.m.Y');
+        }
+
+        $strClass = 'Marktjagd_Database_Service_' . $strClass;
+        $pattern = '#(Amount.+?)$#';
+        if (!preg_match($pattern, $strClass, $classMatch)) {
+            throw new Exception('unable to find matching amount class.');
+        }
+
+        $sAmountClassObject = new $strClass();
+        $aTempAmountClassObject = $sAmountClassObject->findByCompanyIdAndTime($aParams['companyId'], strtotime($aParams['companyDetailStart'] . ' 00:00'), strtotime($aParams['companyDetailEnd'] . ' 23:59'));
+
+        if (!count($aTempAmountClassObject)) {
+            return;
+        }
+        $amountLatestCheck = 1;
+        if (strtotime('now') < strtotime($aParams['companyDetailEnd'])) {
+            $latestTime = $aTempAmountClassObject[0]->getLastTimeChecked();
+            for ($i = 1; $i < count($aTempAmountClassObject); $i++) {
+                if (strtotime($latestTime) > strtotime($aTempAmountClassObject[$i]->getLastTimeChecked())) {
+                    $amountLatestCheck = $i;
+                    break;
+                }
+            }
+
+            for ($i = 1; $i <= $daysUntilFutureDate; $i++) {
+                for ($j = 0; $j < $amountLatestCheck; $j++) {
+                    $strEntityClass = 'Marktjagd_Database_Entity_' . $classMatch[1];
+                    $eAmountClassObject = new $strEntityClass();
+                    $eAmountClassObject->{'set' . $classMatch[1]}($aTempAmountClassObject[$j]->{'get' . $classMatch[1]}())
+                            ->setLastTimeModified($aTempAmountClassObject[$j]->getLastTimeModified())
+                            ->setLastTimeChecked(date('Y-m-d', strtotime($latestTime . '+' . $i . 'days')))
+                            ->setidCompany($aParams['companyId']);
+
+                    if (!preg_match('#AmountStores#', $classMatch[1])) {
+                        $eAmountClassObject->setStartDate($aTempAmountClassObject[$j]->getStartDate())
+                                ->setEndDate($aTempAmountClassObject[$j]->getEndDate());
+                    }
+
+                    $aAmountClassObject[] = $eAmountClassObject;
+                }
+            }
+        }
+
+        if (!preg_match('#AmountStores#', $classMatch[1]) && $daysFromFutureDate <= 7) {
+            $latestTime = $aTempAmountClassObject[0]->getLastTimeChecked();
+            for ($i = 1; $i < count($aTempAmountClassObject); $i++) {
+                if (strtotime($latestTime) > strtotime($aTempAmountClassObject[$i]->getLastTimeChecked())) {
+                    $amountLatestCheck = $i;
+                    break;
+                }
+            }
+            for ($j = 0; $j < $amountLatestCheck; $j++) {
+                $strEntityClass = 'Marktjagd_Database_Entity_' . $classMatch[1];
+                $eAmountClassObjectFuture = new $strEntityClass();
+                $eAmountClassObjectFuture->{'set' . $classMatch[1]}($aTempAmountClassObject[$j]->{'get' . $classMatch[1]}())
+                        ->setLastTimeModified($aTempAmountClassObject[$j]->getLastTimeModified())
+                        ->setLastTimeChecked($dateFuture)
+                        ->setidCompany($aParams['companyId'])->setStartDate($aTempAmountClassObject[$j]->getStartDate())
+                        ->setEndDate($aTempAmountClassObject[$j]->getEndDate());
+
+                $aAmountClassObject[] = $eAmountClassObjectFuture;
+            }
+        }
+
+        foreach ($aTempAmountClassObject as $singleObject) {
+            $aAmountClassObject[] = $singleObject;
+        }
+
+        $aCheckedAmountClasses = array();
+        $aCheckedAmountClasses['#companyId'] = $aParams['companyId'];
+        $aCheckedAmountClasses['#lastTimeModified'] = NULL;
+        $aCheckedAmountClasses['#lastImport'] = NULL;
+
+        foreach ($aAmountClassObject as $singleObject) {
+            if (is_null($aCheckedAmountClasses['#lastTimeModified']) && strlen($singleObject->getLastTimeModified())) {
+                $aCheckedAmountClasses['#lastTimeModified'] = $singleObject->getLastTimeModified();
+            }
+            if (is_null($aCheckedAmountClasses['#lastImport']) && strlen($singleObject->getLastImport())) {
+                $aCheckedAmountClasses['#lastImport'] = $singleObject->getLastImport();
+            }
+            if (!array_key_exists($singleObject->getLastTimeChecked(), $aCheckedAmountClasses)) {
+                $aCheckedAmountClasses[$singleObject->getLastTimeChecked()] = 0;
+            }
+            if (!preg_match('#AmountStores#', $classMatch[1])) {
+                if (is_null($singleObject->getStartDate())) {
+                    $singleObject->setStartDate($singleObject->getLastTimeChecked());
+                }
+
+                if (is_null($singleObject->getEndDate())) {
+                    $singleObject->setEndDate($singleObject->getLastTimeChecked());
+                }
+
+                if (strtotime($singleObject->getStartDate()) > strtotime($singleObject->getLastTimeChecked())) {
+                    continue;
+                }
+
+                if (strtotime($singleObject->getStartDate()) <= strtotime($singleObject->getLastTimeChecked())) {
+                    if (strtotime($singleObject->getEndDate()) < strtotime($singleObject->getLastTimeChecked())) {
+                        continue;
+                    }
+                }
+            }
+
+            $aCheckedAmountClasses[$singleObject->getLastTimeChecked()] += (int) $singleObject->{'get' . $classMatch[1]}();
+        }
+
+        if (count($aCheckedAmountClasses) == 1) {
+            $aCheckedAmountClasses[$aParams['companyDetailEnd']] = 0;
+        }
+
+        ksort($aCheckedAmountClasses);
+
+        if ($daysFromFutureDate > 0) {
+            foreach ($aCheckedAmountClasses as $key => $value) {
+                if (preg_match('#(lastTimeModified|lastImport)#', $key)) {
+                    continue;
+                }
+                if (strtotime($key) < strtotime(date_format($dateStart, 'Y-m-d'))) {
+                    unset($aCheckedAmountClasses[$key]);
+                }
+            }
+        }
+        if ($checkTotalAmount) {
+            $aCheckedAmountClasses = $this->_checkTotalAmount($aCheckedAmountClasses);
+        }
+
+        return $aCheckedAmountClasses;
+    }
+
+    /**
+     * Prüft Gesamtwert der int-Values im Array
+     * 
+     * @param array $aToCheck
+     * @return boolean|array $aToCheck
+     */
+    protected function _checkTotalAmount($aToCheck)
+    {
+        $intSum = 0;
+        foreach ($aToCheck as $singleKey => $singleValue) {
+            if (!is_int($singleValue) || preg_match('#\##', $singleKey)) {
+                continue;
+            }
+            $intSum += $singleValue;
+        }
+
+        if ($intSum == 0) {
+            return false;
+        }
+        return $aToCheck;
+    }
+
+    /**
+     * Prüft die letzten beiden Informationsmengen und legt ggf. Fehler in DB an oder ändert den Status, falls Fehler behoben
+     * 
+     * @param string $companyId Unternehmens-ID
+     * @param array $aAmount Info-Array mit u.a. lastModified und lastImport
+     * @param int $actualAmount Anzahl der aktuellen Erfassung
+     * @param int $lastAmount Anzahl der vorhergegangenen Erfassung
+     * @param string $type stores|brochures|products - zu überprüfende Kategorie
+     * @param string $lastTimeModified Zeitpunkt der letzten Aktualisierung
+     * @param bool $checkFuture zukünftige Anzahl prüfen?
+     * @return bool
+     */
+    public function checkForErrorWarnings($companyId, $type, $actualAmount, $lastAmount, $dateLastModified, $dateLastImport, $dateTimeCheck, $freshness = FALSE, $futureCheck = FALSE)
+    {
+        $sDbAdAnalysis = new Marktjagd_Database_Service_AdAnalysis();
+        $cAdAnalysisEntries = $sDbAdAnalysis->findAdsForCompanyByIdAndTimeAndType($companyId, strtotime($dateTimeCheck . '-12 hours'), strtotime($dateTimeCheck), $type);
+
+        if (count($cAdAnalysisEntries)) {
+            $iSumTargetAd = 0;
+            foreach ($cAdAnalysisEntries as $eAdAnalysisEntry) {
+                $iSumTargetAd += (int) $eAdAnalysisEntry->getTargetAd();
+            }
+        }
+        
+        if ($lastAmount == 0 && $actualAmount == 0 || isset($iSumTargetAd) && $iSumTargetAd == 0) {
+            return 'nothing to mention';
+        }
+
+        $sDbQCErrors = new Marktjagd_Database_Service_QualityCheckErrors();
+        $sDbCompanyInfos = new Marktjagd_Database_Service_QualityCheckCompanyInfos();
+
+        if ($futureCheck) {
+            $type = 'future ' . $type;
+        }
+
+        $warning = 0;
+
+        if (!$freshness) {
+            $aCompanyInfos = $sDbCompanyInfos->findByCompanyId($companyId);
+            $warning = (float) $aCompanyInfos->{'getLimit' . ucwords(preg_replace('#future\s+#', '', $type))}();
+            if ($warning == 0) {
+                $aLimits = new Zend_Config_Ini(APPLICATION_PATH . '/modules/Overview/config/limits.ini');
+                $warning = (float) $aLimits->{preg_replace('#future\s+#', '', $type)}->warning;
+            }
+        }
+        elseif ($actualAmount == $lastAmount) {
+            $dateNow = date_create(date('Y-m-d', $dateTimeCheck));
+            $dateToCheck = date_create(date('Y-m-d', $dateLastModified));
+            $lastUpdate = (int) date_diff($dateToCheck, $dateNow)->format('%R%a');
+            $type = 'freshness ' . $type;
+        }
+        else {
+            return 'not da right type';
+        }
+
+        $existingError = $sDbQCErrors->findByCompanyIdAndType($companyId, $type);
+
+        if (is_null($existingError->getIdQualityCheckErrors())) {
+            if ($lastAmount == 0 && $actualAmount != 0) {
+                return 'nothing weird';
+            }
+            if (($lastAmount != 0 && $actualAmount == 0) || ($actualAmount / $lastAmount < $warning) || ($freshness && $lastUpdate > 90)) {
+                $eQualityCheckError = new Marktjagd_Database_Entity_QualityCheckErrors();
+                $eQualityCheckError->setActualAmount($actualAmount)
+                        ->setLastAmount($lastAmount)
+                        ->setTimeAdded(date('Y-m-d H:i:s', $dateTimeCheck))
+                        ->setStatus('1')
+                        ->setErrorStatus('active')
+                        ->setType($type)
+                        ->setIdCompany($companyId);
+
+                if ($dateLastModified) {
+                    $eQualityCheckError->setLastTimeModified(date('Y-m-d H:i:s', $dateLastModified));
+                }
+                if ($dateLastImport) {
+                    $eQualityCheckError->setLastImport(date('Y-m-d H:i:s', $dateLastImport));
+                }
+
+                $eQualityCheckError->save();
+
+                return 'error added';
+            }
+        }
+        else {
+            $fixedError = FALSE;
+            if (preg_match('#freshness#', $existingError->getType())) {
+                if ($lastUpdate < 90) {
+                    Zend_Debug::dump('crazy fresh');
+                    $fixedError = TRUE;
+                }
+                else {
+                    Zend_Debug::dump('still old');
+                }
+            }
+            if (!$freshness && $existingError->getActualAmount() == 0 && $actualAmount != 0) {
+                Zend_Debug::dump('moar than 0');
+                $fixedError = TRUE;
+            }
+            elseif (!$freshness && $existingError->getActualAmount() != 0 && ($actualAmount / $lastAmount >= (1 / $warning))) {
+                Zend_Debug::dump('moar than warning.');
+                $fixedError = TRUE;
+            }
+
+            if ($fixedError) {
+                $eQualityCheckErrorFixed = new Marktjagd_Database_Entity_QualityCheckErrors();
+                $eQualityCheckErrorFixed->setActualAmount($actualAmount)
+                        ->setLastAmount($lastAmount)
+                        ->setTimeAdded(date('Y-m-d H:i:s', $dateTimeCheck))
+                        ->setStatus('0')
+                        ->setErrorStatus('inactive')
+                        ->setType($type)
+                        ->setIdCompany($companyId)
+                        ->setIdQualityCheckErrors($existingError->getIdQualityCheckErrors());
+
+                if ($dateLastModified) {
+                    $eQualityCheckErrorFixed->setLastTimeModified(date('Y-m-d H:i:s', $dateLastModified));
+                }
+                if ($dateLastImport) {
+                    $eQualityCheckErrorFixed->setLastImport(date('Y-m-d H:i:s', $dateLastImport));
+                }
+
+                $eQualityCheckErrorFixed->save();
+
+                return 'error fixed';
+            }
+        }
+
+        return 'nothing changed';
+    }
+
+    /**
+     * Erzeugt DI-Report
+     * 
+     * @return string Pfad zur *.csv
+     */
+    public function generateDataIntegrationReport()
+    {
+        $sApi = new Marktjagd_Service_Input_MarktjagdApi();
+
+        $aCompany = $sApi->getAllActiveCompanies();
+        $amountCompanies = count($aCompany);
+
+        $fileName = APPLICATION_PATH . '/../public/files/di_report_' . date('YmdHis') . '.csv';
+        $fh = fopen($fileName, 'w');
+        fputcsv($fh, array(
+            'company id',
+            'company name',
+            'product category',
+            'last amount stores',
+            'actual amount stores',
+            'last amount brochures',
+            'actual amount brochures',
+            'last amount products',
+            'actual amount products',
+            'difference stores',
+            'difference brochures',
+            'difference products'
+                ), ';');
+
+        foreach ($aCompany as $companyId => $company) {
+            $aParams['companyId'] = $companyId;
+            $aParams['companyDetailStart'] = date('Y-m-d', strtotime('-1day'));
+            $aParams['companyDetailEnd'] = date('Y-m-d');
+            $sQA = new Marktjagd_Service_Output_QualityCheck();
+            $aStores = $sQA->checkAmountInfos($aParams, 'AmountStores');
+            $aBrochures = $sQA->checkAmountInfos($aParams, 'AmountBrochures');
+            $aProducts = $sQA->checkAmountInfos($aParams, 'AmountProducts');
+            $differenceStores = 0;
+            $differenceBrochures = 0;
+            $differenceProducts = 0;
+            $actualStores = 0;
+            $lastStores = 0;
+            $actualBrochures = 0;
+            $lastBrochures = 0;
+            $actualProducts = 0;
+            $lastProducts = 0;
+
+            if (is_array($aStores)) {
+                foreach ($aStores as $storeDate => $storeAmount) {
+                    if (preg_match('#(' . $aParams['companyDetailStart'] . '.+)#', $storeDate, $dateMatch)) {
+                        $lastStores = $aStores[$dateMatch[1]];
+                    }
+                }
+                $actualStores = end($aStores);
+
+                if ($actualStores != 0 && $lastStores != 0) {
+                    $differenceStores = round(((float) (($actualStores - $lastStores) / $lastStores) * 100), 2);
+                }
+            }
+            if (is_array($aBrochures)) {
+                array_pop($aBrochures);
+
+                foreach ($aBrochures as $brochureDate => $brochureAmount) {
+                    if (preg_match('#(' . $aParams['companyDetailStart'] . '.+)#', $brochureDate, $dateMatch)) {
+                        $lastBrochures = $aBrochures[$dateMatch[1]];
+                    }
+                }
+                $actualBrochures = end($aBrochures);
+
+                if ($lastBrochures != 0 && $actualBrochures != 0) {
+                    $differenceBrochures = round(((float) (($actualBrochures - $lastBrochures) / $lastBrochures) * 100), 2);
+                }
+            }
+            if (is_array($aProducts)) {
+                array_pop($aProducts);
+
+                foreach ($aProducts as $productDate => $productAmount) {
+                    if (preg_match('#(' . $aParams['companyDetailStart'] . '.+)#', $productDate, $dateMatch)) {
+                        $lastProducts = $aProducts[$dateMatch[1]];
+                    }
+                }
+                $actualProducts = end($aProducts);
+
+                if ($lastProducts != 0 && $actualProducts != 0) {
+                    $differenceProducts = round(((float) (($actualProducts - $lastProducts) / $lastProducts) * 100), 2);
+                }
+            }
+
+            fputcsv($fh, array(
+                $companyId,
+                $company['title'],
+                $company['product_category'],
+                $lastStores,
+                $actualStores,
+                $lastBrochures,
+                $actualBrochures,
+                $lastProducts,
+                $actualProducts,
+                $differenceStores,
+                $differenceBrochures,
+                $differenceProducts
+                    ), ';');
+        }
+        fclose($fh);
+
+        $aData['amountCompanies'] = $amountCompanies;
+        $aData['fileName'] = $fileName;
+
+        return $aData;
+    }
+
+    /**
+     * 
+     * @param type $idCompany
+     * @return bool
+     */
+    public function checkForAdValidity($idCompany)
+    {
+        $sAdSetting = new Marktjagd_Database_Service_AdvertisingSettings();
+
+        $aSettings = $sAdSetting->findActualAdsByCompanyId($idCompany);
+
+        if ($aSettings->count()) {
+            foreach ($aSettings as $singleSetting) {
+                $eAdAnalysis = new Marktjagd_Database_Entity_AdAnalysis();
+                $strAmount = 'Marktjagd_Database_Service_Amount' . ucwords($singleSetting->getAdType());
+                $sAmount = new $strAmount();
+
+                $aWeekDays = array_combine(array(1, 2, 3, 4, 5, 6, 0), preg_split('#-#', $singleSetting->getWeekDays()));
+
+                $eAdAnalysis->setTargetAd($aWeekDays[date('w')])
+                        ->setIdCompany($idCompany)
+                        ->setAdType($singleSetting->getAdType());
+
+                if ($sAmount->findByCompanyIdAndTime($idCompany, strtotime(date('Y-m-d') . ' 00:00:00'), strtotime(date('Y-m-d') . ' 23:59:59'))->count()) {
+                    $eAdAnalysis->setCurrentAd(1);
+                }
+
+                $eAdAnalysis->save();
+            }
+
+            return TRUE;
+        }
+
+        return FALSE;
+    }
+
+}

@@ -1,0 +1,118 @@
+<?php
+
+class Marktjagd_Database_Mapper_GeoRegion extends Marktjagd_Database_Mapper_Abstract {
+
+    /**
+     * Returns the database table class, if no one exists,
+     * default will be created.
+     *
+     * @return  Marktjagd_Database_DbTable_GeoRegion
+     */
+    public function getDbTable() {
+        return parent::getDbTable();
+    }
+
+    /**
+     * Loads data by primary key(s). By multiple primary
+     * keys use an array with the values of the primary key columns.
+     *
+     * @param mixed $mId Primary key(s) value(s)
+     * @param Marktjagd_Database_Entity_GeoRegion  $oGeoRegion Object for data
+     *
+     * @return bool True if found, otherwise false
+     */
+    public function find($mId, Marktjagd_Database_Entity_GeoRegion $oGeoRegion) {
+        return parent::_find($mId, $oGeoRegion);
+    }
+
+    /**
+     * Ermittelt anhand der übergebenen Postleitzahl das entsprechende Bundesland
+     *
+     * @param $zipCode
+     * @param Marktjagd_Database_Entity_GeoRegion $oGeoRegion
+     * @return bool
+     */
+    public function findRegionByZipCode($zipCode, Marktjagd_Database_Entity_GeoRegion $oGeoRegion) {
+        $result = $this->getDbTable()->findRegionByZipCode($zipCode);
+        if ($result) {
+            $oGeoRegion->setOptions($result);
+            return true;
+        }
+
+        return false;
+    }
+
+    public function findRegionByCity($city, Marktjagd_Database_Entity_GeoRegion $oGeoRegion) {
+        $result = $this->getDbTable()->findRegionByCity($city);
+        if ($result) {
+            $oGeoRegion->setOptions($result);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Liefert Postleitzahlen aus Deutschland anhand der übergebenen Maschengröße
+     *
+     * @param int $netSize
+     * @return array
+     */
+    public function findZipCodesByNetSize($netSize) {
+        $aZip = array();
+        if ($netSize) {
+            $sAddress = new Marktjagd_Service_Text_Address();
+            $aZip = $sAddress->getRegionGrid($netSize);
+        } else {
+            $result = $this->getDbTable()->findZipCodesByNetSize();
+            $identifier = 'zipcode';
+            foreach ($result as $geoEntry) {
+                $aZip[$geoEntry[$identifier]] = $geoEntry[$identifier];
+            }
+        }
+
+        return $aZip;
+    }
+
+    /**
+     * Liefert Postleitzahlen aus Deutschland anhand der übergebenen Maschengröße
+     * inkl. der zugehörigen Geokoordinaten
+     *
+     * @param int $netSize
+     * @return array
+     */
+    public function findZipCodesByNetSizeWithGeolocation($netSize) {
+        $aZip = array();
+        if ($netSize) {
+            $sAddress = new Marktjagd_Service_Text_Address();
+            $aZip = $sAddress->getRegionGrid($netSize, TRUE);
+        } else {
+            $result = $this->getDbTable()->findZipCodesByNetSize();
+            $identifier = 'geo_region.region_zipcode';
+            foreach ($result as $geoEntry) {
+                $aZip[$geoEntry[$identifier]] = array('zip' => $geoEntry[$identifier], 'lat' => $geoEntry['geo_region.region_latitude'], 'lng' => $geoEntry['geo_region.region_longitude']);
+            }
+        }
+        
+        return $aZip;
+    }
+
+    /**
+     * 
+     * @param type $county
+     * @param Marktjagd_Database_Collection_GeoRegion $oGeoRegion
+     * @return boolean
+     */
+    public function findZipCodesForCounty($county, Marktjagd_Database_Collection_GeoRegion $oGeoRegion) {
+        $result = $this->getDbTable()->findZipCodesForCounty($county);
+
+        if (count($result) > 0) {
+            $oGeoRegion->setOptions($result);
+            return true;
+        }
+
+        return false;
+    }
+
+}
+

@@ -1,0 +1,92 @@
+<?php
+
+class Marktjagd_Database_DbTable_TriggerConfig extends Marktjagd_Database_DbTable_Abstract
+{
+    protected $_name = 'TriggerConfig';
+
+    protected $_primary = 'idTriggerConfig';
+
+    protected $_referenceMap = array(
+        'IdTriggerType' => array(
+            'columns'       => 'idTriggerType',
+            'refTableClass' => 'Marktjagd_Database_DbTable_TriggerType',
+            'refColumns'    => 'idTriggerType'),
+        'IdCompany' => array(
+            'columns'       => 'idCompany',
+            'refTableClass' => 'Marktjagd_Database_DbTable_Company',
+            'refColumns'    => 'idCompany'),
+        'IdCrawlerType' => array(
+            'columns'       => 'idCrawlerType',
+            'refTableClass' => 'Marktjagd_Database_DbTable_CrawlerType',
+            'refColumns'    => 'idCrawlerType'));
+
+    /**
+     * Ermittelt die Triggerkonfiguration für ein Unternehmen und den entsprechenden Importtyp
+     *
+     * @param $companyId
+     * @param $triggerType
+     * @return Zend_Db_Table_Rowset_Abstract
+     */
+    public function findByCompanyTriggerType($companyId, $triggerType)
+    {
+        $select = $this->select()->setIntegrityCheck(false);
+        $select->from($this->_name)
+               ->join('CrawlerType', 'TriggerConfig.idCrawlerType = CrawlerType.idCrawlerType')
+               ->join('TriggerType', 'TriggerConfig.idTriggerType = TriggerType.idTriggerType')
+               ->where('TriggerConfig.idCompany = ?', (int) $companyId)
+               ->where('TriggerType.name = ?', (string) $triggerType);
+
+        return $this->fetchAll($select);
+    }
+
+    /**
+     * Ermittelt die Triggerkonfiguration anhand der entsprechenden Triggerart
+     *
+     * @param $triggerType
+     * @return Zend_Db_Table_Rowset_Abstract
+     */
+    public function findByTriggerType($triggerType)
+    {
+        $select = $this->select()->setIntegrityCheck(false);
+        $select->from($this->_name)
+            ->join('CrawlerType', 'TriggerConfig.idCrawlerType = CrawlerType.idCrawlerType')
+            ->join('TriggerType', 'TriggerConfig.idTriggerType = TriggerType.idTriggerType')
+            ->where('TriggerType.name = ?', (string) $triggerType);
+
+        return $this->fetchAll($select);
+    }
+
+    /**
+     * Ermittelt die Triggerkonfiguration für ein Unternehmen anhand der entsprechenden Triggerart und des Crawlertyps
+     *
+     * @param $companyId
+     * @param $triggerType
+     * @param $crawlerType
+     * @return Zend_Db_Table_Row_Abstract
+     */
+    public function findByCompanyTriggerTypeCrawlerType($companyId, $triggerType, $crawlerType)
+    {
+        $select = $this->select()->setIntegrityCheck(false);
+        $select->from($this->_name)
+               ->join('CrawlerType', '(TriggerConfig.idCrawlerType = CrawlerType.idCrawlerType AND CrawlerType.type = "'
+                    . (string) $crawlerType . '")')
+               ->join('TriggerType', 'TriggerConfig.idTriggerType = TriggerType.idTriggerType')
+               ->where('TriggerConfig.idCompany = ?', (int) $companyId)
+               ->where('TriggerType.name = ?', (string) $triggerType);
+
+        return $this->fetchRow($select);
+    }
+    
+    /**
+     * Ermittelt die Triggerkonfiguration für ein Unternehmen anhand der entsprechenden CrawlerConfig-ID
+     * 
+     * @param int $crawlerConfig
+     * @return Zend_Db_Table_Row_Abstract
+     */
+    public function findByCrawlerConfigId($crawlerConfig) {
+        $select = $this->select()->setIntegrityCheck(FALSE);
+        $select->from($this->_name)
+                ->where('idCrawlerConfig = ?', $crawlerConfig);
+        return $this->fetchRow($select);
+    }  
+}

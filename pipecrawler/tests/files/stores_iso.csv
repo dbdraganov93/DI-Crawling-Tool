@@ -1,0 +1,4 @@
+store_number;city;zipcode;street;street_number;latitude;longitude;title;subtitle;text;phone;fax;email;store_hours;store_hours_notes;payment;image;logo;website;distribution;parking;barrier_free;bonus_card;section;service;toilet;default_radius
+braunschweig;Braunschweig;38100;Platz am Ritterbrunnen;1;;;;;;;;;Mo-Sa 09:30-20:00 Uhr;;;;;;;;;;;;;
+berlin_steglitz;Berlin;12163;Treitschkestraße;7;;;;;;;;;Mo-Sa 10:00-20:00 Uhr;;;;;;;;;;;;;
+koeln_weiden;Köln-Weiden;50858;Aachener Straße;1253;;;;;;;;;Mo-Sa 10:00-20:00 Uhr;;;;;;;;;;;;;

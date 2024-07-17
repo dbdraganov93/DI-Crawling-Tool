@@ -1,0 +1,65 @@
+<h1 class="page-header">Company Detailübersicht</h1>
+<div class="panel-heading">
+    <h3 class="panel-title"><?php echo $this->detailOverviewForm ?></h3>
+</div>
+<?php
+if (count($this->paginator)) : $count = 0;
+    $aTypes = array(
+        '1' => 'Produkte',
+        '2' => 'Prospekte',
+        '3' => 'Standorte'
+    );
+    $aAnchors = array(
+        '1' => 'diapro',
+        '2' => 'diabro',
+        '3' => 'diasto',
+    );
+    foreach ($this->paginator as $singleCompanyKey => $singleCompanyValue): if (is_array($singleCompanyValue)) :
+            if ($count++ % 4 == 0) : '<div class="row">';
+            endif;
+            ?>
+            <div  onclick="location.href = 'https://di-gui.marktjagd.de/Overview/companydetail/detail?companyId=<?php echo $singleCompanyValue['#companyId'] ?>&companyDetailStart=<?php echo strtotime($this->startDate) ?>&companyDetailEnd=<?php echo strtotime($this->endDate) ?>#<?php echo $aAnchors[$this->type] ?>'" class="col-lg-6" style="cursor:pointer; ">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <i class="fa fa-bar-chart-o fa-fw"></i> <?php echo $singleCompanyValue['#companyId'] . ': ' . $singleCompanyKey ?>
+                    </div>
+                    <!-- /.panel-heading -->
+                    <div class="panel-body"><div id="overview<?php echo $singleCompanyKey ?>"></div>
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+            </div>
+            <?php if ($count % 4 == 0) : '</div>';
+            endif; ?>
+            <script type="text/javascript">
+                Morris.Line({
+                    element: 'overview<?php echo $singleCompanyKey ?>',
+                    data: [
+            <?php
+            foreach ($singleCompanyValue as $singleDetailInfoKey => $singleDetailInfoValue):
+                if (!preg_match('#(lastTimeModified|lastImport|companyId)#', $singleDetailInfoKey)) {
+                    echo '{x: "' . $singleDetailInfoKey . '", '
+                    . 'y: ' . $singleDetailInfoValue . '},';
+                }
+            endforeach;
+            ?>
+                    ],
+                    xkey: 'x',
+                    ykeys: ['y'],
+                    smooth: false,
+                    lineColors: ['#9DC42E'],
+                    pointFillColors: ['#E50054'],
+                    labels: ['Anzahl <?php echo $aTypes[$this->type] ?>']
+                });
+
+
+            </script>
+            <?php
+        endif;
+    endforeach; 
+    echo '<div class="panel-heading">';
+    echo $this->paginationControl($this->paginator,
+                                    'Elastic',
+                                    'controls.phtml');
+    echo '</div>';
+    endif;

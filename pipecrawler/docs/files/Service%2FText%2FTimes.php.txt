@@ -1,0 +1,318 @@
+<?php
+
+/**
+ * Beinhaltet Funktionen zum Umwandeln/Formatieren von Zeiten
+ */
+class Marktjagd_Service_Text_Times {
+
+    /**
+     * Versucht einen MJ-Uhrzeitenstring aus dem übergebenen String zu extrahieren
+     *
+     * @param $text
+     * @param string $type mögliche Typen (text, table)
+     * @param bool $splitByDay wochentagübergreifende Konstrukte zerlegen
+     * @return string
+     */
+    public function generateMjOpenings($text, $type = 'text', $splitByDay = false) {
+        $sMasterCrawler = new Marktjagd_Service_Mastercrawler_Connector();
+
+
+        $text = preg_replace('#\n#', '', $text);
+        $aParams = array('ContentStringValue' => json_encode($text));
+        $oData = $sMasterCrawler->useService('Extractor.StoreHoursOldExtractorService', $aParams);
+
+        return $oData->StoreHoursValue;
+    }
+
+
+    /**
+     * Gibt den Beginn einer Woche zurück.
+     *
+     * @param int $year
+     * @param int $week
+     * @return int timestamp
+     */
+    public function getBeginOfWeek($year, $week) {
+        $offset = date('w', mktime(0, 0, 0, 1, 1, $year));
+        $offset = ($offset < 5) ? 1 - $offset : 8 - $offset;
+        $monday = mktime(0, 0, 0, 1, 1 + $offset, $year);
+        return strtotime('+' . ($week - 1) . ' weeks', $monday);
+    }
+
+    /**
+     * Gibt das Ende einer Woche zurück.
+     *
+     * @param int $year
+     * @param int $week
+     * @param int $weeklen
+     * @return int timestamp
+     */
+    public function getEndOfWeek($year, $week, $weeklen = 6) {
+        return $this->getBeginOfWeek($year, $week) + $weeklen * 86400 - 1;
+    }
+
+    /**
+     * Konvertiert alle Uhrzeiten eines Strings (10:00 PM) in das 24 Stunden Uhrzeit Format (22:00)
+     *
+     * @param $sHours
+     * @return string
+     */
+    public function convertAmPmTo24Hours($sHours) {
+        $retHours = preg_replace_callback(
+            '#([0-9]{1,2}\:[0-9]{1,2}\s*(am|pm))#is',
+            function ($match) {
+                return date('H:i', strtotime($match[1]));
+            },
+            $sHours);
+
+        return $retHours;
+    }
+
+    /**
+     * Konvertiert Öffnungszeiten im Googleformat ins MJ-Format
+     *
+     * @param $sHours
+     * @return string
+     */
+    public function convertGoogleOpenings($sHours) {
+        $hourPattern = array(
+            '#([^0-9:]|^)1:([0-9]{1,2}:[0-9]{1,2}):([0-9]{1,2}:[0-9]{1,2})([^0-9:]|$)#',
+            '#([^0-9:]|^)2:([0-9]{1,2}:[0-9]{1,2}):([0-9]{1,2}:[0-9]{1,2})([^0-9:]|$)#',
+            '#([^0-9:]|^)3:([0-9]{1,2}:[0-9]{1,2}):([0-9]{1,2}:[0-9]{1,2})([^0-9:]|$)#',
+            '#([^0-9:]|^)4:([0-9]{1,2}:[0-9]{1,2}):([0-9]{1,2}:[0-9]{1,2})([^0-9:]|$)#',
+            '#([^0-9:]|^)5:([0-9]{1,2}:[0-9]{1,2}):([0-9]{1,2}:[0-9]{1,2})([^0-9:]|$)#',
+            '#([^0-9:]|^)6:([0-9]{1,2}:[0-9]{1,2}):([0-9]{1,2}:[0-9]{1,2})([^0-9:]|$)#',
+            '#([^0-9:]|^)7:([0-9]{1,2}:[0-9]{1,2}):([0-9]{1,2}:[0-9]{1,2})([^0-9:]|$)#',
+            '#,$#'
+        );
+
+        $hourReplacement = array(
+            '${1}So ${2}-${3}${4}',
+            '${1}Mo ${2}-${3}${4}',
+            '${1}Di ${2}-${3}${4}',
+            '${1}Mi ${2}-${3}${4}',
+            '${1}Do ${2}-${3}${4}',
+            '${1}Fr ${2}-${3}${4}',
+            '${1}Sa ${2}-${3}${4}',
+            ''
+        );
+
+        return preg_replace($hourPattern, $hourReplacement, $sHours);
+    }
+
+    /**
+     * Ermittelt den nächsten regulären Arbeitstag (ohne Feiertage)
+     *
+     * @param string $date Startdatum, von dem ausgegangen werden soll
+     * @param string $intervallLength Intervall, welches auf das Startdatum addiert werden soll
+     * @param string $intervallType Intervalltyp (Tag, Monat, Jahr ...)
+     *
+     * @return bool|string
+     */
+    public function findNextWorkDay($date, $intervallLength, $intervallType = 'day') {
+        $weekDay = date('w', strtotime($date . ' + ' . $intervallLength . ' ' . $intervallType));
+        $strDays = '';
+        switch ($weekDay) {
+            case '0': {
+                    $strDays = ' -2days';
+                    break;
+                }
+            case '6': {
+                    $strDays = ' -1days';
+                    break;
+                }
+            default: {
+
+                }
+        }
+
+        $nextDate = date('Y-m-d H:i:s', strtotime($date . ' + ' . $intervallLength . $intervallType . ' ' . $strDays));
+
+        return $nextDate;
+    }
+
+    /**
+     * Liefert das Datum eines spezifischen Wochentages einer Woche eines Jahres
+     *
+     * @param int $year Jahr
+     * @param int $week Kalenderwoche
+     * @param string $weekDay Wochentag (Mo-So)
+     *
+     * @return bool|string
+     */
+    public function findDateForWeekday($year, $week, $weekDay)
+    {
+        $aDates = array(
+            'Mo' => date('d.m.Y', $this->getBeginOfWeek($year, $week)),
+            'Di' => date('d.m.Y', strtotime('+ 1 day', $this->getBeginOfWeek($year, $week))),
+            'Mi' => date('d.m.Y', strtotime('+ 2 day', $this->getBeginOfWeek($year, $week))),
+            'Do' => date('d.m.Y', strtotime('+ 3 day', $this->getBeginOfWeek($year, $week))),
+            'Fr' => date('d.m.Y', strtotime('+ 4 day', $this->getBeginOfWeek($year, $week))),
+            'Sa' => date('d.m.Y', strtotime('+ 5 day', $this->getBeginOfWeek($year, $week))),
+            'So' => date('d.m.Y', strtotime('+ 6 day', $this->getBeginOfWeek($year, $week))),
+        );
+
+        foreach ($aDates as $dayKey => $dayValue) {
+            if (preg_match('#' . $weekDay . '#', $dayKey)) {
+                return $dayValue;
+            }
+        }
+
+        return false;
+    }
+    
+    /**
+     * Funktion um englische in deutsche Wochentage zu konvertieren
+     * 
+     * @param string $strTime
+     * @return string
+     */
+    public function convertToGermanDays($strTime) {
+        $aEnglishDayPattern = array(
+            '#Mo.*?\s*([^A-Za-z])#i',
+            '#Tu.*?\s*([^A-Za-z])#i',
+            '#We.*?\s*([^A-Za-z])#i',
+            '#Th.*?\s*([^A-Za-z])#i',
+            '#Fr.*?\s*([^A-Za-z])#i',
+            '#Sa.*?\s*([^A-Za-z])#i',
+            '#Su.*?\s*([^A-Za-z])#i'
+        );
+        
+        $aGermanDayReplacement = array(
+            'Mo $1',
+            'Di $1',
+            'Mi $1',
+            'Do $1',
+            'Fr $1',
+            'Sa $1',
+            'So $1'
+        );
+        
+        return preg_replace($aEnglishDayPattern, $aGermanDayReplacement, $strTime);
+    }
+    
+    /**
+     * Funktion um Monatsnummer aus -namen zu ermitteln
+     * 
+     * @param string $strMonthName
+     * @return string
+     */
+    public function findNumberForMonth($strMonthName) {
+        $aMonthName = array(
+            '01' => '#Jan#i',
+            '02' => '#Feb#i',
+            '03' => '#M.+?r#i',
+            '04' => '#Apr#i',
+            '05' => '#Mai#i',
+            '06' => '#Jun#i',
+            '07' => '#Jul#i',
+            '08' => '#Aug#i',
+            '09' => '#Sep#i',
+            '10' => '#Okt#i',
+            '11' => '#Nov#i',
+            '12' => '#Dez#i'
+        );
+        foreach ($aMonthName as $monthNameKey => $monthNameValue) {
+            if (preg_match($monthNameValue, $strMonthName)) {
+                return $monthNameKey;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * 
+     * @param string $cron
+     * @return array|bool
+     */
+    protected function _parseCron($cron) {
+        $cron = explode(' ', trim($cron));
+        if (count($cron) != 5) {
+            return false;
+        }
+
+        $minutes = $this->_parseCronPart($cron[0], 0, 59);
+        $hours = $this->_parseCronPart($cron[1], 0, 23);
+        $days = $this->_parseCronPart($cron[2], 1, 31);
+        $months = $this->_parseCronPart($cron[3], 1, 12);
+        $weekdays = $this->_parseCronPart($cron[4], 0, 7);
+        if (!$minutes || !$hours || !$days || !$months || !$weekdays
+        ) {
+            return false;
+        }
+        if (in_array(0, $weekdays) && !in_array(7, $weekdays)) {
+            $weekdays[] = 7;
+        }
+
+        return array($minutes, $hours, $days, $months, $weekdays);
+    }
+
+    /**
+     * Liefert ein Array mit allen möglichen Werten einer bestimmten Spalte eines Crontabs.
+     * @param $part
+     * @param $min
+     * @param $max
+     * @return array|bool
+     */
+    protected function _parseCronPart($part, $min, $max) {
+        $values = array();
+        $part = trim($part);
+        if (preg_match('#^[0-9]+$#', $part)) { // einzelner Integer-Wert (12)
+            if ($part < $min || $part > $max
+            ) {
+                return false;
+            }
+            $values[] = (int) $part;
+        } else {
+            if ($part == '*') { // alle erlaubten Werte der Spalte (*)
+                for ($i = $min; $i <= $max; $i++) {
+                    $values[] = $i;
+                }
+            } else if (preg_match('#\*/([0-9]+)#', $part, $match)) { // nur bestimmte Inkremente (*/5)
+                for ($i = $min; $i <= $max; $i++) {
+                    if ($i % $match[1] == 0) {
+                        $values[] = $i;
+                    }
+                }
+            } else if (preg_match('#^[0-9,]+$#', $part)) { // eine Liste von Werten (1,2,3)
+                $parts = explode(',', $part);
+                foreach ($parts as $part) {
+                    if ($part >= $min && $part <= $max
+                    ) {
+                        $values[] = (int) $part;
+                    }
+                }
+            } else if (preg_match('#^([0-9]+)-([0-9]+)$#', $part, $matches)) { // ein Bereich von Werten (1-5)
+                for ($i = max($min, $matches[1]); $i <= min($max, $matches[2]); $i++) {
+                    $values[] = (int) $i;
+                }
+            } else {
+                // unbekannte Syntax
+                return false;
+            }
+        }
+        return $values;
+    }
+
+    /**
+     * Funktion, ob zu prüfen ob Crontab gerade "wahr" ist
+     * 
+     * @param string $strCron
+     * @return boolean
+     */
+    public function checkCron($strCron) {
+        $now = explode(' ', date('i H d m N'));
+        $cron = $this->_parseCron($strCron);
+
+        if (in_array($now[0], $cron[0])
+                && in_array($now[1], $cron[1])
+                && in_array($now[2], $cron[2])
+                && in_array($now[3], $cron[3])
+                && in_array($now[4], $cron[4])) {
+            return true;
+        }
+        return false;
+    }
+
+}
+

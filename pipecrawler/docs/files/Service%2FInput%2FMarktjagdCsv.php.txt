@@ -1,0 +1,794 @@
+<?php
+
+/**
+ * Service zum Umwandeln von Marktjagd-CSVs in die entsprechende Collection
+ */
+class Marktjagd_Service_Input_MarktjagdCsv
+{
+
+    /**
+     * @var Zend_Log
+     */
+    protected $_logger;
+
+    /**
+     * Konstruktor
+     */
+    public function __construct()
+    {
+        $this->_logger = Zend_Registry::get('logger');
+    }
+
+    /**
+     * Konvertiert eine Marktjagd-CSV in die entsprechende Collection
+     *
+     * @param string $csvFilePath absoluter Pfad zur CSV Datei
+     * @param string $type articles|brochures|stores
+     * @return bool|Marktjagd_Collection_Api_Abstract
+     */
+    public function convertToCollection($csvFilePath, $type)
+    {
+        if (!($csvHandler = @fopen($csvFilePath, 'r')))
+        {
+            $this->_logger->log(
+                    __CLASS__ . ' ' . __METHOD__ . "\n"
+                    . 'Unable to open csv-file ' . $csvFilePath, Zend_Log::CRIT);
+            return false;
+        }
+
+        $sCsv = new Marktjagd_Service_Input_Csv();
+        $delimiter = $sCsv->findDelimiter($csvFilePath);
+
+        // Datei einlesen
+        $sPhpExcel = new Marktjagd_Service_Input_PhpExcel();
+        $worksheet = $sPhpExcel->readFile($csvFilePath, true, $delimiter);
+        $mjCollection = false;
+
+        // Mappen einer Standort-CSV
+        if ('stores' == $type)
+        {
+            $mjCollection = new Marktjagd_Collection_Api_Store();
+            if (is_array($worksheet->getElement(0)->getData()))
+            {
+                foreach ($worksheet->getElement(0)->getData() as $csvStore)
+                {
+                    $mjCollection->addElement($this->_mapStoreToEntity($csvStore));
+                }
+            } else
+            {
+                $this->_logger->log('Keine Elemente in der CSV ' . $csvFilePath
+                        . ' zum Hinzufügen in die Collection vorhanden', Zend_Log::ERR);
+            }
+        }
+
+        // Mappen einer Artikel-CSV
+        if ('articles' == $type)
+        {
+            $mjCollection = new Marktjagd_Collection_Api_Article();
+            if (is_array($worksheet->getElement(0)->getData()))
+            {
+                foreach ($worksheet->getElement(0)->getData() as $csvArticle)
+                {
+                    $mjCollection->addElement($this->_mapArticleToEntity($csvArticle));
+                }
+            } else
+            {
+                $this->_logger->log('Keine Elemente in der CSV ' . $csvFilePath
+                        . ' zum Hinzufügen in die Collection vorhanden', Zend_Log::ERR);
+            }
+        }
+
+        // Mappen einer Prospekt-CSV
+        if ('brochures' == $type)
+        {
+            $mjCollection = new Marktjagd_Collection_Api_Brochure();
+            if (is_array($worksheet->getElement(0)->getData()))
+            {
+                foreach ($worksheet->getElement(0)->getData() as $csvBrochure)
+                {
+                    $mjCollection->addElement($this->_mapBrochureToEntity($csvBrochure));
+                }
+            } else
+            {
+                $this->_logger->log('Keine Elemente in der CSV ' . $csvFilePath
+                        . ' zum Hinzufügen in die Collection vorhanden', Zend_Log::ERR);
+            }
+        }
+
+        return $mjCollection;
+    }
+
+    /**
+     * Mappt Standorte aus der CSV auf das MJ-Entity
+     *
+     * @param array $csvStore
+     * @return Marktjagd_Entity_Api_Store
+     */
+    protected function _mapStoreToEntity($csvStore)
+    {
+        $mjEntity = new Marktjagd_Entity_Api_Store();
+
+        if (array_key_exists('Filialnummer', $csvStore))
+        {
+            $mjEntity->setStoreNumber($csvStore['Filialnummer']);
+        }
+
+        if (array_key_exists('store_number', $csvStore))
+        {
+            $mjEntity->setStoreNumber($csvStore['store_number']);
+        }
+
+        if (array_key_exists('Bezeichnung_Geschäft', $csvStore))
+        {
+            $mjEntity->setTitle($csvStore['Bezeichnung_Geschäft']);
+        }
+
+        if (array_key_exists('title', $csvStore))
+        {
+            $mjEntity->setTitle($csvStore['title']);
+        }
+
+        if (array_key_exists('Unterbezeichnung_Geschäft', $csvStore))
+        {
+            $mjEntity->setSubtitle($csvStore['Unterbezeichnung_Geschäft']);
+        }
+
+        if (array_key_exists('subtitle', $csvStore))
+        {
+            $mjEntity->setSubtitle($csvStore['subtitle']);
+        }
+
+        if (array_key_exists('Beschreibung', $csvStore))
+        {
+            $mjEntity->setText($csvStore['Beschreibung']);
+        }
+
+        if (array_key_exists('text', $csvStore))
+        {
+            $mjEntity->setText($csvStore['text']);
+        }
+
+        if (array_key_exists('PLZ', $csvStore))
+        {
+            $mjEntity->setZipcode($csvStore['PLZ']);
+        }
+
+        if (array_key_exists('zipcode', $csvStore))
+        {
+            $mjEntity->setZipcode($csvStore['zipcode']);
+        }
+
+        if (array_key_exists('zipCode', $csvStore))
+        {
+            $mjEntity->setZipcode($csvStore['zipCode']);
+        }
+
+        if (array_key_exists('Ort', $csvStore))
+        {
+            $mjEntity->setCity($csvStore['Ort']);
+        }
+
+        if (array_key_exists('city', $csvStore))
+        {
+            $mjEntity->setCity($csvStore['city']);
+        }
+
+        if (array_key_exists('Straße', $csvStore))
+        {
+            $mjEntity->setStreet($csvStore['Straße']);
+        }
+
+        if (array_key_exists('street', $csvStore))
+        {
+            $mjEntity->setStreet($csvStore['street']);
+        }
+
+        if (array_key_exists('Hausnummer', $csvStore))
+        {
+            $mjEntity->setStreetNumber($csvStore['Hausnummer']);
+        }
+
+        if (array_key_exists('street_number', $csvStore))
+        {
+            $mjEntity->setStreetNumber($csvStore['street_number']);
+        }
+
+        if (array_key_exists('Street_number', $csvStore))
+        {
+            $mjEntity->setStreetNumber($csvStore['Street_number']);
+        }
+
+        if (array_key_exists('Vertriebsbereich', $csvStore))
+        {
+            $mjEntity->setDistribution($csvStore['Vertriebsbereich']);
+        }
+
+        if (array_key_exists('distribution', $csvStore))
+        {
+            $mjEntity->setDistribution($csvStore['distribution']);
+        }
+
+        if (array_key_exists('Breitengrad', $csvStore))
+        {
+            $mjEntity->setLatitude($csvStore['Breitengrad']);
+        }
+
+        if (array_key_exists('latitude', $csvStore))
+        {
+            $mjEntity->setLatitude($csvStore['latitude']);
+        }
+
+        if (array_key_exists('Längengrad', $csvStore))
+        {
+            $mjEntity->setLongitude($csvStore['Längengrad']);
+        }
+
+        if (array_key_exists('longitude', $csvStore))
+        {
+            $mjEntity->setLongitude($csvStore['longitude']);
+        }
+
+        if (array_key_exists('Telefon', $csvStore))
+        {
+            $mjEntity->setPhone($csvStore['Telefon']);
+        }
+
+        if (array_key_exists('phone', $csvStore))
+        {
+            $mjEntity->setPhone($csvStore['phone']);
+        }
+
+        if (array_key_exists('Fax', $csvStore))
+        {
+            $mjEntity->setFax($csvStore['Fax']);
+        }
+
+        if (array_key_exists('fax', $csvStore))
+        {
+            $mjEntity->setFax($csvStore['fax']);
+        }
+
+        if (array_key_exists('E-Mail', $csvStore))
+        {
+            $mjEntity->setEmail($csvStore['E-Mail']);
+        }
+
+        if (array_key_exists('email', $csvStore))
+        {
+            $mjEntity->setEmail($csvStore['email']);
+        }
+
+        if (array_key_exists('Öffnungszeiten', $csvStore))
+        {
+            $mjEntity->setStoreHours($csvStore['Öffnungszeiten']);
+        }
+
+        if (array_key_exists('store_hours', $csvStore))
+        {
+            $mjEntity->setStoreHours($csvStore['store_hours']);
+        }
+
+        if (array_key_exists('Hinweis_Öffnungszeiten', $csvStore))
+        {
+            $mjEntity->setStoreHoursNotes($csvStore['Hinweis_Öffnungszeiten']);
+        }
+
+        if (array_key_exists('store_hours_notes', $csvStore))
+        {
+            $mjEntity->setStoreHoursNotes($csvStore['store_hours_notes']);
+        }
+
+        if (array_key_exists('Zahlungsart', $csvStore))
+        {
+            $mjEntity->setPayment($csvStore['Zahlungsart']);
+        }
+
+        if (array_key_exists('payment', $csvStore))
+        {
+            $mjEntity->setPayment($csvStore['payment']);
+        }
+
+        if (array_key_exists('URL Bild', $csvStore))
+        {
+            $mjEntity->setImage($csvStore['URL Bild']);
+        }
+
+        if (array_key_exists('image', $csvStore))
+        {
+            $mjEntity->setImage($csvStore['image']);
+        }
+
+        if (array_key_exists('URL Logo', $csvStore))
+        {
+            $mjEntity->setLogo($csvStore['URL Logo']);
+        }
+
+        if (array_key_exists('logo', $csvStore))
+        {
+            $mjEntity->setLogo($csvStore['logo']);
+        }
+
+        if (array_key_exists('URL Webseite', $csvStore))
+        {
+            $mjEntity->setWebsite($csvStore['URL Webseite']);
+        }
+
+        if (array_key_exists('website', $csvStore))
+        {
+            $mjEntity->setWebsite($csvStore['website']);
+        }
+
+        if (array_key_exists('parking', $csvStore))
+        {
+            $mjEntity->setParking($csvStore['parking']);
+        }
+
+        if (array_key_exists('Parkmöglichkeiten', $csvStore))
+        {
+            $mjEntity->setParking($csvStore['Parkmöglichkeiten']);
+        }
+
+        if (array_key_exists('barrier_free', $csvStore))
+        {
+            $mjEntity->setBarrierFree($csvStore['barrier_free']);
+        }
+
+        if (array_key_exists('Barrierefrei', $csvStore))
+        {
+            $mjEntity->setBarrierFree($csvStore['Barrierefrei']);
+        }
+
+        if (array_key_exists('bonus_card', $csvStore))
+        {
+            $mjEntity->setBonusCard($csvStore['bonus_card']);
+        }
+
+        if (array_key_exists('Bonusprogramme', $csvStore))
+        {
+            $mjEntity->setBonusCard($csvStore['Bonusprogramme']);
+        }
+
+        if (array_key_exists('section', $csvStore))
+        {
+            $mjEntity->setSection($csvStore['section']);
+        }
+
+        if (array_key_exists('Abteilungen', $csvStore))
+        {
+            $mjEntity->setSection($csvStore['Abteilungen']);
+        }
+
+        if (array_key_exists('service', $csvStore))
+        {
+            $mjEntity->setService($csvStore['service']);
+        }
+
+        if (array_key_exists('Serviceleistungen', $csvStore))
+        {
+            $mjEntity->setService($csvStore['Serviceleistungen']);
+        }
+
+        if (array_key_exists('toilet', $csvStore))
+        {
+            $mjEntity->setToilet($csvStore['toilet']);
+        }
+
+        if (array_key_exists('Kundentoilette', $csvStore))
+        {
+            $mjEntity->setToilet($csvStore['Kundentoilette']);
+        }
+
+        if (array_key_exists('default_radius', $csvStore))
+        {
+            $mjEntity->setDefaultRadius($csvStore['default_radius']);
+        }
+
+        if (array_key_exists('Sichtbarkeitsradius', $csvStore))
+        {
+            $mjEntity->setDefaultRadius($csvStore['Sichtbarkeitsradius']);
+        }
+
+        return $mjEntity;
+    }
+
+    /**
+     * Mappt Artikel aus der CSV auf das MJ-Entity
+     *
+     * @param array $csvArticle
+     * @return Marktjagd_Entity_Api_Article
+     */
+    protected function _mapArticleToEntity($csvArticle)
+    {
+        $mjEntity = new Marktjagd_Entity_Api_Article();
+
+        if (array_key_exists('Artikelnummer', $csvArticle))
+        {
+            $mjEntity->setArticleNumber($csvArticle['Artikelnummer']);
+        }
+
+        if (array_key_exists('article_number', $csvArticle))
+        {
+            $mjEntity->setArticleNumber($csvArticle['article_number']);
+        }
+
+        if (array_key_exists('Artikelbezeichnung', $csvArticle))
+        {
+            $mjEntity->setTitle($csvArticle['Artikelbezeichnung']);
+        }
+
+        if (array_key_exists('title', $csvArticle))
+        {
+            $mjEntity->setTitle($csvArticle['title']);
+        }
+
+        if (array_key_exists('Preis', $csvArticle))
+        {
+            $mjEntity->setPrice($csvArticle['Preis']);
+        }
+
+        if (array_key_exists('price', $csvArticle))
+        {
+            $mjEntity->setPrice($csvArticle['price']);
+        }
+
+        if (array_key_exists('Artikelbeschreibung', $csvArticle))
+        {
+            $mjEntity->setText($csvArticle['Artikelbeschreibung']);
+        }
+
+        if (array_key_exists('text', $csvArticle))
+        {
+            $mjEntity->setText($csvArticle['text']);
+        }
+
+        if (array_key_exists('EAN', $csvArticle))
+        {
+            $mjEntity->setEan($csvArticle['EAN']);
+        }
+
+        if (array_key_exists('ean', $csvArticle))
+        {
+            $mjEntity->setEan($csvArticle['ean']);
+        }
+
+        if (array_key_exists('Hersteller', $csvArticle))
+        {
+            $mjEntity->setManufacturer($csvArticle['Hersteller']);
+        }
+
+        if (array_key_exists('manufacturer', $csvArticle))
+        {
+            $mjEntity->setManufacturer($csvArticle['manufacturer']);
+        }
+
+        if (array_key_exists('Artikelnummer_Hersteller', $csvArticle))
+        {
+            $mjEntity->setArticleNumberManufacturer($csvArticle['Artikelnummer_Hersteller']);
+        }
+
+        if (array_key_exists('article_number_manufacturer', $csvArticle))
+        {
+            $mjEntity->setArticleNumberManufacturer($csvArticle['article_number_manufacturer']);
+        }
+
+        if (array_key_exists('UVP', $csvArticle))
+        {
+            $mjEntity->setSuggestedRetailPrice($csvArticle['UVP']);
+        }
+
+        if (array_key_exists('suggested_retail_price', $csvArticle))
+        {
+            $mjEntity->setSuggestedRetailPrice($csvArticle['suggested_retail_price']);
+        }
+
+        if (array_key_exists('Marke', $csvArticle))
+        {
+            $mjEntity->setTrademark($csvArticle['Marke']);
+        }
+
+        if (array_key_exists('trademark', $csvArticle))
+        {
+            $mjEntity->setTrademark($csvArticle['trademark']);
+        }
+
+        if (array_key_exists('Stichwörter', $csvArticle))
+        {
+            $mjEntity->setTags($csvArticle['Stichwörter']);
+        }
+
+        if (array_key_exists('tags', $csvArticle))
+        {
+            $mjEntity->setTags($csvArticle['tags']);
+        }
+
+        if (array_key_exists('Farbe', $csvArticle))
+        {
+            $mjEntity->setColor($csvArticle['Farbe']);
+        }
+
+        if (array_key_exists('color', $csvArticle))
+        {
+            $mjEntity->setColor($csvArticle['color']);
+        }
+
+        if (array_key_exists('Größe', $csvArticle))
+        {
+            $mjEntity->setSize($csvArticle['Größe']);
+        }
+
+        if (array_key_exists('size', $csvArticle))
+        {
+            $mjEntity->setSize($csvArticle['size']);
+        }
+
+        if (array_key_exists('Menge', $csvArticle))
+        {
+            $mjEntity->setAmount($csvArticle['Menge']);
+        }
+
+        if (array_key_exists('amount', $csvArticle))
+        {
+            $mjEntity->setAmount($csvArticle['amount']);
+        }
+
+        if (array_key_exists('Katalog_von', $csvArticle))
+        {
+            $mjEntity->setStart($csvArticle['Katalog_von']);
+        }
+
+        if (array_key_exists('start', $csvArticle))
+        {
+            $mjEntity->setStart($csvArticle['start']);
+        }
+
+        if (array_key_exists('Katalog_bis', $csvArticle))
+        {
+            $mjEntity->setEnd($csvArticle['Katalog_bis']);
+        }
+
+        if (array_key_exists('end', $csvArticle))
+        {
+            $mjEntity->setEnd($csvArticle['end']);
+        }
+
+        if (array_key_exists('Sichtbarkeit von', $csvArticle))
+        {
+            $mjEntity->setVisibleStart($csvArticle['Sichtbarkeit von']);
+        }
+
+        if (array_key_exists('visible_start', $csvArticle))
+        {
+            $mjEntity->setVisibleStart($csvArticle['visible_start']);
+        }
+
+        if (array_key_exists('Sichtbarkeit bis', $csvArticle))
+        {
+            $mjEntity->setVisibleEnd($csvArticle['Sichtbarkeit bis']);
+        }
+
+        if (array_key_exists('visible_end', $csvArticle))
+        {
+            $mjEntity->setVisibleEnd($csvArticle['visible_end']);
+        }
+
+        if (array_key_exists('URL_Angebot', $csvArticle))
+        {
+            $mjEntity->setUrl($csvArticle['URL_Angebot']);
+        }
+
+        if (array_key_exists('url', $csvArticle))
+        {
+            $mjEntity->setUrl($csvArticle['url']);
+        }
+
+        if (array_key_exists('Versandkosten', $csvArticle))
+        {
+            $mjEntity->setShipping($csvArticle['Versandkosten']);
+        }
+
+        if (array_key_exists('shipping', $csvArticle))
+        {
+            $mjEntity->setShipping($csvArticle['shipping']);
+        }
+
+        if (array_key_exists('image', $csvArticle))
+        {
+            $mjEntity->setImage($csvArticle['image']);
+        }
+
+        if (array_key_exists('URL_Bild', $csvArticle))
+        {
+            $mjEntity->setImage($csvArticle['URL_Bild']);
+        }
+
+        if (array_key_exists('Filialnummer', $csvArticle))
+        {
+            $mjEntity->setStoreNumber($csvArticle['Filialnummer']);
+        }
+
+        if (array_key_exists('store_number', $csvArticle))
+        {
+            $mjEntity->setStoreNumber($csvArticle['store_number']);
+        }
+
+        if (array_key_exists('Distribution', $csvArticle))
+        {
+            $mjEntity->setDistribution($csvArticle['Distribution']);
+        }
+
+        if (array_key_exists('distribution', $csvArticle))
+        {
+            $mjEntity->setDistribution($csvArticle['distribution']);
+        }
+
+        return $mjEntity;
+    }
+
+    /**
+     * Mappt Prospekte aus der CSV auf das MJ-Entity
+     *
+     * @param array $csvBrochure
+     * @return Marktjagd_Entity_Api_Brochure
+     */
+    protected function _mapBrochureToEntity($csvBrochure)
+    {
+        $mjEntity = new Marktjagd_Entity_Api_Brochure();
+
+        if (array_key_exists('URL', $csvBrochure))
+        {
+            if (!preg_match('#(\.pdf)$#i', $csvBrochure['URL']))
+            {
+                $csvBrochure['URL'] .= '.pdf';
+            }
+            $mjEntity->setUrl($csvBrochure['URL']);
+        }
+
+        if (array_key_exists('url', $csvBrochure))
+        {
+            if (!preg_match('#(\.pdf)$#i', $csvBrochure['url']))
+            {
+                $csvBrochure['url'] .= '.pdf';
+            }
+            $mjEntity->setUrl($csvBrochure['url']);
+        }
+
+        if (array_key_exists('Titel', $csvBrochure))
+        {
+            $mjEntity->setTitle($csvBrochure['Titel']);
+        }
+
+        if (array_key_exists('title', $csvBrochure))
+        {
+            $mjEntity->setTitle($csvBrochure['title']);
+        }
+
+        if (array_key_exists('Stichwörter', $csvBrochure))
+        {
+            $mjEntity->setTags($csvBrochure['Stichwörter']);
+        }
+
+        if (array_key_exists('tags', $csvBrochure))
+        {
+            $mjEntity->setTags($csvBrochure['tags']);
+        }
+
+        if (array_key_exists('Prospekt Start', $csvBrochure))
+        {
+            $mjEntity->setStart($csvBrochure['Prospekt Start']);
+        }
+
+        if (array_key_exists('start', $csvBrochure))
+        {
+            $mjEntity->setStart($csvBrochure['start']);
+        }
+
+        if (array_key_exists('Prospekt Ende', $csvBrochure))
+        {
+            $mjEntity->setEnd($csvBrochure['Prospekt Ende']);
+        }
+
+        if (array_key_exists('end', $csvBrochure))
+        {
+            $mjEntity->setEnd($csvBrochure['end']);
+        }
+
+        if (array_key_exists('Sichtbarkeit von', $csvBrochure))
+        {
+            $mjEntity->setVisibleStart($csvBrochure['Sichtbarkeit von']);
+        }
+
+        if (array_key_exists('visible_start', $csvBrochure))
+        {
+            $mjEntity->setVisibleStart($csvBrochure['visible_start']);
+        }
+
+        if (array_key_exists('Sichtbarkeit bis', $csvBrochure))
+        {
+            $mjEntity->setVisibleEnd($csvBrochure['Sichtbarkeit bis']);
+        }
+
+        if (array_key_exists('visible_end', $csvBrochure))
+        {
+            $mjEntity->setVisibleEnd($csvBrochure['visible_end']);
+        }
+
+        if (array_key_exists('Filialnummer', $csvBrochure))
+        {
+            $mjEntity->setStoreNumber($csvBrochure['Filialnummer']);
+        }
+
+        if (array_key_exists('store_number', $csvBrochure))
+        {
+            $mjEntity->setStoreNumber($csvBrochure['store_number']);
+        }
+
+        if (array_key_exists('Distribution', $csvBrochure))
+        {
+            $mjEntity->setDistribution($csvBrochure['Distribution']);
+        }
+
+        if (array_key_exists('distribution', $csvBrochure))
+        {
+            $mjEntity->setDistribution($csvBrochure['distribution']);
+        }
+
+        if (array_key_exists('brochure_number', $csvBrochure))
+        {
+            $mjEntity->setBrochureNumber($csvBrochure['brochure_number']);
+        }
+
+        if (array_key_exists('variety', $csvBrochure))
+        {
+            $mjEntity->setVariety($csvBrochure['variety']);
+        }
+
+        if (array_key_exists('Ausprägung', $csvBrochure))
+        {
+            $mjEntity->setVariety($csvBrochure['Ausprägung']);
+        }
+
+        if (array_key_exists('national', $csvBrochure))
+        {
+            $mjEntity->setNational($csvBrochure['national']);
+        }
+
+        if (array_key_exists('Gültigkeitsbereich', $csvBrochure))
+        {
+            $mjEntity->setNational($csvBrochure['Gültigkeitsbereich']);
+        }
+
+        if (array_key_exists('gender', $csvBrochure))
+        {
+            $mjEntity->setGender($csvBrochure['gender']);
+        }
+
+        if (array_key_exists('Geschlecht', $csvBrochure))
+        {
+            $mjEntity->setGender($csvBrochure['Zielgruppe']);
+        }
+
+        if (array_key_exists('age_range', $csvBrochure))
+        {
+            $mjEntity->setAgeRange($csvBrochure['age_range']);
+        }
+
+        if (array_key_exists('Alter', $csvBrochure))
+        {
+            $mjEntity->setAgeRange($csvBrochure['Alter']);
+        }
+
+        if (array_key_exists('tracking_bug', $csvBrochure))
+        {
+            $mjEntity->setTrackingBug($csvBrochure['tracking_bug']);
+        }
+
+        if (array_key_exists('Trackingpixel', $csvBrochure))
+        {
+            $mjEntity->setTrackingBug($csvBrochure['Trackingpixel']);
+        }
+
+        return $mjEntity;
+    }
+
+}
+

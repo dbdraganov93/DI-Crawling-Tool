@@ -1,0 +1,741 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the Request class.
+ *
+ * PHP version 5
+ *
+ * @category request
+ * @package  request
+ * @author   Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license  Martktjagd GmbH
+ * @link     http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Request;
+
+/**
+ * Request
+ * 
+ * This is a test comment.
+ *
+ * @category request
+ * @package  request
+ * @author   Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license  Martktjagd GmbH
+ * @link     http://www.marktjagd.de
+ */
+class Request
+{
+
+    const
+        METHOD_NONE = 0,
+        METHOD_GET = 1,
+        METHOD_POST = 2,
+        METHOD_PUT = 4,
+        METHOD_DELETE = 8,
+        METHOD_ALL = 15,
+        FORMAT_JSON = 'json',
+        CONTENT_TYPE_JSON = 'application/jsonrequest',
+        CONTENT_TYPE_JPG = 'image/jpeg',
+        CONTENT_TYPE_PNG = 'image/png',
+        CONTENT_TYPE_GIF = 'image/gif',
+        STATUS_CODE_OK = 200,
+        STATUS_CODE_CREATED = 201,
+        STATUS_CODE_NOT_ACCEPTABLE = 406;
+    
+    protected static
+        $instance,
+        $curlMultiHandle = null,
+        $options = array(),
+        $validOptions = array(
+            'host',
+            'key_id',
+            'secret_key',
+            'ssl_verification',
+            'media_ssl',
+            'curl_multi_handle'
+            ),
+        $loggers = array();
+    
+    protected
+        $resource,
+        $format = self::FORMAT_JSON,
+        $params = array(),
+        $errors = array(),
+        $method,
+        $requestBody,
+        $requestContentType,
+        $requestHeaders = array(),
+        $requestOptions = array(),
+        $responseBody,
+        $responseInfo;
+
+    /**
+     * Sets the request options.
+     *
+     * @param array $options
+     */
+    public static function setOptions(array $options)
+    {
+        self::$options = array();
+
+        foreach ($options as $name => $value)
+        {
+            self::setOption($name, $value);
+        }
+    }
+
+    /**
+     * Sets a request option.
+     *
+     * Valid options are:
+     *
+     *  - host: the API host
+     *  - key_id: your personal API key ID
+     *  - secret_key: your personal API secret key
+     *  - ssl_verification: Enables/disables SSL certificate verification. This
+     *                      is enabled by default and should be disabled for
+     *                      unsigned SSL certificates.
+     *  - media_ssl: Enables/disables SSL media URLs (https://) in resources.
+     *               This is disabled by default and should be enabled if required.
+     *
+     * @staticvar array $validOptions
+     * @param string $name option name
+     * @param mixed $value option value
+     * @throws \UnexpectedValueException if the given name is not a valid option
+     */
+    public static function setOption($name, $value)
+    {
+        if (!in_array($name, self::$validOptions))
+        {
+            throw new \UnexpectedValueException('Invalid option ' . $name);
+        }
+
+        self::$options[$name] = $value;
+    }
+
+    /**
+     * Returns an option value.
+     *
+     * @param string $name option name
+     * @param mixed $default default value if the option is not set
+     * @return mixed option value
+     * @throws \UnexpectedValueException if the given name is not a valid option
+     */
+    public static function getOption($name, $default = null)
+    {
+        if (!in_array($name, self::$validOptions))
+        {
+            throw new \UnexpectedValueException('Invalid option ' . $name);
+        }
+
+        return isset(self::$options[$name]) ? self::$options[$name] : $default;
+    }
+
+    /**
+     * Adds a request logger.
+     *
+     * @param RequestLogger $logger request logger
+     */
+    public static function addLogger(RequestLogger $logger)
+    {
+        self::$loggers[] = $logger;
+    }
+
+    public static function setLogger(RequestLogger $logger)
+    {
+        self::$loggers = array($logger);
+    }
+
+    /**
+     * Returns the method name given a method class constant.
+     *
+     * @param  int $method method class constant
+     *
+     * @return string method name
+     *
+     * @throws UnexpectedValueException if the method does not exist
+     */
+    public static function getMethodName($method)
+    {
+        static $methods = array(
+        self::METHOD_GET => 'GET',
+        self::METHOD_POST => 'POST',
+        self::METHOD_PUT => 'PUT',
+        self::METHOD_DELETE => 'DELETE'
+        );
+
+        if (!isset($methods[$method]))
+        {
+            throw new \UnexpectedValueException(sprintf('The method "%s" does not exist', $method));
+        }
+
+        return $methods[$method];
+    }
+
+    /**
+     * Returns the singleton instance.
+     *
+     * @return Request singleton instance
+     */
+    public static function getInstance()
+    {
+        if (is_null(self::$instance))
+        {
+            throw new \RuntimeException('No request has been instantiated');
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * Creates a new singleton instance.
+     *
+     * @param string $resource resource string
+     * @param array  $params   request parameters
+     *
+     * @return Request singleton instance
+     */
+    public static function createInstance($resource, array $params = array())
+    {
+        self::$instance = new self($resource, $params);
+
+        return self::$instance;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param string $resource resource string
+     * @param array  $params   request parameters
+     *
+     * @return void
+     */
+    public function __construct($resource, array $params = array())
+    {
+        $this->resource = $resource;
+        $this->params = $params;
+
+        // disable SSL certificate verification
+        $sslVerification = self::getOption('ssl_verification', true);
+        $this
+            ->setRequestOption(CURLOPT_SSL_VERIFYPEER, $sslVerification)
+            ->setRequestOption(CURLOPT_SSL_VERIFYHOST, $sslVerification);
+    }
+
+    /**
+     * Sets the request format.
+     *
+     * @param string $format request format
+     *
+     * @return Request current instance
+     */
+    public function setFormat($format)
+    {
+        if (empty($format))
+        {
+            throw new \InvalidArgumentException('Format must not be empty');
+        }
+
+        $this->format = $format;
+
+        return $this;
+    }
+
+    /**
+     * Adds a request error.
+     *
+     * @param RequestError $error request error
+     *
+     * @return Request current instance
+     */
+    public function addError(RequestError $error)
+    {
+        $this->errors[] = $error;
+
+        return $this;
+    }
+
+    /**
+     * Checks if this request has errors.
+     *
+     * @return bool TRUE if there are errors, FALSE otherwise
+     */
+    public function hasErrors()
+    {
+        return !empty($this->errors);
+    }
+
+    /**
+     * Returns the request errors.
+     *
+     * @return array request errors
+     */
+    public function getErrors()
+    {
+        return $this->errors;
+    }
+
+    /**
+     * Returns the resource string.
+     *
+     * @return string resource string
+     */
+    public function getResource()
+    {
+        return $this->resource;
+    }
+
+    /**
+     * Returns the method class constant.
+     *
+     * @return int method class constant
+     */
+    public function getMethod()
+    {
+        return $this->method;
+    }
+
+    /**
+     * Returns the request parameters.
+     *
+     * @return array request parameters
+     */
+    public function getParameters()
+    {
+        return $this->params;
+    }
+
+    /**
+     * Returns the referrer.
+     *
+     * @return string referrer
+     */
+    public function getReferrer()
+    {
+        if (isset($_SERVER['SERVER_NAME']) && isset($_SERVER['REQUEST_URI']))
+        {
+            return $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
+        }
+
+        return null;
+    }
+
+    /**
+     * Sets a request http header.
+     *
+     * @param string $name  header name
+     * @param string $value header value
+     *
+     * @return Request current instance
+     */
+    protected function setRequestHeader($name, $value)
+    {
+        $this->requestHeaders[$name] = $value;
+
+        return $this;
+    }
+
+    /**
+     * Set a curl option.
+     *
+     * @param string $name  option name
+     * @param mixed  $value option value
+     *
+     * @return Request current instance
+     * @see curl_setopt
+     */
+    protected function setRequestOption($name, $value)
+    {
+        $this->requestOptions[$name] = $value;
+
+        return $this;
+    }
+
+    /**
+     * Sign the request.
+     *
+     * @return Request current instance
+     */
+    protected function sign()
+    {
+        $date = date('r');
+        $sigStr = self::getMethodName($this->method) . "/$this->resource.$this->format$date" . self::getOption('secret_key');
+        $signature = base64_encode(sha1($sigStr));
+
+        $this
+            ->setRequestHeader('Date', $date)
+            ->setRequestHeader('auth', self::getOption('key_id') . ":$signature");
+
+        return $this;
+    }
+
+    /**
+     * Returns the request url.
+     *
+     * @return sting request url
+     */
+    public function generateUrl()
+    {
+        $url = self::getOption('host') . "/$this->resource.$this->format";
+
+        // media SSL
+        if (!isset($this->params['media_ssl']))
+        {
+            $this->params['media_ssl'] = self::getOption('media_ssl', false);
+        }
+
+        // append parameters
+        $query = http_build_query($this->params, null, '&');
+        $url .= empty($query) ? '' : "?$query";
+
+        return $url;
+    }
+
+    /**
+     * Execute the curl request.
+     *
+     * @return bool TRUE if the curl request was successful, FALSE otherwise
+     */
+    protected function doRequest()
+    {
+        $this->sign();
+
+        // build curl headers
+        $this->setRequestHeader('Accept', self::CONTENT_TYPE_JSON);
+        $this->setRequestHeader('Referer', $this->getReferrer());
+
+        $headers = array();
+
+        foreach ($this->requestHeaders as $key => $value)
+        {
+            $headers[] = "$key: $value";
+        }
+
+        // build url
+        $url = $this->generateUrl();
+
+        // init curl request
+        $curl = curl_init();
+
+        // set curl options
+        $this
+            ->setRequestOption(CURLOPT_URL, $url)
+            ->setRequestOption(CURLOPT_HEADER, false)
+            ->setRequestOption(CURLOPT_RETURNTRANSFER, true)
+            ->setRequestOption(CURLOPT_FOLLOWLOCATION, false)
+            //->setRequestOption(CURLOPT_PROTOCOLS, CURLPROTO_HTTPS)
+            ->setRequestOption(CURLOPT_HTTPHEADER, $headers);
+        curl_setopt_array($curl, $this->requestOptions);
+
+        $tries = 5;
+        $sleep = 1;
+
+        do
+        {
+            if (self::getOption('curl_multi_handle', true))
+            {
+                $this->responseBody = $this->curlExecMulti($curl);
+            }
+            else
+            {
+                $this->responseBody = curl_exec($curl);
+            }
+        }
+        while (false === $this->responseBody && --$tries && 0 === sleep($sleep++));
+
+        $this->responseInfo = curl_getinfo($curl);
+
+        curl_close($curl);
+
+        // logging
+        $this->log();
+
+        return false !== $this->responseBody;
+    }
+    
+    /**
+     * Processes the given curl handle using a curl multi handle.
+     *  
+     * @param Resource $handle The curl handle to process.
+     * @return String The response body.
+     */
+    private function curlExecMulti($handle)
+    {
+        // init multi handle if necessary
+        if (is_null(self::$curlMultiHandle))
+        {
+            self::$curlMultiHandle = curl_multi_init();
+        }
+        
+        // add handle to multi handle
+        curl_multi_add_handle(self::$curlMultiHandle, $handle);
+        
+        // process
+        $active = null;
+        
+        do
+        {
+            $status = curl_multi_exec(self::$curlMultiHandle, $active);
+        }
+        while ($status == CURLM_CALL_MULTI_PERFORM); // needed for libcurl before version 7.20.0
+        
+        // return FALSE if return code != CURLM_OK
+        if ($status != CURLM_OK)
+        {
+            return false;
+        }
+        
+        while ($active)
+        {
+            // block until a transfer needs attention
+            // during dns lookup this returns -1 instead of 0
+            // see https://bugs.php.net/bug.php?id=61141
+            if (curl_multi_select(self::$curlMultiHandle) == -1)
+            {
+                usleep(10);
+            }
+            
+            do
+            {
+                $status = curl_multi_exec(self::$curlMultiHandle, $active);
+            }
+            while ($status == CURLM_CALL_MULTI_PERFORM); // needed for libcurl before version 7.20.0
+        }
+        
+        if (false !== curl_multi_info_read(self::$curlMultiHandle))
+        {
+            $responseBody = curl_multi_getcontent($handle);
+        }
+        else
+        {
+            return false;
+        }
+        
+        // remove handle from multi handle
+        curl_multi_remove_handle(self::$curlMultiHandle, $handle);
+        
+        return $responseBody;
+    }
+
+    /**
+     * Execute the api request.
+     *
+     * @return bool TRUE if the request (curl) was successful, FALSE otherwise
+     */
+    protected function execute()
+    {
+        if ($this->doRequest())
+        {
+            $response = $this->getResponse();
+
+            if (isset($response->errors))
+            {
+                foreach ($response->errors->error as $error)
+                {
+                    $this->addError(new RequestError($error->type,
+                        array(
+                        'message' => isset($error->message) ? $error->message : null,
+                        'field' => isset($error->variable) ? $error->variable : null
+                    )));
+                }
+            }
+            elseif (isset($response->error))
+            {
+                $error = $response->error;
+
+                $this->addError(new RequestError(RequestError::TYPE_GENERAL,
+                    array(
+                    'message' => isset($error->message) ? $error->message : null
+                )));
+            }
+
+            return true;
+        }
+        else
+        {
+            $this->addError(new RequestError(RequestError::TYPE_CURL, $this->getResponseInfo()));
+
+            return false;
+        }
+    }
+
+    /**
+     * Logs the current request.
+     */
+    protected function log()
+    {
+        foreach (self::$loggers as $logger)
+        {
+            $logger->log($this);
+        }
+    }
+
+    /**
+     * Initiate a GET request.
+     *
+     * @return bool TRUE if the request was successful, FALSE otherwise
+     */
+    public function get()
+    {
+        $this->method = self::METHOD_GET;
+
+        return $this->execute();
+    }
+
+    /**
+     * Initiate a POST request.
+     *
+     * @return bool TRUE if the request was successful, FALSE otherwise
+     */
+    public function post()
+    {
+        $this->method = self::METHOD_POST;
+
+        $this
+            ->setRequestOption(CURLOPT_POST, true)
+            ->setRequestOption(CURLOPT_POSTFIELDS, $this->requestBody)
+            ->setRequestHeader('Content-Type', $this->requestContentType);
+
+        return $this->execute();
+    }
+
+    /**
+     * Initiate a PUT request.
+     *
+     * @return bool TRUE if the request was successful, FALSE otherwise
+     */
+    public function put()
+    {
+        $this->method = self::METHOD_PUT;
+
+        $fh = fopen('php://temp', 'rw');
+        fwrite($fh, $this->requestBody);
+        $filesize = ftell($fh);
+        rewind($fh);
+
+        $this
+            ->setRequestOption(CURLOPT_PUT, true)
+            ->setRequestOption(CURLOPT_INFILE, $fh)
+            ->setRequestOption(CURLOPT_INFILESIZE, $filesize)
+            ->setRequestHeader('Content-Type', $this->requestContentType);
+
+        return $this->execute();
+    }
+
+    /**
+     * Initiate a DELETE request.
+     *
+     * @return bool TRUE if the request was successful, FALSE otherwise
+     */
+    public function delete()
+    {
+        $this->method = self::METHOD_DELETE;
+
+        $this->setRequestOption(CURLOPT_CUSTOMREQUEST, 'DELETE');
+
+        return $this->execute();
+    }
+
+    /**
+     * Set the request body for POST or PUT requests
+     *
+     * @param string $requestBody request body string
+     * @param string $contentType request body content type
+     *
+     * @return RestRequest $this
+     */
+    public function setRequestBody($requestBody, $contentType = null)
+    {
+        $this->requestBody = (string) $requestBody;
+        $this->requestContentType = is_null($contentType) ? self::CONTENT_TYPE_JSON : $contentType;
+
+        return $this;
+    }
+
+    /**
+     * Returns the request body.
+     *
+     * @return string request body
+     */
+    public function getRequestBody()
+    {
+        return $this->requestBody;
+    }
+
+    /**
+     * Get the raw response body.
+     *
+     * @return string response body
+     */
+    public function getResponseBody()
+    {
+        return $this->responseBody;
+    }
+
+    /**
+     * Get information about the request.
+     *
+     * @param string $name specific information title
+     *
+     * @return string|array information value if $name is given, information array otherwise
+     * @see curl_getinfo
+     */
+    public function getResponseInfo($name = null)
+    {
+        if (!is_null($name))
+        {
+            return isset($this->responseInfo[$name]) ? $this->responseInfo[$name] : null;
+        }
+
+        return $this->responseInfo;
+    }
+
+    /**
+     * Get response status code.
+     *
+     * @return int status code
+     */
+    public function getResponseStatusCode()
+    {
+        $statusCode = $this->getResponseInfo('http_code');
+
+        return is_null($statusCode) ? null : (int) $statusCode;
+    }
+
+    /**
+     * Check if the response status code equals 200
+     *
+     * @return bool TRUE if response status code equals 200, FALSE otherwise
+     */
+    public function isResponseStatusCodeOk()
+    {
+        return $this->getResponseStatusCode() == self::STATUS_CODE_OK;
+    }
+
+    /**
+     * Check if the response status code equals 201
+     *
+     * @return bool TRUE if response status code equals 201, FALSE otherwise
+     */
+    public function isResponseStatusCodeCreated()
+    {
+        return $this->getResponseStatusCode() == self::STATUS_CODE_CREATED;
+    }
+
+    /**
+     * Get the response as object.
+     *
+     * @return stdClass response object
+     */
+    public function getResponse()
+    {
+        $response = json_decode($this->responseBody);
+
+        return $response;
+    }
+
+}
+

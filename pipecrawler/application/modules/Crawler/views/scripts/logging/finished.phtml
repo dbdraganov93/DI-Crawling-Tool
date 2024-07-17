@@ -1,0 +1,94 @@
+<h1 class="page-header">Beendete Crawler</h1>
+<div class="row">
+    <div class="col-lg-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Suche</h3>
+            </div>
+            <div class="panel-body">
+                <?php echo $this->archiveForm ?>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Suchergebnisse</h3>
+            </div>
+            <div class="panel-body">
+                <?php if (count($this->cCrawlerLog)): ?>
+                    <table class="table table-hover dataTable no-footer">
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Typ</th>
+                                <th>gestartet durch</th>
+                                <th>eingetragen am</th>
+                                <th>Crawler-Start</th>
+                                <th>Crawler-Ende / Import-Start</th>
+                                <th>Import-Ende</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <?php
+                        $type = array(
+                            0 => 'manuell / auslösergesteuert',
+                            1 => 'zeitgesteuert'
+                        );
+
+                        $status = array(
+                            2 => 'Crawler erfolgreich',
+                            3 => 'Crawler fehlgeschlagen',
+                            4 => 'Crawler erfolgreich, kein Import',
+                            5 => 'Crawler konnte nicht gestartet werden',
+                            7 => 'Import anlegen fehlgeschlagen',
+                            8 => 'Import wird durchgeführt',
+                            9 => 'Import fehlerhaft',
+                            10 => 'Import erfolgreich',
+                            11 => 'Crawler erfolgreich, Änderung vorhanden'
+                        );
+
+                        $statusColor = array(
+                            2 => 'success',
+                            3 => 'danger',
+                            4 => 'success',
+                            5 => 'warning',
+                            7 => 'danger',
+                            8 => 'active',
+                            9 => 'warning',
+                            10 => 'success',
+                            11 => 'warning'
+                        );
+                        
+                        $aCrawlerType = array(
+                            1 => 'Artikel',
+                            2 => 'Prospekte',
+                            3 => 'Standorte',
+                        );
+
+                        /* @var $eCrawlerLog Marktjagd_Database_Entity_CrawlerLog */
+                        foreach ($this->cCrawlerLog as $eCrawlerLog):
+                            ?>
+                            <tr class="<?php echo $statusColor[$eCrawlerLog->getIdCrawlerLogType()] ?>"
+                                onclick="window.location = '/Crawler/logging/detail/idCrawlerLog/<?php echo $eCrawlerLog->getIdCrawlerLog() ?>'"
+                                style ="cursor:pointer;">
+                                <td><?php echo $eCrawlerLog->getCrawlerConfig()->getCompany()->getName() ?></td>
+                                <td><?php echo $aCrawlerType[$eCrawlerLog->getCrawlerConfig()->getCrawlerType()->getIdCrawlerType()] ?></td>
+                                <td><?php echo $type[$eCrawlerLog->getPrio()] ?></td>
+                                <td><?php echo date('d.m.Y H:i:s', strtotime($eCrawlerLog->getScheduled())) ?></td>
+                                <td><?php echo date('d.m.Y H:i:s', strtotime($eCrawlerLog->getStart())) ?></td>
+                                <td><?php echo $eCrawlerLog->getImportStart() ? date('d.m.Y H:i:s', strtotime($eCrawlerLog->getImportStart(true))) : date('d.m.Y H:i:s', strtotime($eCrawlerLog->getEnd())) ?></td>
+                                <td><?php echo $eCrawlerLog->getImportEnd() ? date('d.m.Y H:i:s', strtotime($eCrawlerLog->getImportEnd(true))) : '' ?></td>
+                                <td><?php echo $status[$eCrawlerLog->getIdCrawlerLogType()] ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </table>
+                <?php else: ?>
+                    keine beendeten Crawler entsprechen Ihren Filterkriterien
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>

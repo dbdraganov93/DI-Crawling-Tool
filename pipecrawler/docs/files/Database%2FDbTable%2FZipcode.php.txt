@@ -1,0 +1,45 @@
+<?php
+class Marktjagd_Database_DbTable_Zipcode extends Marktjagd_Database_DbTable_Abstract
+{
+    /**
+     * Ermittelt alle Postleitzahlen aus Deutschland
+     *
+     * @param int $digits
+     * @return array
+     */
+    public function findAllZipcodes($digits)
+    {
+        $stmt = $this->_db->query('CALL getAllZipcodes(' . $digits . ')');
+        $result = $stmt->fetchAll();
+        return $result;
+    }
+
+    /**
+     * Liefert ein Array mit Postleitzahlen aus Deutschland die sich auf einem
+     * Gitter mit der übergebenen Maschengröße befinden.
+     *
+     * @param $netSize
+     * @return array
+     */
+    public function findZipcodeByGrid($netSize)
+    {
+        $stmt = $this->_db->query('CALL getRegionGrid(' . $netSize . ')');
+        $result = $stmt->fetchAll();
+        return $result;
+    }
+
+    /**
+     * Ermittelt umliegende Postleitzahlen, ausgehend von der PLZ und der Entfernung
+     * @param $zipCode
+     * @param $maxDistance
+     * @return array
+     */
+    public function findNeighborhoodZipcodes($zipCode, $maxDistance)
+    {
+        $stmt = $this->_db->query('CALL getNeighborhoodRegions((SELECT region_id FROM geo_region'
+                                    . ' WHERE region_zipcode="' . $zipCode . '" LIMIT 1),'
+                                    . $maxDistance . ',"zipcode")');
+        $result = $stmt->fetchAll();
+        return $result;
+    }
+}

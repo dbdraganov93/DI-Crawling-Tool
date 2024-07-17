@@ -1,0 +1,55 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the embedded ScreenResource class.
+ *
+ * PHP version 5
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  tracking
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Resource\Tracking;
+
+use Marktjagd\ApiClient\Resource;
+
+/**
+ * Screen resource.
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  screen
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ * 
+ * @method int getWidth() Returns the resource field width.
+ * @method int getHeight() Returns the resource field height.
+ * @method float getScale() Returns the resource field scale.
+ * 
+ * @method ScreenResource setWidth(int $width) Sets the resource field width.
+ * @method ScreenResource setHeight(int $height) Sets the resource field height.
+ * @method ScreenResource setScale(float $scale) Sets the resource field scale.
+ */
+class ScreenResource extends Resource\Resource
+{
+
+    /**
+     * Sets the resource definition.
+     *
+     * @return void
+     */
+    protected function setResourceDefinition()
+    {
+        $this
+            ->hasField(new Resource\ResourceFieldInteger('width'))
+            ->hasField(new Resource\ResourceFieldInteger('height'))
+            ->hasField(new Resource\ResourceFieldFloat('scale'));
+    }
+}
+

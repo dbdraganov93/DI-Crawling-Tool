@@ -1,0 +1,36 @@
+.errors {
+    color:red;
+}
+
+.progress-label{
+    min-width: 180px;
+    color: #000;
+}
+
+.progress {
+    width: 180px;
+}
+
+.square {
+    height:4vh;
+    width:4vh;
+    border:1px solid black;
+    text-align: center;
+    vertical-align: middle;
+    display:block;
+    overflow:hidden;
+    float:left;
+    margin: 0.1vh;
+}
+
+.square-title {
+    height:4vh;
+    width:4vh;
+    text-align: center;
+    vertical-align: middle;
+    display:block;
+    overflow:hidden;
+    float:left;
+    margin: 0.1vh;
+    width: 10vh;
+}

@@ -1,0 +1,43 @@
+<?php
+
+class Marktjagd_Database_Mapper_CrawlerLogType extends Marktjagd_Database_Mapper_Abstract
+{
+    /**
+     * Returns the database table class, if no one exists,
+     * default will be created.
+     *
+     * @return  Marktjagd_Database_DbTable_CrawlerLogType
+     */
+    public function getDbTable()
+    {
+        return parent::getDbTable();
+    }
+
+    /**
+     * Saves data to database. If the primary key is set,
+     * data will be updated.
+     *
+     * @param Marktjagd_Database_Entity_CrawlerLogType  $oCrawlerLogType Object data
+     * @param bool $bNull Save also null values
+     *
+     * @return void
+     */
+    public function save(Marktjagd_Database_Entity_CrawlerLogType $oCrawlerLogType, $bNull = false)
+    {
+        parent::_save($oCrawlerLogType, $bNull);
+    }
+
+    /**
+     * Loads data by primary key(s). By multiple primary
+     * keys use an array with the values of the primary key columns.
+     *
+     * @param mixed $mId Primary key(s) value(s)
+     * @param Marktjagd_Database_Entity_CrawlerLogType  $oCrawlerLogType Object for data
+     *
+     * @return bool True if found, otherwise false
+     */
+    public function find($mId, Marktjagd_Database_Entity_CrawlerLogType $oCrawlerLogType)
+    {
+        return parent::_find($mId, $oCrawlerLogType);
+    }
+}

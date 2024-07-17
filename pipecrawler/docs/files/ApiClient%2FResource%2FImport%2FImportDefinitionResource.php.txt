@@ -1,0 +1,55 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the ImportDefinitionResource class.
+ *
+ * PHP version 5
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  import
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Resource\Import;
+
+use Marktjagd\ApiClient\Resource;
+
+/**
+ * Import definition resource.
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  import
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+class ImportDefinitionResource extends Resource\Resource
+{
+
+    protected static $hasCollection = true;
+
+    /**
+     * Sets the resource definition.
+     *
+     * @return void
+     */
+    protected function setResourceDefinition()
+    {
+        $this
+            ->hasField(new Resource\ResourceFieldString('title_xml'))
+            ->hasField(new Resource\ResourceFieldString('title_csv'))
+            ->hasField(new Resource\ResourceFieldString('title_xls'))
+            ->hasField(new Resource\ResourceFieldBoolean('required'))
+            ->hasField(new Resource\ResourceFieldString('description'))
+            ->hasField(new Resource\ResourceFieldString('validities'))
+
+            ->hasResource(Resource\ResourceFactory::create('import_definition_examples'));
+    }
+
+}
+

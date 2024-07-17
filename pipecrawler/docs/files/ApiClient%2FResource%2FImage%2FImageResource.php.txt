@@ -1,0 +1,131 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the ImageResource class.
+ *
+ * PHP version 5
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  image
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Resource\Image;
+
+use Marktjagd\ApiClient\Resource;
+use Marktjagd\ApiClient\Request\Request;
+
+/**
+ * Image resource.
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  image
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+class ImageResource extends Resource\Resource
+{
+
+    const
+        TYPE_ARTICLE = 'article',
+        TYPE_BROCHURE = 'brochure',
+        TYPE_COUPON = 'coupon',
+        TYPE_COMPANY = 'company',
+        TYPE_MALL = 'mall',
+        TYPE_STORE = 'store',
+        TYPE_CITY = 'city',
+        TYPE_PARTNER = 'partner',
+        
+        KIND_LOGO = 'logo';
+
+    protected static $hasCollection = true;
+
+    /**
+     * Sets the resource definition.
+     *
+     * @return void
+     */
+    protected function setResourceDefinition()
+    {
+        $this
+            ->hasField(new Resource\ResourceFieldString('type'), true, Request::METHOD_ALL)
+            ->hasField(new Resource\ResourceFieldInteger('type_id'), true, Request::METHOD_ALL)
+            ->hasField(new Resource\ResourceFieldInteger('number'), true)
+            ->hasField(new Resource\ResourceFieldInteger('sorting'))
+            ->hasField(new Resource\ResourceFieldString('kind'))
+            ->hasField(new Resource\ResourceFieldString('title'))
+            ->hasField(new Resource\ResourceFieldString('upload_file'))
+            ->hasField(new Resource\ResourceFieldString('upload_file_type'))
+
+            ->hasResource(Resource\ResourceFactory::create('dimensions'));
+    }
+
+    /**
+     * Load a image resource object.
+     *
+     * @param string $type   image type (see ImageResource constants)
+     * @param int    $typeId image type id
+     * @param int    $number image number
+     * @param array  $params request parameters
+     * @return ImageResource the resource object or NULL if the request failed
+     */
+    public static function find($type, $typeId, $number, array $params = array())
+    {
+        return parent::doFind("$type/$typeId/$number", $params);
+    }
+
+    /**
+     * Load a collection of images.
+     *
+     * @param string $type image type
+     * @param string $id image type id
+     * @param array $params request parameters
+     * @return ResourceCollection collection of resources or NULL on errors
+     */
+    public static function findAll($type, $typeId, array $params = array())
+    {
+        return parent::doFindAll("$type/$typeId", $params);
+    }
+
+    /**
+     * Create a new image resource.
+     *
+     * The image resource requires a special request handling for PUT requests.
+     * The request body must be the binary data of the image and the image type
+     * must be set as the content type of the request.
+     *
+     * @return bool TRUE on success, FALSE otherwise
+     */
+    public function create()
+    {
+        $name = self::getName();
+        $primaryKey = $this->getPrimaryKey(Request::METHOD_PUT);
+
+        $this->request = new Request("$name/$primaryKey");
+        $this->request->setRequestBody(
+            base64_decode($this->getUploadFile()), $this->getUploadFileType()
+        );
+
+        if (!$this->request->put() || !$this->request->isResponseStatusCodeCreated())
+        {
+            return false;
+        }
+
+        $this->load($this->request->getResponse()->$name);
+        $this->isNew = false;
+        $this->isModified = false;
+
+        // logging
+        $this->log(null, $this);
+
+        return true;
+    }
+
+}
+

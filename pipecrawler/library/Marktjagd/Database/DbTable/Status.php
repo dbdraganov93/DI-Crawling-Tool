@@ -1,0 +1,9 @@
+<?php
+
+class Marktjagd_Database_DbTable_Status extends Marktjagd_Database_DbTable_Abstract
+{
+    protected $_name = 'Status';
+
+    protected $_primary = 'idStatus';
+
+}

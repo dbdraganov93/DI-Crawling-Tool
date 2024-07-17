@@ -1,0 +1,91 @@
+<div class="col-lg-12">
+    <h1 class="page-header">Fehler und Warnungen</h1>
+</div>
+<div class="panel-heading">
+    <h3 class="panel-title"><?php echo $this->companyErrorForm ?></h3>
+</div>
+<?php if (count($this->aErrors)) : ?>
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Fehler und Warnungen</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table table-striped table-bordered table-hover dataTable no-footer" id="qualityCheckErrors">
+                    <thead>
+                        <tr>
+                            <th>Unternehmens-ID</th>
+                            <th>Unternehmens-Name</th>
+                            <th>Fehlertyp</th>
+                            <th>aktuelle Anzahl</th>
+                            <th>vorhergehende Anzahl</th>
+                            <th>Letztes Update</th>
+                            <th>Letzter Import</th>
+                            <th>User</th>
+                            <th>Status</th>
+                            <th>Status ändern</th>
+                        </tr>
+                    </thead>
+                    <?php 
+                    $aStatus = array(
+                        '0' => 'erledigt',
+                        '1' => 'offen',
+                        '2' => 'in Bearbeitung');
+                    $aTypes = array(
+                        'brochures' => 'Prospekte',
+                        'stores' => 'Standorte',
+                        'products' => 'Produkte',
+                        'future brochures' => 'Prospekte zukünftig',
+                        'future products' => 'Produkte zukünftig',
+                        'freshness stores' => 'Freshness: Standorte',
+                        'freshness brochures' => 'Freshness: Prospekte',
+                        'freshness products' => 'Freshness: Produkte'
+                        );
+                    foreach ($this->aErrors as $singleErrorKey => $singleErrorValue):
+                        $aCompany = preg_split('#\|#', $singleErrorKey);
+                    foreach ($singleErrorValue as $detailKey => $detailValue): ?>
+                    <tr<?php echo  $detailValue['type'] == 1 ? ' style="background-color: #E50054"' : ' style="background-color: #F7A600"'?>><td><?php echo $aCompany[0] ?></td>
+                        <td><?php echo $aCompany[1] ?></td>
+                        <td><?php echo $aTypes[$detailKey] ?></td>
+                        <td><?php echo $detailValue['actualAmount'] ?></td>
+                        <td><?php echo $detailValue['lastAmount'] ?></td>
+                        <td><?php echo !is_null($detailValue['lastTimeModified']) ? date('d.m.Y H:i', strtotime($detailValue['lastTimeModified'])) : '' ?></td>
+                        <td><?php echo !is_null($detailValue['lastImport']) ? date('d.m.Y H:i', strtotime($detailValue['lastImport'])) : '' ?></td>
+                        <td><?php echo $detailValue['user'] ?></td>
+                        <td><?php echo $aStatus[$detailValue['status']] ?></td>
+                        <td>&nbsp;&nbsp;<a href="<?php echo '/Overview/companydetail/change?id=' . urlencode($detailValue['id']) . '&changeType=0'?>"><i class="fa fa-check"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;
+                            <a href="<?php echo '/Overview/companydetail/change?id=' . urlencode($detailValue['id']) . '&changeType=2'?>"><i class="fa fa-info"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;
+                            <a href="<?php echo '/Overview/companydetail/change?id=' . urlencode($detailValue['id']) . '&changeType=1'?>"><i class="fa fa-trash-o"></i></a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                    <?php endforeach; ?>
+                </table>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#qualityCheckErrors').dataTable({
+            "oLanguage": {
+                "sProcessing": "Bitte warten...",
+                "sLengthMenu": "Zeige _MENU_ Einträge pro Seite",
+                "sZeroRecords": "Nichts gefunden. Entschuldigung",
+                "sInfo": "Zeige _START_ bis _END_ von _TOTAL_ Einträgen",
+                "sInfoEmpty": "Zeige 0 bis 0 von 0 Einträgen",
+                "sInfoFiltered": "(gefiltert aus allen _MAX_ Einträgen)",
+                "sInfoPostFix": "",
+                "sSearch": "Suchen",
+                "sUrl": "",
+                "oPaginate": {
+                    "sFirst": "Erster",
+                    "sPrevious": "Zurück",
+                    "sNext": "Nächster",
+                    "sLast": "Letzter"
+                }
+            }
+        });
+    });
+</script>

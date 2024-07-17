@@ -1,0 +1,20 @@
+<?php
+
+class Marktjagd_Database_Service_CompaniesWithAdMaterial extends Marktjagd_Database_Service_Abstract {
+    
+    /**
+     * 
+     * @param type $startDate
+     * @param type $endDate
+     * @param type $idCompany
+     * @return \Marktjagd_Database_Collection_CompaniesWithAdMaterial
+     */
+    public function findCompletenessByTimeSpan($startDate, $endDate, $idCompany = NULL) {
+        $cCompaniesWithAdMaterial = new Marktjagd_Database_Collection_CompaniesWithAdMaterial();
+        $mCompaniesWithAdMaterial = new Marktjagd_Database_Mapper_CompaniesWithAdMaterial();
+        
+        $mCompaniesWithAdMaterial->findCompletenessByTimeSpan($startDate, $endDate, $idCompany, $cCompaniesWithAdMaterial);
+        
+        return $cCompaniesWithAdMaterial;
+    }
+}

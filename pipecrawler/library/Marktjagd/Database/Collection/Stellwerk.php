@@ -1,0 +1,10 @@
+<?php
+
+class Marktjagd_Database_Collection_Stellwerk extends Marktjagd_Database_Collection_Abstract
+{
+    public function getMapper()
+    {
+      return parent::getMapper();
+    }
+}
+

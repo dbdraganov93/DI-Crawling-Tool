@@ -1,0 +1,117 @@
+<?php
+/**
+ * Contains the class ResourceFactory.
+ *
+ * PHP version 5
+ *
+ * @category Resource
+ * @package  Resource
+ * @author   Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license  Martktjagd GmbH
+ * @link     http://www.marktjagd.det
+ */
+
+namespace Marktjagd\ApiClient\Resource;
+
+/**
+ * The ResourceFactory class creates resource objects of the
+ * specified type.
+ *
+ * @category Resource
+ * @package  Resource
+ * @author   Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license  Martktjagd GmbH
+ * @link     http://www.marktjagd.de
+ */
+class ResourceFactory
+{
+
+    const CONFIG_FILE = '/resources.php';
+
+    /**
+     * Classes used for object instantiation.
+     *
+     * @var array
+     */
+    protected static $classes = null;
+
+    /**
+     * Sets the classes used to instantiate the resources.
+     *
+     * @param array $classes assoziative array with resource names as keys and
+     *                       class names as values
+     */
+    public static function setClasses(array $classes)
+    {
+        self::$classes = array_merge(self::getClasses(), $classes);
+    }
+
+    /**
+     * Return an assoziative array with resource names as keys and
+     * class names as values.
+     *
+     * @return array resources/classes
+     */
+    public static function getClasses()
+    {
+        if (is_null(self::$classes))
+        {
+            self::$classes = require __DIR__ . self::CONFIG_FILE;
+        }
+
+        return self::$classes;
+    }
+
+    /**
+     * Sets the class used to instantiate the specified resource.
+     *
+     * @param string $resourceName
+     * @param string $className
+     */
+    public static function setClass($resourceName, $className)
+    {
+        $classes = self::getClasses();
+        $classes[$resourceName] = $className;
+
+        self::$classes = $classes;
+    }
+
+    /**
+     * Returns the class used to instantiate the specified resource.
+     *
+     * @param string $resourceName
+     * @return string class name
+     */
+    public static function getClass($resourceName)
+    {
+        $classes = self::getClasses();
+
+        if (!isset($classes[$resourceName]))
+        {
+            throw new ResourceException('No class specified for resource ' . $resourceName);
+        }
+
+        return $classes[$resourceName];
+    }
+
+    /**
+     * Creates a resource object.
+     *
+     * @return Resource resource object
+     */
+    public static function create($resourceName)
+    {
+        $classes = self::getClasses();
+
+        if (!isset($classes[$resourceName]))
+        {
+            throw new ResourceException('No class specified for resource ' . $resourceName);
+        }
+
+        $resourceClassName = $classes[$resourceName];
+
+        $resource = new $resourceClassName;
+
+        return $resource;
+    }
+}

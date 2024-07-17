@@ -1,0 +1,129 @@
+<?php
+
+class Marktjagd_Database_Entity_AdditionalRetailerInfos extends Marktjagd_Database_Entity_Abstract
+{
+
+    protected $_idStore;
+    protected $_idCompany;
+    protected $_action;
+    protected $_infosToChange;
+    protected $_user;
+    protected $_timeAdded;
+    protected $_validityLength;
+    
+    protected $_aColumnMap = array(
+        'idStore' => 'IdStore',
+        'idCompany' => 'IdCompany',
+        'action' => 'Action',
+        'infosToChange' => 'InfosToChange',
+        'user' => 'User',
+        'timeAdded' => 'TimeAdded',
+        'validityLength' => 'ValidityLength'
+    );
+
+    public function getIdStore()
+    {
+        return $this->_idStore;
+    }
+
+    public function getIdCompany()
+    {
+        return $this->_idCompany;
+    }
+
+    public function getAction()
+    {
+        return $this->_action;
+    }
+
+    public function getInfosToChange()
+    {
+        return $this->_infosToChange;
+    }
+
+    public function getUser()
+    {
+        return $this->_user;
+    }
+    
+    public function getTimeAdded()
+    {
+        return $this->_timeAdded;
+    }
+    
+    public function getValidityLength()
+    {
+        return $this->_validityLength;
+    }
+
+    public function setIdStore($idStore)
+    {
+        $this->_idStore = $idStore;
+        return $this;
+    }
+
+    public function setIdCompany($idCompany)
+    {
+        $this->_idCompany = $idCompany;
+        return $this;
+    }
+
+    public function setAction($action)
+    {
+        $this->_action = $action;
+        return $this;
+    }
+
+    public function setInfosToChange($infosToChange)
+    {
+        $this->_infosToChange = $infosToChange;
+        return $this;
+    }
+
+    public function setUser($user)
+    {
+        $this->_user = $user;
+        return $this;
+    }
+    
+    public function setTimeAdded($timeAdded)
+    {
+        $this->_timeAdded = $timeAdded;
+        return $this;
+    }
+    
+    public function setValidityLength($validityLength)
+    {
+        $this->_validityLength = $validityLength;
+        return $this;
+    }
+
+    /**
+     * 
+     * @return Marktjagd_Database_Mapper_AdditionalRetailerInfos
+     */
+    public function getMapper()
+    {
+        return parent::getMapper();
+    }
+
+    /**
+     * 
+     * @param type $bNull
+     * @param type $bForceInsert
+     */
+    public function save($bNull = false, $bForceInsert = false)
+    {
+        $this->getMapper()->save($this, $bNull, $bForceInsert);
+    }
+
+    /**
+     * 
+     * @param type $mId
+     * @return type
+     */
+    public function find($mId)
+    {
+        return $this->getMapper()->find($mId, $this);
+    }
+}

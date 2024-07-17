@@ -1,0 +1,5 @@
+<?php
+
+class Marktjagd_Database_Exception extends Zend_Exception
+{
+}

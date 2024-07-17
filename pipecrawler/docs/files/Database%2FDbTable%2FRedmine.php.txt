@@ -1,0 +1,23 @@
+<?php
+
+class Marktjagd_Database_DbTable_Redmine extends Marktjagd_Database_DbTable_Abstract
+{
+    protected $_name = 'Redmine';
+
+    protected $_primary = 'idCompany';
+    
+    /**
+     * Findet Company-ID anhand der Redmine-ID
+     * 
+     * @param Marktjagd_Database_Entity_Redmine $redmineId
+     */
+    public function findByRedmineId($redmineId)
+    {
+        $select = $this->select()->setIntegrityCheck(false)
+                ->from($this->_name)
+                ->where('idRedmine = ?', $redmineId);
+        
+        return $this->fetchRow($select);
+    }
+
+}

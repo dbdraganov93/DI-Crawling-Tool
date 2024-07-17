@@ -1,0 +1,76 @@
+<?php
+
+/**
+ * Services zum Auslesen und Speichern von GUI-Nutzern in der Datenbank
+ *
+ * Class Marktjagd_Database_Service_User
+ */
+class Marktjagd_Database_Service_User extends Marktjagd_Database_Service_Abstract {
+
+    /**
+     * Ermittelt einen Nutzer anhand seines Loginnamens aus der DB-Tabelle User
+     *
+     * @param $userName
+     *
+     * @return Marktjagd_Database_Entity_User
+     */
+    public function findByUserName($userName) {
+        $eUser = new Marktjagd_Database_Entity_User();
+        $mUser = new Marktjagd_Database_Mapper_User();
+        $mUser->findByUserName($userName, $eUser);
+        return $eUser;
+    }
+    
+    public function findByIdRedmine($idRedmine) {
+        $eUser = new Marktjagd_Database_Entity_User();
+        $mUser = new Marktjagd_Database_Mapper_User();
+        $mUser->findByIdRedmine($idRedmine, $eUser);
+        return $eUser;
+    }
+
+    /**
+     * Ermittelt alle vorhandenen Logins für die GUI aus der DB
+     *
+     * @return Marktjagd_Database_Collection_User
+     */
+    public function findAll() {
+        $cUser = new Marktjagd_Database_Collection_User();
+        $mUser = new Marktjagd_Database_Mapper_User();
+        $mUser->findAll($cUser);
+        return $cUser;
+    }
+
+    /**
+     * Ermittelt spezifischen Login für die GUI aus der DB
+     *
+     * @return Marktjagd_Database_Entity_User
+     */
+    public function find($idUser) {
+        $eUser = new Marktjagd_Database_Entity_User();
+        $mUser = new Marktjagd_Database_Mapper_User();
+        
+        $mUser->find($idUser, $eUser);
+        
+        return $eUser;
+    }
+
+    /**
+     * Löscht einen GUI-Nutzer aus der Datenbank
+     *
+     * @param int $idUser
+     *
+     * @return bool
+     */
+    public function deleteUser($idUser) {
+        $mUser = new Marktjagd_Database_Mapper_User();
+        if (!$mUser->getDbTable()->delete(
+                        'idUser = "'
+                        . $idUser
+                        . '"')) {
+            return false;
+        }
+
+        return true;
+    }
+
+}

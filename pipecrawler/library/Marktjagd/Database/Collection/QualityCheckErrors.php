@@ -1,0 +1,16 @@
+<?php
+
+/*
+ * Class Marktjagd_Database_Collection_QualityCheckErrors
+ */
+
+class Marktjagd_Database_Collection_QualityCheckErrors extends Marktjagd_Database_Collection_Abstract {
+    
+    /**
+     * @return Marktjagd_Database_Mapper_QualityCheckErrors
+     */
+    public function getMapper()
+    {
+      return parent::getMapper();
+    }
+}

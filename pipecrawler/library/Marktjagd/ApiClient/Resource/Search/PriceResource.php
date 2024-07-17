@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the PriceResource class.
+ *
+ * PHP version 5
+ *
+ * @category    resource
+ * @package     search
+ * @subpackage  price
+ * @author      Robert Freigang <robert.freigang@marktjagd.de>
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Resource\Search;
+
+use Marktjagd\ApiClient\Resource;
+
+/**
+ * Price resource.
+ *
+ * @category    resource
+ * @package     search
+ * @subpackage  price
+ * @author      Robert Freigang <robert.freigang@marktjagd.de>
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+class PriceResource extends Resource\Resource
+{
+
+    protected static $hasCollection = true;
+
+    /**
+     * Sets the resource definition
+     *
+     * @return void
+     */
+    protected function setResourceDefinition()
+    {
+        $this
+            ->hasAttribute(new Resource\ResourceAttributeInteger('article_hits'))
+            ->hasAttribute(new Resource\ResourceAttributeInteger('offer_hits'))
+
+            ->hasField(new Resource\ResourceFieldFloat('value'));
+    }
+
+}

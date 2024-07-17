@@ -1,0 +1,104 @@
+<?php
+
+namespace Marktjagd\ApiClient\Resource;
+
+/**
+ * ResourceLogger
+ *
+ * @author Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ */
+abstract class ResourceLogger
+{
+
+    private
+        $options  = array();
+
+    /**
+     * Initializes the current resource logger. Override this method to use your
+     * own initialization.
+     */
+    abstract protected function initialize();
+
+    /**
+     * Logs a resource modification.
+     *
+     * @param string $action modification action
+     * @param Resource $old resource before modification
+     * @param Resource $new resource after modification
+     * @return bool TRUE if the resource modification has been logged successfully, FALSE otherwise
+     */
+    abstract protected function doLog($name, $primaryKey, Resource $old = null, Resource $new = null);
+
+    public function __construct(array $options = array())
+    {
+        $this->setOptions($options);
+        $this->initialize();
+    }
+
+    /**
+     * Sets the options. Existing options will be replaced.
+     *
+     * @param array $options options array
+     * @return \Marktjagd\ApiClient\Resource\ResourceLogger current instance
+     */
+    public function setOptions(array $options)
+    {
+        $this->options = $options;
+
+        return $this;
+    }
+
+    /**
+     * Sets the value of an option. If the option is already set, this will
+     * override the current value.
+     *
+     * @param string $name option name
+     * @param string $value option value
+     * @return \Marktjagd\ApiClient\Resource\ResourceLogger current instance
+     */
+    public function setOption($name, $value)
+    {
+        $this->options[$name] = $value;
+
+        return $this;
+    }
+
+    /**
+     * Checks if an options isset set and not NULL.
+     *
+     * @param string $name option name
+     * @return bool TRUE if the options is set and not NULL, FALSE otherwise
+     */
+    public function hasOption($name)
+    {
+        return isset($this->options[$name]);
+    }
+
+    /**
+     * Returns the option value or the default value if the option is not set.
+     *
+     * @param string $name option name
+     * @param mixed $default default value
+     * @return mixed option value or default value
+     */
+    public function getOption($name, $default = null)
+    {
+        return $this->hasOption($name) ? $this->options[$name] : $default;
+    }
+
+    /**
+     * Logs a resource modification.
+     *
+     * @param string $name resource name
+     * @param string $primaryKey resource primary key
+     * @param Resource $old resource before modification
+     * @param Resource $new resource after modification
+     * @return bool TRUE if the resource modification has been logged, FALSE otherwise
+     */
+    public function log($name, $primaryKey, Resource $old = null, Resource $new = null)
+    {
+        return $this->doLog($name, $primaryKey, $old, $new);
+    }
+
+}
+

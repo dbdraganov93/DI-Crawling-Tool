@@ -1,0 +1,36 @@
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">Geplante <?php echo $this->type ?></h3>
+    </div>
+    <div class="panel-body">
+        <?php
+        if (count($this->cScheduled)):?>
+            <table class="table table-hover table-responsive dataTable no-footer">
+                <thead>
+                <tr>
+                    <th>Unternehmen</th>
+                    <th>gestartet durch</th>
+                    <th>eingetragen am</th>
+                </tr>
+                </thead>
+                <?php
+                $type = array(
+                    0 => 'manueller Start',
+                    1 => 'Scheduler'
+                );
+                /* @var $eScheduled Marktjagd_Database_Entity_CrawlerLog */
+                foreach ($this->cScheduled as $eScheduled): ?>
+                    <tr class="warning"
+                        onclick="window.location='/Crawler/logging/detail/idCrawlerLog/<?php echo $eScheduled->getIdCrawlerLog() ?>'"
+                        style ="cursor:pointer;">
+                        <td><?php echo $eScheduled->getCrawlerConfig()->getCompany()->getName() ?></td>
+                        <td><?php echo $type[$eScheduled->getPrio()] ?></td>
+                        <td><?php echo date('d.m.Y H:i:s', strtotime($eScheduled->getScheduled())) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </table>
+        <?php else:?>
+            keine geplanten Crawler
+        <?php endif;?>
+    </div>
+</div>

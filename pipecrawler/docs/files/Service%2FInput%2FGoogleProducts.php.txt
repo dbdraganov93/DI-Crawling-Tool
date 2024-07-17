@@ -1,0 +1,177 @@
+<?php
+
+/**
+ * Service zum Import von GoogleProducts Daten
+ */
+class Marktjagd_Service_Input_GoogleProducts {
+
+    protected $_aArticleNumber = array(
+        'id',
+        'ID'
+    );
+    protected $_aArticleTitle = array(
+        'title',
+        'Titel'
+    );
+    protected $_aArticleDescription = array(
+        'description',
+        'Beschreibung'
+    );
+    protected $_aUrl = array(
+        'link',
+        'Link'
+    );
+    protected $_aImage = array(
+        'image link',
+        'Bildlink'
+    );
+    protected $_aPrice = array(
+        'price',
+        'Preis'
+    );
+    protected $_aRetailPrice = array(
+        'sale price',
+        'Sonderangebotspreis'
+    );
+    protected $_aManufacturer = array(
+        'brand',
+        'Marke'
+    );
+    protected $_aColor = array(
+        'color',
+        'Farbe'
+    );
+    protected $_aSize = array(
+        'size',
+        'Größe'
+    );
+    
+    protected $_aEan = array(
+        'gtin',
+        'GTIN'
+    );
+    
+    protected $_aArticleNumberManufacturer = array(
+        'mpn',
+        'MPN'
+    );
+    
+    protected $_aShipping = array(
+        'shipping',
+        'Versand'
+    );
+
+    /**
+     * Generiert aus einer GoogleProducts-CSV eine Marktjagd-CSV
+     *
+     * @param int $companyId
+     * @param string $filePath Pfad zur GoogleProductsCsv
+     * @return bool|string
+     */
+    public function generateMjCsv($companyId, $filePath) {
+        $cProducts = $this->generateMjCollection($companyId, $filePath);
+
+        $sCsv = new Marktjagd_Service_Output_MarktjagdCsvArticle($companyId);
+        $fileName = $sCsv->generateCsvByCollection($cProducts);
+
+        return $fileName;
+    }
+
+    /**
+     * Generiert aus einer GoogleProducts-CSV eine Marktjagd-Collection
+     *
+     * @param int $companyId
+     * @param string $filePath Pfad zur GoogleProductsCsv
+     * @return bool|Marktjagd_Collection_Api_Article
+     */
+    public function generateMjCollection($companyId, $filePath) {
+        $cProducts = new Marktjagd_Collection_Api_Article($companyId);
+        $count = 0;
+        $headline = array();
+        if (($fh = fopen($filePath, "r")) !== FALSE) {
+
+            $sCsv = new Marktjagd_Service_Input_Csv();
+            $delimiter = $sCsv->findDelimiter($filePath);
+            if (!$delimiter) {
+                return false;
+            }
+
+            while (($data = fgetcsv($fh, 0, $delimiter)) !== FALSE) {
+                if ($count == 0) {
+                    $headline = $data;
+                    $count++;
+                    continue;
+                }
+
+                if (count($data) != count($headline)) {
+                    continue;
+                }
+
+                foreach ($data as &$singleData) {
+                    if (mb_detect_encoding($singleData) == 'windows-1254') {
+                        $singleData = iconv('windows-1254', 'utf8', $singleData);
+                    }
+                }
+
+                $data = @array_combine($headline, $data);
+
+                $product = new Marktjagd_Entity_Api_Article();
+                $this->_addAttribute($product, $data, $this->_aArticleTitle, 'setTitle');
+                $this->_addAttribute($product, $data, $this->_aArticleNumber, 'setArticleNumber');
+                $this->_addAttribute($product, $data, $this->_aArticleDescription, 'setText');
+                $this->_addAttribute($product, $data, $this->_aColor, 'setColor');
+                $this->_addAttribute($product, $data, $this->_aImage, 'setImage');
+                $this->_addAttribute($product, $data, $this->_aManufacturer, 'setManufacturer');
+                $this->_addAttribute($product, $data, $this->_aUrl, 'setUrl');
+                $this->_addAttribute($product, $data, $this->_aSize, 'setSize');
+                $this->_addAttribute($product, $data, $this->_aPrice, 'setPrice');
+                $this->_addAttribute($product, $data, $this->_aEan, 'setEan');
+                $this->_addAttribute($product, $data, $this->_aArticleNumberManufacturer, 'setArticleNumberManufacturer');
+                $this->_addAttribute($product, $data, $this->_aShipping, 'setShipping');
+
+                foreach ($this->_aRetailPrice as $singleValue) {
+                    if (array_key_exists($singleValue, $data) && strlen($data[$singleValue])) {
+                        $this->_addAttribute($product, $data, $this->_aRetailPrice, 'setPrice');
+                        $this->_addAttribute($product, $data, $this->_aPrice, 'setSuggestedRetailPrice');
+                    }
+                }
+                
+                $cProducts->addElement($product);
+                $count++;
+            }
+
+            fclose($fh);
+        }
+
+        return $cProducts;
+    }
+
+    /**
+     * Mappt Attribute automatisch auf das Articleobjekt
+     *
+     * @param Marktjagd_Entity_Api_Article $product Articleobjekt
+     * @param array $data Array mit Daten aus der gelieferten CSV
+     * @param array $aKey Array mit den zu suchenden Keys
+     * @param string $methodName Methodenname zum Setzen des Attributs
+     * @return Marktjagd_Entity_Api_Article
+     */
+    protected function _addAttribute($product, $data, $aKey, $methodName) {
+        foreach ($aKey as $key) {
+            if (array_key_exists($key, $data)) {
+                if (strlen($data[$key])) {
+                    $product->$methodName($data[$key]);
+                    if (preg_match('#setPrice#', $methodName)) {
+                        $product->$methodName(preg_replace('#(\s+[^0-9]+)$#', '', $data[$key]));
+                    }
+                }
+                unset($data[$key]);
+
+                return $product;
+            }
+        }
+
+        return $product;
+    }
+
+}
+

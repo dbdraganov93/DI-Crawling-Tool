@@ -1,0 +1,145 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the CouponResource class.
+ *
+ * PHP version 5
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  coupon
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Resource\Coupon;
+
+use Marktjagd\ApiClient\Resource;
+
+/**
+ * Coupon resource
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  coupon
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ *
+ * @method int getId() Returns the resource field id
+ * @method string getPartner() Returns the resource field partner
+ * @method string getNumber() Returns the resource field number
+ * @method bool getNumberIsGenerated() Returns the resource field number_is_generated
+ * @method string getStatus() Returns the resource field status
+ * @method int getCompanyId() Returns the resource field company_id
+ * @method int getCatalogId() Returns the resource field catalog_id
+ * @method string getType() Returns the resource field type
+ * @method float getIncentiveValue() Returns the resource field incentive_value
+ * @method float getIncentivePercentage() Returns the resource field incentive_percentage
+ * @method float getOriginalValue() Returns the resource field original_value
+ * @method string getTitle() Returns the resource field title
+ * @method string getDescription() Returns the resource field description
+ * @method int getCategoryId() Returns the resource field category_id
+ * @method string getCode() Returns the resource field code
+ * @method string getCodeType() Returns the resource field code_type
+ * @method int getContingent() Returns the resource field contingent
+ * @method string getInstanceNumber() Returns the resource field instance_number
+ * @method string getDatetimeFrom() Returns the resource field datetime_from
+ * @method string getDatetimeTo() Returns the resource field datetime_to
+ * @method string getDatetimeVisibleFrom() Returns the resource field datetime_visible_from
+ * @method string getDatetimeVisibleTo() Returns the resource field datetime_visible_to
+ * @method string getTimeConstraint() Returns the resource field time_constraint
+ * @method string getDatetimeCreated() Returns the resource field datetime_created
+ * @method string getDatetimeModified() Returns the resource field datetime_modified
+ * @method string getDatetimeRemoved() Returns the resource field datetime_removed
+ * @method float getDistance() Returns the resource field distance
+ * @method float getScore() Returns the resource field score
+ * @method string getExternalTrackingId() Returns the resource field external_tracking_id
+ *
+ * @method \Marktjagd\ApiClient\Resource\Article\CatalogResource getCatalog() Returns the resource field catalog
+ * @method \Marktjagd\ApiClient\Resource\Tag\TagCollectionResource getTags() Returns the resource field tags
+ * @method \Marktjagd\ApiClient\Resource\Image\ImageCollectionResource getImages() Returns the resource field images
+ * @method \Marktjagd\ApiClient\Resource\Rating\RatingResource getRating() Returns the resource field rating
+ * @method \Marktjagd\ApiClient\Resource\Store\StoreCollectionResource getStores() Returns the resource field stores
+ *
+ * @method \Marktjagd\ApiClient\Resource\Coupon\CouponResource setNumber(string $number) Sets the resource field number
+ * @method \Marktjagd\ApiClient\Resource\Coupon\CouponResource setCompanyId(int $companyId) Sets the resource field company_id
+ * @method \Marktjagd\ApiClient\Resource\Coupon\CouponResource setCatalogId(int $catalogId) Sets the resource field catalog_id
+ * @method \Marktjagd\ApiClient\Resource\Coupon\CouponResource setType(string $type) Sets the resource field type
+ * @method \Marktjagd\ApiClient\Resource\Coupon\CouponResource setIncentiveValue(float $incentiveValue) Sets the resource field incentive_value
+ * @method \Marktjagd\ApiClient\Resource\Coupon\CouponResource setIncentivePercentage(float $incentivePercentage) Sets the resource field incentive_percentage
+ * @method \Marktjagd\ApiClient\Resource\Coupon\CouponResource setOriginalValue(float $originalValue) Sets the resource field original_value
+ * @method \Marktjagd\ApiClient\Resource\Coupon\CouponResource setTitle(string $title) Sets the resource field title
+ * @method \Marktjagd\ApiClient\Resource\Coupon\CouponResource setDescription(string $description) Sets the resource field description
+ * @method \Marktjagd\ApiClient\Resource\Coupon\CouponResource setCategoryId(int $categoryId) Sets the resource field category_id
+ * @method \Marktjagd\ApiClient\Resource\Coupon\CouponResource setCode(string $code) Sets the resource field code
+ * @method \Marktjagd\ApiClient\Resource\Coupon\CouponResource setCodeType(string $codeType) Sets the resource field code_type
+ * @method \Marktjagd\ApiClient\Resource\Coupon\CouponResource setContingent(int $contingent) Sets the resource field contingent
+ */
+class CouponResource extends Resource\Resource
+{
+
+    const
+        STATUS_VISIBLE = 'visible',
+        STATUS_REMOVED = 'removed',
+        TYPE_FREE_OFFER = 'free_offer',
+        TYPE_SPECIAL_OFFER = 'special_offer',
+        TYPE_ABSOLUTE_DISCOUNT = 'absolute_discount',
+        TYPE_RELATIVE_DISCOUNT = 'relative_discount',
+        CODE_TYPE_PLAIN = 'plain',
+        CODE_TYPE_CODE39 = 'code39',
+        CODE_TYPE_EAN8 = 'ean8',
+        CODE_TYPE_EAN13 = 'ean13';
+
+    protected static $hasCollection = true;
+
+    /**
+     * Sets the resource definition
+     *
+     * @return void
+     */
+    protected function setResourceDefinition()
+    {
+        $this
+            ->hasAttribute(new Resource\ResourceAttributeBoolean('favored'))
+
+            ->hasField(new Resource\ResourceFieldInteger('id'), true)
+            ->hasField(new Resource\ResourceFieldString('partner'))
+            ->hasField(new Resource\ResourceFieldString('number'))
+            ->hasField(new Resource\ResourceFieldBoolean('number_is_generated'))
+            ->hasField(new Resource\ResourceFieldString('status'))
+            ->hasField(new Resource\ResourceFieldInteger('company_id'))
+            ->hasField(new Resource\ResourceFieldInteger('catalog_id'))
+            ->hasField(new Resource\ResourceFieldString('type'))
+            ->hasField(new Resource\ResourceFieldFloat('incentive_value'))
+            ->hasField(new Resource\ResourceFieldFloat('incentive_percentage'))
+            ->hasField(new Resource\ResourceFieldFloat('original_value'))
+            ->hasField(new Resource\ResourceFieldString('title'))
+            ->hasField(new Resource\ResourceFieldString('description'))
+            ->hasField(new Resource\ResourceFieldInteger('category_id'))
+            ->hasField(new Resource\ResourceFieldString('code'))
+            ->hasField(new Resource\ResourceFieldString('code_type'))
+            ->hasField(new Resource\ResourceFieldInteger('contingent'))
+            ->hasField(new Resource\ResourceFieldString('instance_number'))
+            ->hasField(new Resource\ResourceFieldString('datetime_from'))
+            ->hasField(new Resource\ResourceFieldString('datetime_to'))
+            ->hasField(new Resource\ResourceFieldString('datetime_visible_from'))
+            ->hasField(new Resource\ResourceFieldString('datetime_visible_to'))
+            ->hasField(new Resource\ResourceFieldString('time_constraint'))
+            ->hasField(new Resource\ResourceFieldString('datetime_created'))
+            ->hasField(new Resource\ResourceFieldString('datetime_modified'))
+            ->hasField(new Resource\ResourceFieldString('datetime_removed'))
+            ->hasField(new Resource\ResourceFieldFloat('distance'))
+            ->hasField(new Resource\ResourceFieldFloat('score'))
+            ->hasField(new Resource\ResourceFieldString('external_tracking_id'))
+
+            ->hasResource(Resource\ResourceFactory::create('catalog'))
+            ->hasResource(Resource\ResourceFactory::create('tags'))
+            ->hasResource(Resource\ResourceFactory::create('images'))
+            ->hasResource(Resource\ResourceFactory::create('rating'))
+            ->hasResource(Resource\ResourceFactory::create('stores'));
+    }
+
+}

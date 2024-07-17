@@ -1,0 +1,39 @@
+<?php
+
+/**
+ * Contains Description of ResourceFieldString.
+ *
+ * PHP version 5
+ *
+ * @category Resource
+ * @package  Resource
+ * @author   Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license  Martktjagd GmbH
+ * @link     http://www.marktjagd.det
+ */
+
+namespace Marktjagd\ApiClient\Resource;
+
+/**
+ * Description of ResourceFieldString
+ *
+ * @category Resource
+ * @package  Resource
+ * @author   Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license  Martktjagd GmbH
+ * @link     http://www.marktjagd.de
+ */
+class ResourceFieldString extends ResourceField
+{
+
+    public function __construct($name, $default = null)
+    {
+        parent::__construct($name, is_null($default) ? null : (string) $default);
+    }
+
+    public function setValue($value)
+    {
+        parent::setValue(is_null($value) ? null : (string) $value);
+    }
+
+}

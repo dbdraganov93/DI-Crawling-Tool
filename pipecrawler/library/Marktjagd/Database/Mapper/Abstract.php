@@ -1,0 +1,231 @@
+<?php
+
+abstract class Marktjagd_Database_Mapper_Abstract
+{
+    /**
+     * Database object
+     *
+     * @var Zend_Db_Table_Abstract
+     */
+    protected $_oDbTable;
+
+    /**
+     * Unsets database table, is not needed by serialization.
+     *
+     * @return array
+     */
+    public function __sleep()
+    {
+        $this->resetDbTable();
+
+        return array();
+    }
+
+    /**
+     * Unset database table object.
+     *
+     * @return Marktjagd_Database_Mapper_Abstract
+     */
+    public function resetDbTable()
+    {
+        $this->_oDbTable = null;
+        return $this;
+    }
+
+    /**
+     * Sets the database table class.
+     *
+     * @param mixed $mDbTable Name or object
+     *
+     * @return Marktjagd_Database_Mapper_Abstract
+     */
+    public function setDbTable($mDbTable)
+    {
+        if (!$mDbTable instanceof Marktjagd_Database_DbTable_Abstract) {
+            $mDbTable = Marktjagd_Database_Database::factory($mDbTable);
+        }
+
+        $this->_oDbTable = $mDbTable;
+        return $this;
+    }
+
+    /**
+     * Returns the database table class, if no one exists,
+     * default will be created.
+     *
+     * @return Marktjagd_Database_DbTable_Abstract
+     */
+    public function getDbTable()
+    {
+        if (null === $this->_oDbTable) {
+            $this->setDbTable($this);
+        }
+
+        return $this->_oDbTable;
+    }
+
+    /**
+     * Saves data to table. If the primary key is set,
+     * data will be updated.
+     *
+     * @param Marktjagd_Database_Entity_Abstract $oData Object data
+     * @param bool $bNull Save also null values
+     *
+     * @param bool $bForceInsert
+     * @return int|mixed
+     */
+    protected function _save(Marktjagd_Database_Entity_Abstract $oData, $bNull = false, $bForceInsert = false)
+    {
+        $aData   = $oData->toArray($bNull);
+        $aUpdate = $this->_checkUpdate($aData, $oData);
+
+        // check for insert
+        if (empty($aUpdate)
+            || $bForceInsert
+        ) {
+            return $this->_insert($aData);
+        } else {
+            return $this->_update($aData, $aUpdate);
+        }
+    }
+
+    /**
+     * Insert data in table. If update is realized by $bForce
+     * no value is returned.
+     *
+     * @param array|Marktjagd_Database_Entity_Abstract $mData Object data
+     * @param bool $bForce Force update on duplicate row
+     * @param bool $bNull Save also NULL values, only used by Marktjagd_Database_Entity_Abstract
+     *
+     * @throws Marktjagd_Database_Mapper_Exception
+     * @return mixed The primary key of the row inserted or null by update
+     */
+    protected function _insert($mData, $bForce = false, $bNull = false)
+    {
+        if ($mData instanceof Marktjagd_Database_Entity_Abstract) {
+            $mData = $mData->toArray($bNull);
+        } elseif (!is_array($mData)) {
+            throw new Marktjagd_Database_Mapper_Exception('Invalid data provided');
+        }
+
+        if (!$bForce) {
+            return $this->getDbTable()->insert($mData);
+        }
+
+        try {
+            return $this->getDbTable()->insert($mData);
+        } catch (Zend_Db_Statement_Exception $oException) {
+            // on UNIQUE error, update
+            if ($oException->getCode() == 23000) {
+                return $this->_save($mData);
+            }
+        }
+    }
+
+    /**
+     * Update data in table.
+     *
+     * @param array|Marktjagd_Database_Entity_Abstract $mData Object data
+     * @param array|string $mUpdate An SQL WHERE clause, or an array of SQL WHERE clauses.
+     * @param array|bool $bNull Save also NULL values, only used by Marktjagd_Database_Entity_Abstract
+     *
+     * @throws Marktjagd_Database_Mapper_Exception
+     * @return int The number of rows updated.
+     */
+    protected function _update($mData, $mUpdate, $bNull = false)
+    {
+        if ($mData instanceof Marktjagd_Database_Entity_Abstract) {
+            $mData = $mData->toArray($bNull);
+        } elseif (!is_array($mData)) {
+            throw new Marktjagd_Database_Mapper_Exception('Invalid data provided');
+        }
+
+        return $this->getDbTable()->update($mData, $mUpdate);
+    }
+
+    /**
+     * Loads data by primary key(s). By multiple primary
+     * keys use an array with the values of the primary key columns.
+     *
+     * @param mixed $mId Primary key(s) value(s)
+     * @param Marktjagd_Database_Entity_Abstract|object $oModel
+     *
+     * @return bool                     True if found, otherwise false
+     */
+    protected function _find($mId, Marktjagd_Database_Entity_Abstract $oModel)
+    {
+        $oResult = $this->getDbTable()->find($mId);
+
+        if (0 == count($oResult)) {
+            return false;
+        }
+
+        $oModel->setOptions($oResult->current()->toArray());
+
+        return true;
+    }
+
+    /**
+     * Checks if the data should be updated.
+     *
+     * @param array $aData Data
+     *
+     * @throws Marktjagd_Database_Mapper_Exception
+     * @return array Update array or empty array
+     */
+    protected function _checkUpdate($aData, $oData)
+    {
+        $aUpdate      = array();
+        $aPrimary     = $this->getDbTable()->info('primary');
+        $iPrimaryKeys = 0;
+
+        // multiple primary keys
+        if (is_array($aPrimary)) {
+            foreach ($aPrimary as $sPrimary) {
+                if (!array_key_exists($sPrimary, $aData)) {
+                    return $aUpdate;
+                }
+                $isSet = $this->_find($aData[$sPrimary], $oData);
+                // build update array
+                if ($isSet) {
+                    $iPrimaryKeys++;
+                    $aUpdate['`' . $sPrimary . '` = ?'] = $aData[$sPrimary];
+                }
+            }
+        }
+
+        // not all primary keys are set for update
+        if (is_array($aPrimary)
+            && $iPrimaryKeys != 0
+            && $iPrimaryKeys != count($aPrimary)) {
+            throw new Marktjagd_Database_Mapper_Exception('Not all primary keys are set for update.');
+        }
+
+        if(!is_array($aPrimary)) {
+            // should we update
+            if (!empty($aData[$aPrimary])) {
+                $aUpdate['`' . $aPrimary . '` = ?'] = $aData[$aPrimary];
+            }
+        }
+
+        return $aUpdate;
+    }
+
+    /**
+     * @param $where
+     * @param $collection Marktjagd_Database_Collection_Abstract
+     *
+     * @return bool
+     */
+    public function fetchAll($where=null, $collection)
+    {
+        $ret = $this->getDbTable()->fetchAll($where);
+
+        if (count($ret) > 0) {
+            $collection->setOptions($ret);
+            return true;
+        } else {
+            return false;
+        }
+    }
+}

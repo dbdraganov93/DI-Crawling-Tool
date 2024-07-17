@@ -1,0 +1,72 @@
+<?php
+
+class Marktjagd_Database_DbTable_AmountBrochures extends Marktjagd_Database_DbTable_Abstract {
+    
+    protected $_name = 'AmountBrochures';
+    
+    protected $_primary = 'idAmountBrochures';
+    
+    protected $_referenceMap = array (
+        'IdCompany' => array(
+         'columns'       => 'idCompany',
+         'refTableClass' => 'Marktjagd_Database_DbTable_Company',
+         'refColumns'    => 'idCompany')
+    );
+    
+    /**
+     * 
+     * @param string $companyId
+     * @return Zend_Db_Table_Rowset_Abstract
+     */
+    public function findByCompanyId($companyId) {
+        $select = $this->select();
+        $select ->from($this->_name)
+                ->where('idCompany = ?', (int)$companyId);
+        
+        return $this->fetchAll($select);
+    }
+    
+    /**
+     * 
+     * @param string $companyId
+     * @return Zend_Db_Table_Row_Abstract
+     */
+    public function findLatestState($companyId) {
+        $select = $this->select()->setIntegrityCheck(false);
+        $select->from($this->_name, array('sum(amountBrochures) as amountBrochures',
+            'lastTimeModified','lastTimeChecked'))
+                ->join('Company', 'Company.idCompany = AmountBrochures.idCompany')
+                ->where('AmountBrochures.idCompany = ?', (int)$companyId)
+                ->group('lastTimeChecked')
+                ->order('lastTimeChecked DESC');
+        
+        return $this->fetchRow($select);
+    }
+    
+    /**
+     * 
+     * @param string $companyId
+     * @param string $startDate
+     * @param string $endDate
+     * @return Zend_Db_Table_Rowset_Abstract
+     */
+    public function findByCompanyIdAndTime($companyId, $startDate, $endDate) {
+        $select = $this->select()->setIntegrityCheck(false);
+        $select->from($this->_name,
+            array(
+                'amountBrochures' => 'sum(amountBrochures)',
+                'lastTimeChecked' => 'AmountBrochures.lastTimeChecked',
+                'lastTimeModified' => 'AmountBrochures.lastTimeModified',
+                'idCompany' => 'AmountBrochures.idCompany',
+                'startDate' => 'DATE(AmountBrochures.startDate)',
+                'endDate' => 'DATE(AmountBrochures.endDate)',
+                'lastImport' => 'AmountBrochures.lastImport'
+            ))
+                ->where('idCompany = ?', (int)$companyId)
+                ->where('UNIX_TIMESTAMP(lastTimeChecked) >= ?', (int)$startDate)
+                ->where('UNIX_TIMESTAMP(lastTimeChecked) <= ?', (int)$endDate)
+                ->group(array('lastTimeChecked', 'startDate', 'endDate', 'lastTimeModified', 'idCompany', 'lastImport'))
+                ->order(array('lastTimeChecked DESC', 'lastTimeModified DESC'));
+        return $this->fetchAll($select);
+    }
+}

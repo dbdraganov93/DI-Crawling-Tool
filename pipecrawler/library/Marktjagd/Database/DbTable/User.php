@@ -1,0 +1,48 @@
+<?php
+
+/**
+ * Class Marktjagd_Database_DbTable_User
+ */
+class Marktjagd_Database_DbTable_User extends Marktjagd_Database_DbTable_Abstract
+{
+    protected $_name = 'User';
+    protected $_primary = 'idUser';
+
+    protected $_referenceMap = array(
+        'IdRole' => array(
+            'columns'       => 'idRole',
+            'refTableClass' => 'Marktjagd_Database_DbTable_Role',
+            'refColumns'    => 'idRole')
+    );
+
+    /**
+     * @param $userName
+     *
+     * @return Zend_Db_Table_Row_Abstract
+     */
+    public function findByUserName($userName)
+    {
+        $select = $this->select()->setIntegrityCheck(false);
+        $select->from($this->_name)
+               ->join('Role', 'User.idRole = Role.idRole')
+               ->where('User.userName = ?', (string) $userName);
+        return $this->fetchRow($select);
+    }
+    
+    public function findByIdRedmine($idRedmine)
+    {
+        $select = $this->select()->setIntegrityCheck(false);
+        $select->from($this->_name)
+               ->join('Role', 'User.idRole = Role.idRole')
+               ->where('User.idUserRedmine = ?', (string) $idRedmine);
+        return $this->fetchRow($select);
+    }
+    
+    public function findAll()
+    {
+        $select = $this->select()->setIntegrityCheck(false);
+        $select->from($this->_name)
+               ->join('Role', 'User.idRole = Role.idRole');               
+        return $this->fetchAll($select);
+    }
+}

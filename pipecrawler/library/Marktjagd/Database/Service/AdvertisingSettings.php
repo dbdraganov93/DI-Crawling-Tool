@@ -1,0 +1,113 @@
+<?php
+
+class Marktjagd_Database_Service_AdvertisingSettings extends Marktjagd_Database_Service_Abstract
+{
+
+    /**
+     * Ermittelt alle verfügbaren Unternehmen
+     * 
+     * @return Marktjagd_Database_Collection_AdvertisingSettings
+     */
+    public function findAll()
+    {
+        $cAdvertisingSettings = new Marktjagd_Database_Collection_AdvertisingSettings();
+        $mAdvertisingSettings = new Marktjagd_Database_Mapper_AdvertisingSettings();
+
+        $mAdvertisingSettings->fetchAll(null, $cAdvertisingSettings);
+        
+        return $cAdvertisingSettings;
+    }
+
+    /**
+     * Findet Eintrag anhand der ID
+     * 
+     * @param string $idAdvertisingSettings
+     * @return Marktjagd_Database_Entity_AdvertisingSettings
+     */
+    public function find($idAdvertisingSettings)
+    {
+        $eAdvertisingSettings = new Marktjagd_Database_Entity_AdvertisingSettings();
+        $mAdvertisingSettings = new Marktjagd_Database_Mapper_AdvertisingSettings();
+
+        $mAdvertisingSettings->find($idAdvertisingSettings, $eAdvertisingSettings);
+
+        return $eAdvertisingSettings;
+    }
+
+    /**
+     * Findet ALLE zukünftigen Werbeplaneinträge eines Unternehmens
+     * 
+     * @param string $companyId Unternehmens-ID
+     * @return \Marktjagd_Database_Collection_AdvertisingSettings
+     */
+    public function findFutureAdsByCompanyId($companyId, $startDate)
+    {
+        $mAdvertisingSettings = new Marktjagd_Database_Mapper_AdvertisingSettings();
+        $cAdvertisingSettings = new Marktjagd_Database_Collection_AdvertisingSettings();
+
+        $mAdvertisingSettings->findFutureAdsByCompanyId($companyId, $startDate, $cAdvertisingSettings);
+
+        return $cAdvertisingSettings;
+    }
+
+    /**
+     * Löscht spezifischen Werbeplaneintrag
+     * 
+     * @param string $adId ID des Eintrags
+     * @return boolean
+     */
+    public function deleteAdvertisingSetting($adId)
+    {
+        $mAdvertisingSettings = new Marktjagd_Database_Mapper_AdvertisingSettings();
+
+        if (!$mAdvertisingSettings->deleteAdvertisingSetting($adId))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Findet alle aktiven Werbeplaneinträge eines Unternehmens
+     * 
+     * @param string $companyId Unternehmens-ID
+     * @return \Marktjagd_Database_Collection_AdvertisingSettings
+     */
+    public function findAdsByCompanyId($companyId)
+    {
+        $mAdvertisingSettings = new Marktjagd_Database_Mapper_AdvertisingSettings();
+        $cAdvertisingSettings = new Marktjagd_Database_Collection_AdvertisingSettings();
+
+        $mAdvertisingSettings->findAdsByCompanyId($companyId, $cAdvertisingSettings);
+
+        return $cAdvertisingSettings;
+    }
+
+    /**
+     * Findet die aktuellen Werbeplaneinträge eines Unternehmens
+     * 
+     * @param string $companyId Unternehmens-ID
+     * @return \Marktjagd_Database_Collection_AdvertisingSettings
+     */
+    public function findActualAdsByCompanyId($companyId)
+    {
+        $mAdvertisingSettings = new Marktjagd_Database_Mapper_AdvertisingSettings();
+        $cAdvertisingSettings = new Marktjagd_Database_Collection_AdvertisingSettings();
+
+        $mAdvertisingSettings->findActualAdsByCompanyId($companyId, $cAdvertisingSettings);
+
+        return $cAdvertisingSettings;
+    }
+    
+    public function findSingleAd($adId)
+    {
+        $mAdvertisingSettings = new Marktjagd_Database_Mapper_AdvertisingSettings();
+        $cAdvertisingSettings = new Marktjagd_Database_Collection_AdvertisingSettings();
+
+        $mAdvertisingSettings->findSingleAd($adId, $cAdvertisingSettings);
+
+        return $cAdvertisingSettings;
+    }
+   
+}
