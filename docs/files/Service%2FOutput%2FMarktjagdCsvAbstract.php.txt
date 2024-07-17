@@ -1,0 +1,65 @@
+<?php
+/**
+ * Service zum Generieren der Marktjagd-CSV
+ */
+abstract class Marktjagd_Service_Output_MarktjagdCsvAbstract
+{
+    protected $_savedElements = array();
+    protected $_type;
+    protected $_sFile;
+    protected $_companyId;
+
+    /**
+     * Konstruktor
+     *
+     * @param int $companyId
+     * @param string $modus
+     */
+    public function __construct($companyId, $modus = 'w')
+    {
+        $filePath = '/mjcsv/';
+        $fileName = $this->_type . '_' . $companyId . '_' . date('YmdHis') . '.csv';
+        $sFile  = new Marktjagd_Service_Output_File(
+            $filePath,
+            $fileName,
+            $modus
+        );
+
+        $this->_companyId = $companyId;
+        $this->_sFile = $sFile;
+    }
+
+    /**
+     * Generiert eine Marktjagd-CSV in Abhängigkeit der übergebenen Collection
+     *
+     * @param Marktjagd_Collection_Api_Abstract $collection
+     * @return boolean|string
+     */
+    public function generateCsvByCollection($collection)
+    {
+        if (count($collection->getElements()) == 0) {
+            /* @var $logger Zend_Log */
+            $logger = Zend_Registry::get('logger');
+            $logger->log('Company-ID ' . $this->_companyId . ': Keine Elemente in Collection ' . get_class($collection)
+                . ' zum Schreiben in die CSV vorhanden!', Zend_Log::ERR);
+            return false;
+        }
+
+        $content = $this->generateContent($collection);
+        $this->_sFile->saveContentInFile($content);
+
+        return $this->_sFile->getFilePath();
+    }
+
+    /**
+     * @param Marktjagd_Collection_Api_Abstract $collection
+     * @return string
+     */
+    abstract function generateContent($collection);
+
+    /**
+     * @param Marktjagd_Entity_Api_Abstract $element
+     * @return string
+     */
+    abstract function generateContentLine($element);
+}

@@ -1,0 +1,22 @@
+<?php
+
+class Marktjagd_Database_DbTable_AdditionalRetailerInfos extends Marktjagd_Database_DbTable_Abstract {
+    
+    protected $_name = 'AdditionalRetailerInfos';
+    
+    protected $_primary = 'idStore';
+    
+    public function findAllStoreInfosByCompanyId($idCompany) {
+        $select = $this->select();
+        $select->from($this->_name)
+                ->where('idCompany = ?', $idCompany);
+        
+        return $this->fetchAll($select);
+    }
+    
+    public function deleteByStoreId($idStore) {
+        $delete = $this->delete('idStore = ' . $idStore);
+        
+        return $this->fetchRow($delete);
+    }
+}

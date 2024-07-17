@@ -1,0 +1,46 @@
+<?php
+
+class Marktjagd_Collection_Api_Store extends Marktjagd_Collection_Api_Abstract {
+
+    public function __construct() {
+        $this->_headline = 'store_number;city;zipcode;street;street_number;latitude;longitude;title;subtitle;'
+                . 'text;phone;fax;email;store_hours;store_hours_notes;payment;website;distribution;'
+                . 'parking;barrier_free;bonus_card;section;service;toilet;default_radius';
+    }
+
+    /**
+     * Fügt einen neuen Standort zur Collection hinzu
+     *
+     * @param Marktjagd_Entity_Api_Store $element
+     * @param bool $ignoreStoreNumberForHash Flag, ob die Standortnummer beim Prüfen eines bereits vorhandenen Standortes ignoriert werden soll
+     * @return bool
+     */
+    public function addElement($element, $ignoreStoreNumberForHash = false) {
+        /* @var $logger Zend_Log */
+        $logger = Zend_Registry::get('logger');
+
+        $hash = $element->getHash($ignoreStoreNumberForHash);
+
+        // skip empty elements
+        if ($hash == 'd41d8cd98f00b204e9800998ecf8427e') {
+            $logger->log('skip empty element', Zend_Log::DEBUG);
+            return false;
+        }
+
+        if (!strlen(trim(strip_tags($element->getCity()))) || !strlen(trim(strip_tags($element->getZipcode()))) || !strlen(trim(strip_tags($element->getStreet())))
+                || is_null($element->getCity()) || is_null($element->getZipcode()) || is_null($element->getStreet())) {
+            $logger->log('incomplete entity with hash ' . $hash, Zend_Log::DEBUG);
+            return false;
+        }
+
+        if (!array_key_exists($hash, $this->_elements)) {
+            $this->_elements[$hash] = $element;
+            return true;
+        } else {
+            $logger->log('duplicate elements detected, want to add element with hash ' . $hash
+                    , Zend_Log::DEBUG);
+            return false;
+        }
+    }
+
+}

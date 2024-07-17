@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the UserResource class.
+ *
+ * PHP version 5
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  user
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Resource\User;
+
+use Marktjagd\ApiClient\Resource;
+
+/**
+ * user resource
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  user
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+class UserResource extends Resource\Resource
+{
+
+    const
+        PASSWORD_ENCODING_MD5 = 'md5',
+        PASSWORD_ENCODING_SHA1_BIN = 'sha1_bin';
+
+    protected static $hasCollection = true;
+
+    /**
+     * Sets the resource definition
+     *
+     * @return void
+     */
+    protected function setResourceDefinition()
+    {
+        $this
+            ->hasField(new Resource\ResourceFieldInteger('id'), true)
+            ->hasField(new Resource\ResourceFieldString('login'))
+            ->hasField(new Resource\ResourceFieldString('password'))
+            ->hasField(new Resource\ResourceFieldString('password_encoded'))
+            ->hasField(new Resource\ResourceFieldString('password_encoding'))
+            ->hasField(new Resource\ResourceFieldString('status'))
+            ->hasField(new Resource\ResourceFieldString('email'))
+            ->hasField(new Resource\ResourceFieldString('permission_type'))
+            ->hasField(new Resource\ResourceFieldInteger('permission_type_id'))
+            ->hasField(new Resource\ResourceFieldString('gender'))
+            ->hasField(new Resource\ResourceFieldString('title'))
+            ->hasField(new Resource\ResourceFieldString('first_name'))
+            ->hasField(new Resource\ResourceFieldString('last_name'))
+            ->hasField(new Resource\ResourceFieldString('position'))
+            ->hasField(new Resource\ResourceFieldString('phone_number'))
+            ->hasField(new Resource\ResourceFieldString('fax_number'));
+    }
+
+}

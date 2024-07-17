@@ -1,0 +1,98 @@
+<?php
+
+class Marktjagd_Database_DbTable_Task extends Marktjagd_Database_DbTable_Abstract {
+
+    protected $_name = 'Task';
+    protected $_primary = 'idTask';
+
+    /**
+     * 
+     * @param string $idCompany
+     * @return Zend_Db_Table_Rowset_Abstract
+     */
+    public function findTasksByCompanyId($idCompany) {
+        $select = $this->select()->setIntegrityCheck(false)
+                ->from($this->_name)
+                ->where('idCompany = ?', (int) $idCompany)
+                ->where('taskStatus = 1')
+                ->order('nextDate');
+
+        return $this->fetchAll($select);
+    }
+    
+        /**
+     * 
+     * @param string $idCompany
+     * @return Zend_Db_Table_Rowset_Abstract
+     */
+    public function findFutureTasksByCompanyId($idCompany, $startDate) {
+        $select = $this->select()->setIntegrityCheck(false)
+                ->from($this->_name)
+                ->where('idCompany = ?', (int) $idCompany)
+                ->where('UNIX_TIMESTAMP(nextDate) >= UNIX_TIMESTAMP(?)', $startDate)
+                ->where('taskStatus = 1')
+                ->order('nextDate');
+
+        return $this->fetchAll($select);
+    }
+
+    /**
+     * 
+     * @param string $taskId
+     * @return Zend_Db_Table_Rowset_Abstract
+     */
+    public function findSingleTaskByTaskId($taskId) {
+        $select = $this->select()->setIntegrityCheck(false)
+                ->from($this->_name)
+                ->where('idTask = ?', (int) $taskId)
+                ->where('taskStatus = 1')
+                ->order('nextDate');
+
+        return $this->fetchAll($select);
+    }
+
+    /**
+     * 
+     * @param array $aTask
+     * @return Zend_Db_Table_Rowset_Abstract
+     */
+    public function findNewCreatedTask($aTask) {
+        $select = $this->select()->setIntegrityCheck(false)
+                ->from($this->_name)
+                ->where('idCompany = ?', (int) $aTask['company'])
+                ->where('title = ?', $aTask['title'])
+                ->where('description = ?', $aTask['description'])
+                ->where('dateCreation >= ?', date('Y-m-d H:i:s', strtotime('now - 10 seconds')));
+
+        return $this->fetchAll($select);
+    }
+
+    /**
+     * Funktion, um Task aus Relation anhand der Redmine-ID zu löschen
+     * 
+     * @param int $taskId
+     * @return bool
+     */
+    public function deleteTask($taskId) {
+        $update = $this->update(array('taskStatus' => 'inactive'), 'idTask = ' . (int) $taskId);
+
+        return $this->fetchAll($update);
+    }
+
+    /**
+     * 
+     */
+    public function getIntervallTypes() {
+        $metadata = $this->info('metadata');
+        $strEnumValue = $metadata['intervallType']['DATA_TYPE'];
+        
+        $pattern = '#\'([^\']+?)\'#';
+        if (!preg_match_all($pattern, $strEnumValue, $enumValueMatches))
+        {
+            throw new Exception('invalid type settings.');
+        }
+        
+        return $enumValueMatches[1];
+    }
+}
+

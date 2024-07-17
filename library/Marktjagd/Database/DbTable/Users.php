@@ -1,0 +1,10 @@
+<?php
+
+/**
+ * Class Marktjagd_Database_DbTable_Users
+ */
+class Marktjagd_Database_DbTable_Users extends Marktjagd_Database_DbTable_Abstract
+{
+    protected $_name = 'users';
+    protected $_primary = 'login';
+}

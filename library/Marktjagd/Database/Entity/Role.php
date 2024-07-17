@@ -1,0 +1,123 @@
+<?php
+
+/**
+ * Class Marktjagd_Database_Entity_Role
+ */
+class Marktjagd_Database_Entity_Role extends Marktjagd_Database_Entity_Abstract
+{
+    // table fields
+    /* @var int */
+    protected $_idRole;
+
+    /* @var string */
+    protected $_name;
+
+    /* @var string */
+    protected $_level;
+
+    /**
+     * Contains mapping of table columns to function
+     *
+     * @var array
+     */
+    protected $_aColumnMap = array('idRole' => 'IdRole',
+                                   'name' => 'Name',
+                                   'level' => 'Level',
+    );
+
+    /**
+     * Returns the mapper class, if no one exists, default will be created.
+     *
+     * @return  Marktjagd_Database_Mapper_Role
+     */
+    public function getMapper()
+    {
+        return parent::getMapper();
+    }
+
+    /**
+     * @return int
+     */
+    public function getIdRole()
+    {
+        return $this->_idRole;
+    }
+
+    /**
+     * @param int $idRole
+     *
+     * @return Marktjagd_Database_Entity_Role
+     */
+    public function setIdRole($idRole)
+    {
+        $this->_idRole = $idRole;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLevel()
+    {
+        return $this->_level;
+    }
+
+    /**
+     * @param string $level
+     *
+     * @return Marktjagd_Database_Entity_Role
+     */
+    public function setLevel($level)
+    {
+        $this->_level = $level;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->_name;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return Marktjagd_Database_Entity_Role
+     */
+    public function setName($name)
+    {
+        $this->_name = $name;
+
+        return $this;
+    }
+
+    /**
+     * Saves data to database If the primary key is set,
+     * data will be updated.
+     *
+     * @param bool $bNull Save also null values
+     *
+     * @return int|bool
+     */
+    public function save($bNull = false)
+    {
+        return $this->getMapper()->save($this, $bNull);
+    }
+
+    /**
+     * Loads the data by primary key(s). By multiple primary
+     * keys use an array with the values of the primary key columns.
+     *
+     * @param mixed $mId Primary key(s) value(s)
+     *
+     * @return bool True if found, otherwise false
+     */
+    public function find($mId)
+    {
+        return $this->getMapper()->find($mId, $this);
+    }
+}

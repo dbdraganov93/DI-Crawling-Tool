@@ -1,0 +1,87 @@
+<?php
+class Marktjagd_Entity_Api_Distribution extends Marktjagd_Entity_Api_Abstract
+{
+    protected $_distributionId;
+    protected $_companyId;
+    protected $_title;
+    protected $_storeCount;
+
+    /**
+     * @param int $companyId
+     * @return Marktjagd_Entity_Api_Distribution
+     */
+    public function setCompanyId($companyId)
+    {
+        $this->_companyId = (int) $companyId;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getCompanyId()
+    {
+        return (int) $this->_companyId;
+    }
+
+    /**
+     * @param int $distributionId
+     * @return Marktjagd_Entity_Api_Distribution
+     */
+    public function setDistributionId($distributionId)
+    {
+        $this->_distributionId = (int) $distributionId;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getDistributionId()
+    {
+        return (int) $this->_distributionId;
+    }
+
+    /**
+     * @param mixed $storeCount
+     * @return Marktjagd_Entity_Api_Distribution
+     */
+    public function setStoreCount($storeCount)
+    {
+        $this->_storeCount = (int) $storeCount;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getStoreCount()
+    {
+        return (int) $this->_storeCount;
+    }
+
+    /**
+     * @param string $title
+     * @return Marktjagd_Entity_Api_Distribution
+     */
+    public function setTitle($title)
+    {
+        $this->_title = $title;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTitle()
+    {
+        return $this->_title;
+    }
+
+    public function getHash()
+    {
+        return $this->getDistributionId();
+    }
+
+
+}

@@ -1,0 +1,163 @@
+<?php
+
+class Marktjagd_Database_Entity_Company extends Marktjagd_Database_Entity_Abstract
+{
+
+    // table fields
+    protected $_idCompany;
+    protected $_name;
+    protected $_productCategory;
+    protected $_status;
+    protected $_idPartner;
+
+    /**
+     * Contains mapping of table columns to function
+     *
+     * @var array
+     */
+    protected $_aColumnMap = array('idCompany' => 'IdCompany',
+        'name' => 'Name',
+        'productCategory' => 'ProductCategory',
+        'status' => 'Status',
+        'idPartner' => 'IdPartner');
+
+    /**
+     * Set idCompany, value is casted to int
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_Company
+     */
+    public function setIdCompany($mValue)
+    {
+        $this->_idCompany = (int) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns idCompany
+     *
+     * @return int idCompany
+     */
+    public function getIdCompany()
+    {
+        return $this->_idCompany;
+    }
+
+    /**
+     * Set name, value is casted to string
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_Company
+     */
+    public function setName($mValue)
+    {
+        $this->_name = (string) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns name
+     *
+     * @return string name
+     */
+    public function getName()
+    {
+        return $this->_name;
+    }
+
+    /**
+     *
+     * @param mixed $mValue
+     * @return Marktjagd_Database_Entity_Company
+     */
+    public function setProductCategory($mValue)
+    {
+        $this->_productCategory = $mValue;
+        return $this;
+    }
+
+    /**
+     *
+     * @return string
+     */
+    public function getProductCategory()
+    {
+        return $this->_productCategory;
+    }
+
+    /**
+     *
+     * @param string $mValue
+     * @return Marktjagd_Database_Entity_Company
+     */
+    public function setStatus($mValue)
+    {
+        $this->_status = $mValue;
+        return $this;
+    }
+
+    /**
+     *
+     * @return string
+     */
+    public function getStatus()
+    {
+        return $this->_status;
+    }
+
+    /**
+     * @return int
+     */
+    public function getIdPartner()
+    {
+        return $this->_idPartner;
+    }
+
+    /**
+     * @param int $idPartner
+     * @return Marktjagd_Database_Entity_Company
+     */
+    public function setIdPartner($idPartner)
+    {
+        $this->_idPartner = (int) $idPartner;
+        return $this;
+    }
+
+    /**
+     * Returns the mapper class, if no one exists, default will be created.
+     *
+     * @return  Marktjagd_Database_Mapper_Company
+     */
+    public function getMapper()
+    {
+        return parent::getMapper();
+    }
+
+    /**
+     * Saves data to database If the primary key is set,
+     * data will be updated.
+     *
+     * @param bool $bNull Save also null values
+     * @param bool $bForceInsert
+     * @return void
+     */
+    public function save($bNull = false, $bForceInsert = false)
+    {
+        $this->getMapper()->save($this, $bNull, $bForceInsert);
+    }
+
+    /**
+     * Loads the data by primary key(s). By multiple primary
+     * keys use an array with the values of the primary key columns.
+     *
+     * @param mixed $mId Primary key(s) value(s)
+     *
+     * @return bool True if found, otherwise false
+     */
+    public function find($mId)
+    {
+        return $this->getMapper()->find($mId, $this);
+    }
+}

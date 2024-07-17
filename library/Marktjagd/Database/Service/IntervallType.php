@@ -1,0 +1,22 @@
+<?php
+
+class Marktjagd_Database_Service_IntervallType extends Marktjagd_Database_Service_Abstract {
+
+    /**
+     * 
+     * @return Marktjagd_Database_Collection_IntervallType
+     */
+    public function findAll() {
+        $mIntervallType = new Marktjagd_Database_Mapper_IntervallType();
+        $cIntervallType = new Marktjagd_Database_Collection_IntervallType();
+        $mIntervallType->fetchAll(null, $cIntervallType);
+        return $cIntervallType;
+    }
+    
+    public function findById($intervallId) {
+        $mIntervallType = new Marktjagd_Database_Mapper_IntervallType();
+        $cIntervallType = new Marktjagd_Database_Collection_IntervallType();
+        $mIntervallType->findIntervallTypeById($intervallId, $cIntervallType);
+        return $cIntervallType;
+    }
+}

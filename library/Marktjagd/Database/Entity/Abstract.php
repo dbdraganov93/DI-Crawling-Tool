@@ -1,0 +1,291 @@
+<?php
+
+abstract class Marktjagd_Database_Entity_Abstract extends Marktjagd_Database_Abstract
+{
+    /**
+     * Relationship map of table to entity|collection
+     *
+     * @var array
+     */
+    protected $_aRelationMap = array();
+
+    /**
+     * Contains mapping of table columns to function
+     *
+     * @var array
+     */
+    protected $_aColumnMap = array();
+
+    /**
+     * Contains mapping of property to function
+     * Is used for non table column properties
+     *
+     * @var array
+     */
+    protected $_aPropertyMap = array();
+
+    /**
+     * Contains the mapping of relation properties to function
+     *
+     * @var array
+     */
+    protected $_aRelationPropertyMap = array();
+
+    /**
+     * Saves identical objects
+     *
+     * @var array
+     */
+    protected static $_aHashTable = array();
+
+    /**
+     * Sets the data to the class.
+     *
+     * @param array|Zend_Db_Table_Row $mOptions Data
+     *
+     * @return void
+     */
+    public function __construct($mOptions = null)
+    {
+        if (!is_null($mOptions)) {
+            $this->setOptions($mOptions);
+        }
+    }
+
+    /**
+     * Sets the data to class.
+     *
+     * @param string $sName  Property name
+     * @param mixed  $mValue Property value
+     *
+     * @return void
+     */
+    public function __set($sName, $mValue)
+    {
+        if (!isset($this->_aColumnMap[$sName])) {
+            throw new Marktjagd_Database_Entity_Exception('Invalid class property: ' . $sName . ' (' . get_class($this) . ')');
+        }
+
+        $sMethod = 'set' . $this->_aColumnMap[$sName];
+        $this->$sMethod($mValue);
+    }
+
+    /**
+     * Returns data of class.
+     *
+     * @param string $sName Property name
+     *
+     * @return mixed
+     */
+    public function __get($sName)
+    {
+        if (!isset($this->_aColumnMap[$sName])) {
+            throw new Marktjagd_Database_Entity_Exception('Invalid class property: ' . $sName . ' (' . get_class($this) . ')');
+        }
+
+        $sMethod = 'get' . $this->_aColumnMap[$sName];
+        return $this->$sMethod();
+    }
+
+    /**
+     * Checks if property exists.
+     *
+     * @param string $sName Property name
+     *
+     * @return bool True if exists, otherwise false
+     */
+    public function __isset($sName)
+    {
+        if (isset($this->_aColumnMap[$sName])) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Sets data to class. Relations will be solved by
+     * a dot in array key name of $mOptions.
+     *
+     * @param array|Zend_Db_Table_Row_Abstract $mOptions Data
+     *
+     * @return  Marktjagd_Database_Entity_Abstract
+     */
+    public function setOptions($mOptions)
+    {
+        if ($mOptions instanceof Zend_Db_Table_Row_Abstract) {
+            $mOptions = $mOptions->toArray();
+        }
+
+        if (!is_array($mOptions)) {
+            throw new Marktjagd_Database_Entity_Exception('Invalid options provided');
+        }
+
+        foreach ($mOptions as $mKey => $mValue) {
+            // check for relation
+            if (strpos($mKey, '.') !== false) {
+                // split parts table.column
+                $aField = explode('.', $mKey);
+
+                $sField = $this->_sTablePrefix
+                            ? str_replace($this->_sTablePrefix, '', $aField[0])
+                            : $aField[0];
+
+                // relationship (join) found
+                if (isset($this->_aRelationMap[$aField[0]])) {
+
+                    $sRelation = $this->_aRelationPropertyMap[$sField];
+
+                    // create hash with relation and specified options
+                    $sHash = md5($sRelation . '_' .
+                                 implode('', $this->_getRelationProperties($aField[0],
+                                                                           $mOptions)));
+
+                    // create relationship object and set all options
+                    if (!isset(self::$_aHashTable[$sHash])) {
+                        self::$_aHashTable[$sHash] = new $this->_aRelationMap[$aField[0]]($mOptions);
+                    }
+
+                    $sRelation = 'set' . $sRelation;
+
+                    // use hash object
+                    $this->$sRelation(self::$_aHashTable[$sHash]);
+                    continue;
+                }
+
+                // check for column
+                if (!isset($this->_aColumnMap[$aField[1]])) {
+                    continue;
+                }
+
+                $mKey = $aField[1];
+            }
+
+            // check for valid column or property
+            if (isset($this->$mKey)) {
+                $this->$mKey = $mValue;
+            } elseif (isset($this->_aPropertyMap[$mKey])) {
+                $sFunction = 'set' . $this->_aPropertyMap[$mKey];
+                $this->$sFunction($mValue);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Returns the properties for the relation class.
+     *
+     * @param string $sRelation Relation
+     * @param array  $aOptions  Data
+     *
+     * @return array Relation properties
+     */
+    protected function _getRelationProperties($sRelation, array $aOptions)
+    {
+        $aData = array();
+
+        // cycle through options and check if property is for relation
+        foreach ($aOptions as $mKey => $mValue) {
+            if (strpos($mKey, $sRelation) !== false) {
+                $aData[$mKey] = $mValue;
+            }
+        }
+
+        return $aData;
+    }
+
+    /**
+     * Sets the form data to this class. Override this function
+     * to perform extra model checks.
+     *
+     * @param array $aValues Data
+     *
+     * @return bool Success
+     */
+    public function acceptFormRequest(array $aValues)
+    {
+        $this->setOptions($aValues);
+        return true;
+    }
+
+    /**
+     * Returns the class variables as an array. If $bNull is true,
+     * null value will be returned as a Zend_Db_Expr object.
+     *
+     * @param bool $bNull Return also null values
+     *
+     * @return array Class properties
+     */
+    public function toArray($bNull = false)
+    {
+        $aData = array();
+
+        foreach ($this->_aColumnMap as $sProperty => $sFunction) {
+            $sVariable = '_' . $sProperty;
+
+            // create sql expression by null values
+            if ($bNull) {
+                $aData[$sProperty] = is_null($this->$sVariable)
+                                       ? new Zend_Db_Expr('null')
+                                       : $this->$sVariable;
+            } elseif (!is_null($this->$sVariable)) {
+                $aData[$sProperty] = $this->$sVariable;
+            }
+        }
+
+        return $aData;
+    }
+
+    /**
+     * Sets the property value to null.
+     *
+     * @param string $sName Property name
+     *
+     * @return void
+     */
+    public function reset($sName)
+    {
+        $sName = '_' . $sName;
+        $this->$sName = null;
+    }
+
+    /**
+     * Checks of property is set.
+     *
+     * @param string $sName Property name
+     *
+     * @return bool True if set, otherwise false
+     */
+    public function is($sName)
+    {
+        $sName = '_' . $sName;
+        return isset($this->$sName);
+    }
+
+    /**
+     * Writes data to table. If the primary key is set,
+     * data will be updated.
+     *
+     * @param bool $bNull Save also null values
+     *
+     * @return void
+     */
+    public function save($bNull = false)
+    {
+        $this->getMapper()->save($this, $bNull);
+    }
+
+    /**
+     * Loads the data by primary key(s) of the table. By multiple primary
+     * keys use an array with the values of the primary key columns.
+     *
+     * @param mixed $mId Primary key(s) value(s)
+     *
+     * @return bool True if found, otherwise false
+     */
+    public function find($mId)
+    {
+        return $this->getMapper()->find($mId, $this);
+    }
+}

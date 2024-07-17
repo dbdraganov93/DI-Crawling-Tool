@@ -1,0 +1,50 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the ImportWarningResource class.
+ *
+ * PHP version 5
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  import
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Resource\Import;
+
+use Marktjagd\ApiClient\Resource;
+
+/**
+ * ImportWarning resource.
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  import
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+class ImportWarningResource extends Resource\Resource
+{
+
+    protected static $hasCollection = true;
+
+    /**
+     * Sets the resource definition.
+     *
+     * @return void
+     */
+    protected function setResourceDefinition()
+    {
+        $this
+            ->hasField(new Resource\ResourceFieldString('datetime'))
+            ->hasField(new Resource\ResourceFieldString('message'))
+            ->hasField(new Resource\ResourceFieldBoolean('user_save'))
+            ->hasField(new Resource\ResourceFieldInteger('record'));
+    }
+
+}

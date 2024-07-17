@@ -1,0 +1,407 @@
+<?php
+/**
+ * Entity für Google Places Export
+ */
+class Marktjagd_Entity_GooglePlaces
+{
+    protected $storeCode;
+    protected $name;
+    protected $addressLine1;
+    protected $addressLine2;
+    protected $city;
+    protected $state;
+    protected $countryCode;
+    protected $postalCode;
+    protected $mainPhone;
+    protected $alternativePhone;
+    protected $mobilePhone;
+    protected $fax;
+    protected $homepage;
+    protected $email;
+    protected $hours;
+    protected $images;
+    protected $paymentTypes;
+    protected $categories;
+    protected $description;
+    protected $latitude;
+    protected $longitude;
+
+    /**
+     * @param string $addressLine1
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setAddressLine1($addressLine1)
+    {
+        $this->addressLine1 = $addressLine1;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAddressLine1()
+    {
+        return $this->addressLine1;
+    }
+
+    /**
+     * @param string $addressLine2
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setAddressLine2($addressLine2)
+    {
+        $this->addressLine2 = $addressLine2;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAddressLine2()
+    {
+        return $this->addressLine2;
+    }
+
+    /**
+     * @param string $alternativePhone
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setAlternativePhone($alternativePhone)
+    {
+        $this->alternativePhone = $alternativePhone;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAlternativePhone()
+    {
+        return $this->alternativePhone;
+    }
+
+    /**
+     * @param string $categories
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setCategories($categories)
+    {
+        $this->categories = $categories;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCategories()
+    {
+        return $this->categories;
+    }
+
+    /**
+     * @param string $city
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setCity($city)
+    {
+        $this->city = $city;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCity()
+    {
+        return $this->city;
+    }
+
+    /**
+     * @param string $countryCode
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setCountryCode($countryCode)
+    {
+        $this->countryCode = $countryCode;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCountryCode()
+    {
+        return $this->countryCode;
+    }
+
+    /**
+     * @param string $description
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setDescription($description)
+    {
+        $this->description = $description;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription()
+    {
+        return $this->description;
+    }
+
+    /**
+     * @param string $email
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setEmail($email)
+    {
+        $this->email = $email;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEmail()
+    {
+        return $this->email;
+    }
+
+    /**
+     * @param string $fax
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setFax($fax)
+    {
+        $this->fax = $fax;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFax()
+    {
+        return $this->fax;
+    }
+
+    /**
+     * @param string $homepage
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setHomepage($homepage)
+    {
+        $this->homepage = $homepage;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getHomepage()
+    {
+        return $this->homepage;
+    }
+
+    /**
+     * @param string $hours
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setHours($hours)
+    {
+        $this->hours = $hours;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getHours()
+    {
+        return $this->hours;
+    }
+
+    /**
+     * @param string $images
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setImages($images)
+    {
+        $this->images = $images;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getImages()
+    {
+        return $this->images;
+    }
+
+    /**
+     * @param string $latitude
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setLatitude($latitude)
+    {
+        $this->latitude = $latitude;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLatitude()
+    {
+        return $this->latitude;
+    }
+
+    /**
+     * @param string $longitude
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setLongitude($longitude)
+    {
+        $this->longitude = $longitude;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLongitude()
+    {
+        return $this->longitude;
+    }
+
+    /**
+     * @param string $mainPhone
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setMainPhone($mainPhone)
+    {
+        $this->mainPhone = $mainPhone;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMainPhone()
+    {
+        return $this->mainPhone;
+    }
+
+    /**
+     * @param string $mobilePhone
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setMobilePhone($mobilePhone)
+    {
+        $this->mobilePhone = $mobilePhone;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMobilePhone()
+    {
+        return $this->mobilePhone;
+    }
+
+    /**
+     * @param string $name
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setName($name)
+    {
+        $this->name = $name;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    /**
+     * @param string $paymentTypes
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setPaymentTypes($paymentTypes)
+    {
+        $this->paymentTypes = $paymentTypes;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPaymentTypes()
+    {
+        return $this->paymentTypes;
+    }
+
+    /**
+     * @param string $postalCode
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setPostalCode($postalCode)
+    {
+        $this->postalCode = $postalCode;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPostalCode()
+    {
+        return $this->postalCode;
+    }
+
+    /**
+     * @param string $state
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setState($state)
+    {
+        $this->state = $state;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getState()
+    {
+        return $this->state;
+    }
+
+    /**
+     * @param string $storeCode
+     * @return Marktjagd_Entity_GooglePlaces
+     */
+    public function setStoreCode($storeCode)
+    {
+        $this->storeCode = $storeCode;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getStoreCode()
+    {
+        return $this->storeCode;
+    }
+
+}

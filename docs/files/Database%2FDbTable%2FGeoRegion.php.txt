@@ -1,0 +1,56 @@
+<?php
+
+class Marktjagd_Database_DbTable_GeoRegion extends Marktjagd_Database_DbTable_Abstract
+{
+
+    protected $_name = 'geo_region';
+    protected $_primary = 'region_id';
+
+    /**
+     * Ermittelt anhand der übergebenen Postleitzahl das entsprechende Bundesland
+     *
+     * @param $zipCode
+     * @return Zend_Db_Table_Row_Abstract
+     */
+    public function findRegionByZipCode($zipCode)
+    {
+        $select = $this->select()->setIntegrityCheck(false);
+        $select->from($this->_name)
+                ->where('region_zipcode = ?', (string) $zipCode);
+
+        return $this->fetchRow($select);
+    }
+
+    public function findRegionByCity($city)
+    {
+        $select = $this->select()->setIntegrityCheck(false);
+        $select->from($this->_name)
+                ->where('region_city LIKE ?', (string) $city . '%');
+
+        return $this->fetchRow($select);
+    }
+
+    /**
+     * Liefert Postleitzahlen aus Deutschland anhand der übergebenen Maschengröße
+     *
+     * @param $netSize
+     * @return array
+     */
+    public function findZipCodesByNetSize()
+    {
+        $stmt = $this->_db->query('CALL getAllZipcodes(5)');
+        $data = $stmt->fetchAll();
+
+        return $data;
+    }
+
+    public function findZipCodesForCounty($county)
+    {
+        $select = $this->select()->setIntegrityCheck(false);
+        $select->from($this->_name)
+                ->where('region_state = ?', (string) $county);
+        return $this->fetchAll($select);
+    }
+
+}
+

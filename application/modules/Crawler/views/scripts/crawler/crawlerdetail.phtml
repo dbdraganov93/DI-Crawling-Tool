@@ -1,0 +1,154 @@
+<div class="col-lg-12">
+    <h1 class="page-header"><?php
+    $aCrawlerType = array(
+        1 => 'Artikel',
+        2 => 'Prospekt',
+        3 => 'Standort',
+    );
+        /* @var $eCrawlerConfig Marktjagd_Database_Entity_CrawlerConfig */
+        $eCrawlerConfig = $this->eCrawlerConfig;
+        echo $aCrawlerType[$eCrawlerConfig->getCrawlerType()->getIdCrawlerType()] . '-Crawler: '
+        . $eCrawlerConfig->getCompany()->getName() . ' (ID: ' . $eCrawlerConfig->getIdCompany() . ')'
+        ?></h1>
+</div>
+
+<div class="col-lg-5">
+    <div class="panel panel-default">
+        <div class="panel-heading">Konfiguration Crawler</div>
+        <div class="panel-body">
+<?php echo $this->form ?>
+        </div>
+    </div>
+</div>
+<div <div class="col-lg-7">
+        <div class="panel panel-default">
+            <div class="panel-heading">Letzten 10 Crawlerdurchläufe</div>
+            <div class="panel-body">
+                <?php if (count($this->cCrawlerLog)): ?>
+                    <div class="table">
+                        <table class="table table-hover table-responsive">
+                            <thead>
+                                <tr>
+                                    <th style="width:15%;">Crawler Scheduled</th>
+                                    <th style="width:15%;">Crawler Start</th>
+                                    <th style="width:15%;">Crawler Ende / Import Start</th>
+                                    <th style="width:15%;">Import Ende</th>
+                                    <th style="width:20%;">Crawlertyp</th>
+                                    <th style="width:20%;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                $type = array(
+                                    0 => 'manuell / auslösergesteuert',
+                                    1 => 'zeitgesteuert'
+                                );
+
+                                $status = array(
+                                    1 => 'active',
+                                    2 => 'success',
+                                    3 => 'danger',
+                                    4 => 'success',
+                                    5 => 'warning',
+                                    6 => 'active',
+                                    7 => 'warning',
+                                    8 => 'info',
+                                    9 => 'warning',
+                                    10 => 'success',
+                                    11 => 'warning'
+                                );
+
+                                $statusMessage = array(
+                                    1 => 'Crawler läuft gerade',
+                                    2 => 'Crawler erfolgreich',
+                                    3 => 'Crawler fehlgeschlagen',
+                                    4 => 'Crawler erfolgreich, kein Import',
+                                    5 => 'Crawler konnte nicht gestartet werden',
+                                    6 => 'Crawler wartet auf Start',
+                                    7 => 'Import anlegen fehlgeschlagen',
+                                    8 => 'Import wird durchgeführt',
+                                    9 => 'Import fehlerhaft',
+                                    10 => 'Import erfolgreich',
+                                    11 => 'Crawler erfolgreich, Änderung vorhanden'
+                                );
+
+                                /* @var $eCrawlerLog Marktjagd_Database_Entity_CrawlerLog */
+                                foreach ($this->cCrawlerLog as $eCrawlerLog):
+                                    ?>
+                                    <tr class="<?php echo $status[$eCrawlerLog->getIdCrawlerLogType()] ?>"
+                                        onclick="window.location = '/Crawler/logging/detail/idCrawlerLog/<?php echo $eCrawlerLog->getIdCrawlerLog() ?>'"
+                                        style ="cursor:pointer;">
+                                        <td><?php echo $eCrawlerLog->getScheduled(true) ? date('d.m.Y H:i:s', strtotime($eCrawlerLog->getScheduled(true))) : '' ?></td>
+                                        <td><?php echo $eCrawlerLog->getStart(true) ? date('d.m.Y H:i:s', strtotime($eCrawlerLog->getStart(true))) : '' ?></td>
+                                        <td><?php
+                                            if ($eCrawlerLog->getImportStart()) {
+                                                echo date('d.m.Y H:i:s', strtotime($eCrawlerLog->getImportStart(true)));
+                                            } elseif ($eCrawlerLog->getEnd()) {
+                                                echo date('d.m.Y H:i:s', strtotime($eCrawlerLog->getEnd(true)));
+                                            }
+                                            ?>
+                                        </td>
+                                        <td><?php echo $eCrawlerLog->getImportEnd(true) ? date('d.m.Y H:i:s', strtotime($eCrawlerLog->getImportEnd(true))) : '' ?></td>
+                                        <td><?php echo $type[$eCrawlerLog->getPrio()] ?></td>
+                                        <td style="vertical-align: middle">
+                                            <?php
+                                            if ($eCrawlerLog->getIdCrawlerLogType() == 1) {
+                                                if (is_null($eCrawlerConfig->getRuntime())
+                                                        || (int)$eCrawlerConfig->getRuntime() == 0) {
+                                                    $max = 1;
+                                                } else {
+                                                    $max = ((int) $eCrawlerConfig->getRuntime() * 60);
+                                                }
+                                                
+                                                $current = time() - strtotime($eCrawlerLog->getStart(true));
+                                                $percent = ($current / $max) * 100;
+
+                                                if ($percent > 100) {
+                                                    $percent = 100;
+                                                }
+                                                if ($max != 0) {
+                                                    $estimated = round(
+                                                            (strtotime($eCrawlerLog->getStart(true)) + $max - time()) / 60);
+                                                }
+                                                if ($estimated < 0) {
+                                                    $estimated = 0;
+                                                }
+                                                ?>
+                                                <div class="progress progress-striped active">
+                                                    <div class="progress-bar" role="progressbar"
+                                                         aria-valuenow="<?php echo $current ?>"
+                                                         aria-valuemin="0"
+                                                         aria-valuemax="100"
+                                                         style="width: <?php echo $percent ?>%;">
+                                                        <div class="progress-label"><?php
+                                                            if ($percent == 100) {
+                                                                echo 'noch einige Augenblicke';
+                                                            } else {
+                                                                echo round($percent)
+                                                                ?> % (noch <?php echo round($estimated) ?> min)<?php }
+                                                            ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <?php
+                                            } else {
+                                                echo $statusMessage[$eCrawlerLog->getIdCrawlerLogType()];
+                                            }
+                                            ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php else: ?>
+                    keine bisherigen Crawler
+                <?php endif; ?>
+                <?php
+                if (preg_match('#gesteuert#', $this->crawlerStatus)) {
+                    echo $this->formStart;
+                }
+                ?>
+            </div>
+        </div>
+    </div>

@@ -1,0 +1,69 @@
+<?php
+
+class Marktjagd_Database_Mapper_QualityCheckCompanyInfos extends Marktjagd_Database_Mapper_Abstract {
+     
+    /**
+     * Returns the database table class, if no one exists,
+     * default will be created.
+     *
+     * @return  Marktjagd_Database_DbTable_QualityCheckCompanyInfos
+     */
+    public function getDbTable()
+    {
+        return parent::getDbTable();
+    }
+    
+    /**
+     * Saves data to database. If the primary key is set,
+     * data will be updated.
+     *
+     * @param Marktjagd_Database_Entity_QualityCheckCompanyInfos $oQualityCheckCompanyInfos Object data
+     * @param bool $bNull Save also null values
+     * @param bool $bForceInsert Force insert
+     * @return void
+     */
+    public function save(Marktjagd_Database_Entity_QualityCheckCompanyInfos $oQualityCheckCompanyInfos, $bNull = false, $bForceInsert = false)
+    {
+        parent::_save($oQualityCheckCompanyInfos, $bNull, $bForceInsert);
+    }
+
+    /**
+     * Loads data by primary key(s). By multiple primary
+     * keys use an array with the values of the primary key columns.
+     *
+     * @param mixed $mId Primary key(s) value(s)
+     * @param Marktjagd_Database_Entity_QualityCheckCompanyInfos  $oQualityCheckCompanyInfos Object for data
+     *
+     * @return bool True if found, otherwise false
+     */
+    public function find($mId, Marktjagd_Database_Entity_QualityCheckCompanyInfos $oQualityCheckCompanyInfos)
+    {
+        return parent::_find($mId, $oQualityCheckCompanyInfos);
+    }
+   
+    /**
+     * 
+     * @param int $companyId
+     * @param Marktjagd_Database_Entity_QualityCheckCompanyInfos $oQualityCheckCompanyInfos
+     * @return boolean
+     */
+    public function findByCompanyId($companyId, Marktjagd_Database_Entity_QualityCheckCompanyInfos $oQualityCheckCompanyInfos) {
+        $result = $this->getDbTable()->findByCompanyId($companyId);
+        
+        if ((is_array($result) || $result instanceof Countable) && count($result) > 0) {
+            $oQualityCheckCompanyInfos->setOptions($result);
+            return true;
+        }
+
+        return false;
+    }
+    
+    public function findCompaniesWithBrochureCheck(Marktjagd_Database_Collection_QualityCheckCompanyInfos $oQualityCheckCompanyInfos) {
+        $result = $this->getDbTable()->findCompaniesWithBrochureCheck();
+        if (count($result) > 0) {
+            $oQualityCheckCompanyInfos->setOptions($result);
+            return true;
+        }
+        return false;
+    }
+}

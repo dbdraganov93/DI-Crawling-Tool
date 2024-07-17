@@ -1,0 +1,306 @@
+<?php
+
+class Marktjagd_Database_Entity_TriggerLog extends Marktjagd_Database_Entity_Abstract
+{
+    // table fields
+    protected $_idTriggerLog;
+    protected $_idCompany;
+    protected $_idTriggerType;
+    protected $_userName;
+    protected $_fileName;
+    protected $_action;
+    protected $_time;
+
+    /**
+     * Contains mapping of table columns to function
+     *
+     * @var array
+     */
+    protected $_aColumnMap = array('idTriggerLog' => 'IdTriggerLog',
+                                   'idCompany' => 'IdCompany',
+                                   'idTriggerType' => 'IdTriggerType',
+                                   'userName' => 'UserName',
+                                   'fileName' => 'FileName',
+                                   'action' => 'Action',
+                                   'time' => 'Time');
+
+    /**
+     * Relationship map
+     *
+     * @var array
+     */
+    protected $_aRelationMap = array('TriggerType' => 'Marktjagd_Database_Entity_TriggerType',
+                                     'Company' => 'Marktjagd_Database_Entity_Company');
+
+    /**
+     * Relation property map
+     *
+     * @var array
+     */
+    protected $_aRelationPropertyMap = array('TriggerType' => 'TriggerType',
+                                             'Company' => 'Company');
+
+    /**
+     * Relationship object for table TriggerType
+     *
+     * @var Marktjagd_Database_Entity_TriggerType
+     */
+    protected $_oTriggerType;
+
+    /**
+     * Relationship object for table Company
+     *
+     * @var Marktjagd_Database_Entity_Company
+     */
+    protected $_oCompany;
+
+    /**
+     * Set entity triggertype
+     *
+     * @param Marktjagd_Database_Entity_TriggerType         $oTriggerType
+     *
+     * @return Marktjagd_Database_Entity_TriggerLog
+     */
+    public function setTriggerType(Marktjagd_Database_Entity_TriggerType $oTriggerType)
+    {
+        $this->_oTriggerType = $oTriggerType;
+        return $this;
+    }
+
+    /**
+     * Return entity triggertype
+     *
+     * @return Marktjagd_Database_Entity_TriggerType
+     */
+    public function getTriggerType()
+    {
+        return $this->_oTriggerType;
+    }
+
+    /**
+     * Set entity company
+     *
+     * @param Marktjagd_Database_Entity_Company         $oCompany
+     *
+     * @return Marktjagd_Database_Entity_TriggerLog
+     */
+    public function setCompany(Marktjagd_Database_Entity_Company $oCompany)
+    {
+        $this->_oCompany = $oCompany;
+        return $this;
+    }
+
+    /**
+     * Return entity company
+     *
+     * @return Marktjagd_Database_Entity_Company
+     */
+    public function getCompany()
+    {
+        return $this->_oCompany;
+    }
+
+
+    /**
+     * Set idTriggerLog, value is casted to int
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_TriggerLog
+     */
+    public function setIdTriggerLog($mValue)
+    {
+        $this->_idTriggerLog = (int) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns idTriggerLog
+     *
+     * @return int idTriggerLog
+     */
+    public function getIdTriggerLog()
+    {
+        return $this->_idTriggerLog;
+    }
+
+    /**
+     * Set idCompany, value is casted to int
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_TriggerLog
+     */
+    public function setIdCompany($mValue)
+    {
+        $this->_idCompany = (int) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns idCompany
+     *
+     * @return int idCompany
+     */
+    public function getIdCompany()
+    {
+        return $this->_idCompany;
+    }
+
+    /**
+     * Set idTriggerType, value is casted to int
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_TriggerLog
+     */
+    public function setIdTriggerType($mValue)
+    {
+        $this->_idTriggerType = (int) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns idTriggerType
+     *
+     * @return int idTriggerType
+     */
+    public function getIdTriggerType()
+    {
+        return $this->_idTriggerType;
+    }
+
+    /**
+     * Set userName, value is casted to string
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_TriggerLog
+     */
+    public function setUserName($mValue)
+    {
+        $this->_userName = (string) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns userName
+     *
+     * @return string userName
+     */
+    public function getUserName()
+    {
+        return $this->_userName;
+    }
+
+    /**
+     * Set fileName, value is casted to string
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_TriggerLog
+     */
+    public function setFileName($mValue)
+    {
+        $this->_fileName = (string) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns fileName
+     *
+     * @return string fileName
+     */
+    public function getFileName()
+    {
+        return $this->_fileName;
+    }
+
+    /**
+     * Set action, value is casted to string
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_TriggerLog
+     */
+    public function setAction($mValue)
+    {
+        $this->_action = (string) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns action
+     *
+     * @return string action
+     */
+    public function getAction()
+    {
+        return $this->_action;
+    }
+
+    /**
+     * Set time, value is casted to string
+     *
+     * @param mixed $mValue Value
+     *
+     * @return Marktjagd_Database_Entity_TriggerLog
+     */
+    public function setTime($mValue)
+    {
+        $this->_time = (string) $mValue;
+        return $this;
+    }
+
+    /**
+     * Returns time
+     *
+     * @param bool $bRaw Return raw data
+     *
+     * @return Zend_Date time
+     */
+    public function getTime($bRaw = false)
+    {
+        if ($bRaw) {
+            return $this->_time;
+        } else {
+            return $this->_time ? new Zend_Date($this->_time) : $this->_time;
+        }
+    }
+
+    /**
+     * Returns the mapper class, if no one exists, default will be created.
+     *
+     * @return  Marktjagd_Database_Mapper_TriggerLog
+     */
+    public function getMapper()
+    {
+        return parent::getMapper();
+    }
+
+    /**
+     * Saves data to database If the primary key is set,
+     * data will be updated.
+     *
+     * @param bool $bNull Save also null values
+     *
+     * @return int|mixed|void
+     */
+    public function save($bNull = false)
+    {
+        return $this->getMapper()->save($this, $bNull);
+    }
+
+    /**
+     * Loads the data by primary key(s). By multiple primary
+     * keys use an array with the values of the primary key columns.
+     *
+     * @param mixed $mId Primary key(s) value(s)
+     *
+     * @return bool True if found, otherwise false
+     */
+    public function find($mId)
+    {
+        return $this->getMapper()->find($mId, $this);
+    }
+}

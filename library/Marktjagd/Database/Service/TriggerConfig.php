@@ -1,0 +1,88 @@
+<?php
+
+/**
+ * Service für DB-Abfragen zur Triggerkonfiguration
+ *
+ * Class Marktjagd_Database_Service_TriggerConfig
+ */
+class Marktjagd_Database_Service_TriggerConfig extends Marktjagd_Database_Service_Abstract
+{
+    /**
+     * Ermittelt die Triggerkonfiguration für ein Unternehmen anhand der entsprechenden Triggerart
+     *
+     * @param $companyId
+     * @param $triggerType
+     * @return Marktjagd_Database_Collection_TriggerConfig
+     */
+    public function findByCompanyTriggerType($companyId, $triggerType)
+    {
+        $cTriggerConfig = new Marktjagd_Database_Collection_TriggerConfig();
+
+        $mTriggerConfig = new Marktjagd_Database_Mapper_TriggerConfig();
+        $mTriggerConfig->findByCompanyTriggerType($companyId, $triggerType, $cTriggerConfig);
+
+        return $cTriggerConfig;
+    }
+
+    /**
+     * Ermittelt die Triggerkonfiguration anhand der entsprechenden Triggerart
+     *
+     * @param $triggerType
+     * @return Marktjagd_Database_Collection_TriggerConfig
+     */
+    public function findByTriggerType($triggerType)
+    {
+        $cTriggerConfig = new Marktjagd_Database_Collection_TriggerConfig();
+
+        $mTriggerConfig = new Marktjagd_Database_Mapper_TriggerConfig();
+        $mTriggerConfig->findByTriggerType($triggerType, $cTriggerConfig);
+
+        return $cTriggerConfig;
+    }
+
+    /**
+     * Ermittelt die Triggerkonfiguration für ein Unternehmen anhand der entsprechenden Triggerart und des Crawlertyps
+     *
+     * @param int $companyId
+     * @param string $triggerType
+     * @param string $crawlerType
+     * @return Marktjagd_Database_Entity_TriggerConfig
+     */
+    public function findByCompanyTriggerTypeCrawlerType($companyId, $triggerType, $crawlerType)
+    {
+        $eTriggerConfig = new Marktjagd_Database_Entity_TriggerConfig();
+
+        $mTriggerConfig = new Marktjagd_Database_Mapper_TriggerConfig();
+        $mTriggerConfig->findByCompanyTriggerTypeCrawlerType($companyId, $triggerType, $crawlerType, $eTriggerConfig);
+
+        return $eTriggerConfig;
+    }
+    
+    /**
+     * Ermittelt die Triggerkonfiguration für ein Unternehmen anhand der entsprechenden CrawlerConfig-ID
+     * 
+     * @param int $crawlerConfig
+     * @return \Marktjagd_Database_Entity_TriggerConfig
+     */
+    public function findByCrawlerConfigId($crawlerConfig) {
+        
+        $eTriggerConfig = new Marktjagd_Database_Entity_TriggerConfig();
+
+        $mTriggerConfig = new Marktjagd_Database_Mapper_TriggerConfig();
+        $mTriggerConfig->findByCrawlerConfigId($crawlerConfig, $eTriggerConfig);
+
+        return $eTriggerConfig;
+    }
+
+    /**
+     * Entfernt die Triggerkonfiguration anhand der TriggerConfig-Id
+     *
+     * @param int $idTriggerConfig
+     * @return bool
+     */
+    public function deleteByTriggerConfigId($idTriggerConfig)
+    {
+        $mTriggerConfig = new Marktjagd_Database_Mapper_TriggerConfig();
+        return $mTriggerConfig->deleteByTriggerConfigId($idTriggerConfig);
+    }
+}

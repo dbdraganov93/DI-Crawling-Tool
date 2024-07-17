@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <meta charset="utf-8"/>
+    <title>API Documentation</title>
+    <meta name="author" content=""/>
+    <meta name="description" content=""/>
+
+    <link href="../css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
+    <link href="../css/font-awesome.min.css" rel="stylesheet">
+    <link href="../css/prism.css" rel="stylesheet" media="all"/>
+    <link href="../css/template.css" rel="stylesheet" media="all"/>
+    
+    <!--[if lt IE 9]>
+    <script src="../js/html5.js"></script>
+    <![endif]-->
+    <script src="../js/jquery-1.11.0.min.js"></script>
+    <script src="../js/ui/1.10.4/jquery-ui.min.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/jquery.smooth-scroll.js"></script>
+    <script src="../js/prism.min.js"></script>
+    <!-- TODO: Add http://jscrollpane.kelvinluck.com/ to style the scrollbars for browsers not using webkit-->
+        <script type="text/javascript">
+        function loadExternalCodeSnippets() {
+            Array.prototype.slice.call(document.querySelectorAll('pre[data-src]')).forEach(function (pre) {
+                var src = pre.getAttribute('data-src');
+                var extension = (src.match(/\.(\w+)$/) || [, ''])[1];
+                var language = 'php';
+
+                var code = document.createElement('code');
+                code.className = 'language-' + language;
+
+                pre.textContent = '';
+
+                code.textContent = 'Loading…';
+
+                pre.appendChild(code);
+
+                var xhr = new XMLHttpRequest();
+
+                xhr.open('GET', src, true);
+
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4) {
+
+                        if (xhr.status < 400 && xhr.responseText) {
+                            code.textContent = xhr.responseText;
+
+                            Prism.highlightElement(code);
+                        }
+                        else if (xhr.status >= 400) {
+                            code.textContent = '✖ Error ' + xhr.status + ' while fetching file: ' + xhr.statusText;
+                        }
+                        else {
+                            code.textContent = '✖ Error: File does not exist or is empty';
+                        }
+                    }
+                };
+
+                xhr.send(null);
+            });
+        }
+
+        $(document).ready(function(){
+            loadExternalCodeSnippets();
+        });
+        $('#source-view').on('shown', function () {
+            loadExternalCodeSnippets();
+        })
+    </script>
+
+    <link rel="shortcut icon" href="../images/favicon.ico"/>
+    <link rel="apple-touch-icon" href="../images/apple-touch-icon.png"/>
+    <link rel="apple-touch-icon" sizes="72x72" href="../images/apple-touch-icon-72x72.png"/>
+    <link rel="apple-touch-icon" sizes="114x114" href="../images/apple-touch-icon-114x114.png"/>
+</head>
+<body>
+
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="container">
+            <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                <i class="icon-ellipsis-vertical"></i>
+            </a>
+            <a class="brand" href="../index.html">API Documentation</a>
+
+            <div class="nav-collapse">
+                <ul class="nav pull-right">
+                                        <li class="dropdown">
+                        <a href="../index.html" class="dropdown-toggle" data-toggle="dropdown">
+                            API Documentation <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                                                        <li><a href="../namespaces/Marktjagd.html">\Marktjagd</a></li>
+                                                    </ul>
+                    </li>
+                                        <li class="dropdown" id="charts-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            Charts <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="../graphs/class.html">
+                                    <i class="icon-list-alt"></i>&#160;Class hierarchy diagram
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="dropdown" id="reports-menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            Reports <b class="caret"></b>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="../reports/errors.html">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <i class="icon-list-alt"></i>&#160;Errors <span class="label label-info pull-right">3035</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="../reports/markers.html">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <i class="icon-list-alt"></i>&#160;Markers <span class="label label-info pull-right">0</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="../reports/deprecated.html">
+                                                                                                            <i class="icon-list-alt"></i>&#160;Deprecated <span class="label label-info pull-right">0</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <!--<div class="go_to_top">-->
+    <!--<a href="#___" style="color: inherit">Back to top&#160;&#160;<i class="icon-upload icon-white"></i></a>-->
+    <!--</div>-->
+</div>
+
+<div id="___" class="container-fluid">
+        <section class="row-fluid">
+        <div class="span2 sidebar">
+                                <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle " data-toggle="collapse" data-target="#namespace-1661223513"></a>
+                                <a href="../namespaces/default.html" style="margin-left: 30px; padding-left: 0">\</a>
+            </div>
+            <div id="namespace-1661223513" class="accordion-body collapse in">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-960173877"></a>
+                                <a href="../namespaces/Marktjagd.html" style="margin-left: 30px; padding-left: 0">Marktjagd</a>
+            </div>
+            <div id="namespace-960173877" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1905046317"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.html" style="margin-left: 30px; padding-left: 0">ApiClient</a>
+            </div>
+            <div id="namespace-1905046317" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1062031865"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Request.html" style="margin-left: 30px; padding-left: 0">Request</a>
+            </div>
+            <div id="namespace-1062031865" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Request.Request.html">Request</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Request.RequestError.html">RequestError</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Request.RequestLogger.html">RequestLogger</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Request.RequestLoggerErrorLog.html">RequestLoggerErrorLog</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Request.RequestLoggerFirePhp.html">RequestLoggerFirePhp</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1382013509"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.html" style="margin-left: 30px; padding-left: 0">Resource</a>
+            </div>
+            <div id="namespace-1382013509" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1621351490"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Alert.html" style="margin-left: 30px; padding-left: 0">Alert</a>
+            </div>
+            <div id="namespace-1621351490" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Alert.AlertCollectionResource.html">AlertCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Alert.AlertResource.html">AlertResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-2017814912"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Article.html" style="margin-left: 30px; padding-left: 0">Article</a>
+            </div>
+            <div id="namespace-2017814912" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Article.ArticleCollectionResource.html">ArticleCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Article.ArticleResource.html">ArticleResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Article.CatalogCollectionResource.html">CatalogCollectionResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1123396656"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Brochure.html" style="margin-left: 30px; padding-left: 0">Brochure</a>
+            </div>
+            <div id="namespace-1123396656" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Brochure.BrochureCollectionResource.html">BrochureCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Brochure.BrochureResource.html">BrochureResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Brochure.LinkCollectionResource.html">LinkCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Brochure.LinkResource.html">LinkResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Brochure.PageCollectionResource.html">PageCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Brochure.PageResource.html">PageResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1921117685"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Catalog.html" style="margin-left: 30px; padding-left: 0">Catalog</a>
+            </div>
+            <div id="namespace-1921117685" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Catalog.CatalogResource.html">CatalogResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1296859258"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Category.html" style="margin-left: 30px; padding-left: 0">Category</a>
+            </div>
+            <div id="namespace-1296859258" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Category.CategoryCollectionResource.html">CategoryCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Category.CategoryResource.html">CategoryResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-494042056"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Company.html" style="margin-left: 30px; padding-left: 0">Company</a>
+            </div>
+            <div id="namespace-494042056" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Company.CompanyCollectionResource.html">CompanyCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Company.CompanyResource.html">CompanyResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Company.CustomerResource.html">CustomerResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1068677892"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Coupon.html" style="margin-left: 30px; padding-left: 0">Coupon</a>
+            </div>
+            <div id="namespace-1068677892" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Coupon.CouponCollectionResource.html">CouponCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Coupon.CouponInstanceCollectionResource.html">CouponInstanceCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Coupon.CouponInstanceResource.html">CouponInstanceResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Coupon.CouponResource.html">CouponResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-349701128"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Distribution.html" style="margin-left: 30px; padding-left: 0">Distribution</a>
+            </div>
+            <div id="namespace-349701128" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Distribution.DistributionCollectionResource.html">DistributionCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Distribution.DistributionResource.html">DistributionResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-135460820"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Geo.html" style="margin-left: 30px; padding-left: 0">Geo</a>
+            </div>
+            <div id="namespace-135460820" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Geo.CityCollectionResource.html">CityCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Geo.CityResource.html">CityResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Geo.CityZipcodeCollectionResource.html">CityZipcodeCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Geo.CityZipcodeResource.html">CityZipcodeResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Geo.CountryResource.html">CountryResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Geo.CountyCollectionResource.html">CountyCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Geo.CountyResource.html">CountyResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Geo.GeoCollectionResource.html">GeoCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Geo.GeoResource.html">GeoResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Geo.StateCollectionResource.html">StateCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Geo.StateResource.html">StateResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1256752685"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Image.html" style="margin-left: 30px; padding-left: 0">Image</a>
+            </div>
+            <div id="namespace-1256752685" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Image.DimensionCollectionResource.html">DimensionCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Image.DimensionResource.html">DimensionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Image.ImageCollectionResource.html">ImageCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Image.ImageResource.html">ImageResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-487941114"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Import.html" style="margin-left: 30px; padding-left: 0">Import</a>
+            </div>
+            <div id="namespace-487941114" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Import.ImportCollectionResource.html">ImportCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Import.ImportDefinitionCollectionResource.html">ImportDefinitionCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Import.ImportDefinitionExampleCollectionResource.html">ImportDefinitionExampleCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Import.ImportDefinitionExampleResource.html">ImportDefinitionExampleResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Import.ImportDefinitionResource.html">ImportDefinitionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Import.ImportErrorCollectionResource.html">ImportErrorCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Import.ImportErrorResource.html">ImportErrorResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Import.ImportResource.html">ImportResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Import.ImportWarningCollectionResource.html">ImportWarningCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Import.ImportWarningResource.html">ImportWarningResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1718270038"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Industry.html" style="margin-left: 30px; padding-left: 0">Industry</a>
+            </div>
+            <div id="namespace-1718270038" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Industry.IndustryCollectionResource.html">IndustryCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Industry.IndustryResource.html">IndustryResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-366695639"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Mall.html" style="margin-left: 30px; padding-left: 0">Mall</a>
+            </div>
+            <div id="namespace-366695639" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Mall.MallAddressResource.html">MallAddressResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Mall.MallCollectionResource.html">MallCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Mall.MallResource.html">MallResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1387959628"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Partner.html" style="margin-left: 30px; padding-left: 0">Partner</a>
+            </div>
+            <div id="namespace-1387959628" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Partner.PartnerCollectionResource.html">PartnerCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Partner.PartnerGroupCollectionResource.html">PartnerGroupCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Partner.PartnerGroupResource.html">PartnerGroupResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Partner.PartnerResource.html">PartnerResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-2059262213"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Product.html" style="margin-left: 30px; padding-left: 0">Product</a>
+            </div>
+            <div id="namespace-2059262213" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Product.CompanyProductCollectionResource.html">CompanyProductCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Product.CompanyProductResource.html">CompanyProductResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Product.PermissionCollectionResource.html">PermissionCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Product.PermissionResource.html">PermissionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Product.ProductCollectionResource.html">ProductCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Product.ProductResource.html">ProductResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-318218938"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Rating.html" style="margin-left: 30px; padding-left: 0">Rating</a>
+            </div>
+            <div id="namespace-318218938" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Rating.RatingResource.html">RatingResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-916849514"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Search.html" style="margin-left: 30px; padding-left: 0">Search</a>
+            </div>
+            <div id="namespace-916849514" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Search.BrandCollectionResource.html">BrandCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Search.BrandResource.html">BrandResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Search.HypernymCollectionResource.html">HypernymCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Search.HypernymResource.html">HypernymResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Search.OfferCollectionResource.html">OfferCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Search.PriceCollectionResource.html">PriceCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Search.PriceResource.html">PriceResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Search.SearchArticleResource.html">SearchArticleResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Search.SearchBrochureResource.html">SearchBrochureResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Search.SearchCompanyResource.html">SearchCompanyResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Search.SearchOffersResource.html">SearchOffersResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Search.SearchStoreResource.html">SearchStoreResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Search.TimeConstraintCollectionResource.html">TimeConstraintCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Search.TimeConstraintResource.html">TimeConstraintResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Search.TypeCollectionResource.html">TypeCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Search.TypeResource.html">TypeResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1781521297"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Store.html" style="margin-left: 30px; padding-left: 0">Store</a>
+            </div>
+            <div id="namespace-1781521297" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Store.HourCollectionResource.html">HourCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Store.HourResource.html">HourResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Store.StoreCollectionResource.html">StoreCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Store.StoreResource.html">StoreResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-29013745"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Tag.html" style="margin-left: 30px; padding-left: 0">Tag</a>
+            </div>
+            <div id="namespace-29013745" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Tag.MeaningCollectionResource.html">MeaningCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Tag.MeaningResource.html">MeaningResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Tag.NeighbourCollectionResource.html">NeighbourCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Tag.NeighbourResource.html">NeighbourResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Tag.TagCollectionResource.html">TagCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Tag.TagResource.html">TagResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-1237873944"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.Tracking.html" style="margin-left: 30px; padding-left: 0">Tracking</a>
+            </div>
+            <div id="namespace-1237873944" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Tracking.ScreenResource.html">ScreenResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Tracking.TrackingCollectionResource.html">TrackingCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Tracking.TrackingResource.html">TrackingResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                                                    <div class="accordion" style="margin-bottom: 0">
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                                    <a class="accordion-toggle collapsed" data-toggle="collapse" data-target="#namespace-622818087"></a>
+                                <a href="../namespaces/Marktjagd.ApiClient.Resource.User.html" style="margin-left: 30px; padding-left: 0">User</a>
+            </div>
+            <div id="namespace-622818087" class="accordion-body collapse ">
+                <div class="accordion-inner">
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.User.UserCollectionResource.html">UserCollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.User.UserResource.html">UserResource</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.CollectionResource.html">CollectionResource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.Resource.html">Resource</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.ResourceAttribute.html">ResourceAttribute</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.ResourceAttributeBoolean.html">ResourceAttributeBoolean</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.ResourceAttributeFloat.html">ResourceAttributeFloat</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.ResourceAttributeInteger.html">ResourceAttributeInteger</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.ResourceException.html">ResourceException</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.ResourceFactory.html">ResourceFactory</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.ResourceField.html">ResourceField</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.ResourceFieldArray.html">ResourceFieldArray</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.ResourceFieldArrayInteger.html">ResourceFieldArrayInteger</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.ResourceFieldArrayString.html">ResourceFieldArrayString</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.ResourceFieldBoolean.html">ResourceFieldBoolean</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.ResourceFieldFloat.html">ResourceFieldFloat</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.ResourceFieldInteger.html">ResourceFieldInteger</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.ResourceFieldString.html">ResourceFieldString</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd.ApiClient.Resource.ResourceLogger.html">ResourceLogger</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    
+                    <ul>
+                                                                                                    <li class="class"><a href="../classes/Marktjagd_Collection_Api_Abstract.html">Marktjagd_Collection_Api_Abstract</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Collection_Api_Article.html">Marktjagd_Collection_Api_Article</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Collection_Api_Brochure.html">Marktjagd_Collection_Api_Brochure</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Collection_Api_Distribution.html">Marktjagd_Collection_Api_Distribution</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Collection_Api_Store.html">Marktjagd_Collection_Api_Store</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Collection_Email.html">Marktjagd_Collection_Email</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Collection_PhpExcel_Worksheet.html">Marktjagd_Collection_PhpExcel_Worksheet</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Abstract.html">Marktjagd_Database_Abstract</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection.html">Marktjagd_Database_Collection</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_Abstract.html">Marktjagd_Database_Collection_Abstract</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_AdAnalysis.html">Marktjagd_Database_Collection_AdAnalysis</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_AdditionalRetailerInfos.html">Marktjagd_Database_Collection_AdditionalRetailerInfos</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_AdvertisingSettings.html">Marktjagd_Database_Collection_AdvertisingSettings</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_AmountBrochures.html">Marktjagd_Database_Collection_AmountBrochures</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_AmountProducts.html">Marktjagd_Database_Collection_AmountProducts</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_AmountStores.html">Marktjagd_Database_Collection_AmountStores</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_Author.html">Marktjagd_Database_Collection_Author</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_CompaniesWithAdMaterial.html">Marktjagd_Database_Collection_CompaniesWithAdMaterial</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_Company.html">Marktjagd_Database_Collection_Company</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_CompanyAdditionalInfos.html">Marktjagd_Database_Collection_CompanyAdditionalInfos</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_CrawlerBehaviour.html">Marktjagd_Database_Collection_CrawlerBehaviour</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_CrawlerConfig.html">Marktjagd_Database_Collection_CrawlerConfig</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_CrawlerConfigCrawlerExecution.html">Marktjagd_Database_Collection_CrawlerConfigCrawlerExecution</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_CrawlerExecution.html">Marktjagd_Database_Collection_CrawlerExecution</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_CrawlerLog.html">Marktjagd_Database_Collection_CrawlerLog</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_CrawlerLogType.html">Marktjagd_Database_Collection_CrawlerLogType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_CrawlerType.html">Marktjagd_Database_Collection_CrawlerType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_Exception.html">Marktjagd_Database_Collection_Exception</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_GeoRegion.html">Marktjagd_Database_Collection_GeoRegion</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_IntervallType.html">Marktjagd_Database_Collection_IntervallType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_Partner.html">Marktjagd_Database_Collection_Partner</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_QualityCheckCompanyInfos.html">Marktjagd_Database_Collection_QualityCheckCompanyInfos</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_QualityCheckErrors.html">Marktjagd_Database_Collection_QualityCheckErrors</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_Redmine.html">Marktjagd_Database_Collection_Redmine</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_Role.html">Marktjagd_Database_Collection_Role</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_Status.html">Marktjagd_Database_Collection_Status</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_Stellwerk.html">Marktjagd_Database_Collection_Stellwerk</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_Task.html">Marktjagd_Database_Collection_Task</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_TriggerConfig.html">Marktjagd_Database_Collection_TriggerConfig</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_TriggerLog.html">Marktjagd_Database_Collection_TriggerLog</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_TriggerType.html">Marktjagd_Database_Collection_TriggerType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_User.html">Marktjagd_Database_Collection_User</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Collection_Users.html">Marktjagd_Database_Collection_Users</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Database.html">Marktjagd_Database_Database</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_Abstract.html">Marktjagd_Database_DbTable_Abstract</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_AdAnalysis.html">Marktjagd_Database_DbTable_AdAnalysis</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_AdditionalRetailerInfos.html">Marktjagd_Database_DbTable_AdditionalRetailerInfos</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_AdvertisingSettings.html">Marktjagd_Database_DbTable_AdvertisingSettings</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_AmountBrochures.html">Marktjagd_Database_DbTable_AmountBrochures</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_AmountProducts.html">Marktjagd_Database_DbTable_AmountProducts</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_AmountStores.html">Marktjagd_Database_DbTable_AmountStores</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_Author.html">Marktjagd_Database_DbTable_Author</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_CompaniesWithAdMaterial.html">Marktjagd_Database_DbTable_CompaniesWithAdMaterial</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_Company.html">Marktjagd_Database_DbTable_Company</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_CompanyAdditionalInfos.html">Marktjagd_Database_DbTable_CompanyAdditionalInfos</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_CrawlerBehaviour.html">Marktjagd_Database_DbTable_CrawlerBehaviour</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_CrawlerConfig.html">Marktjagd_Database_DbTable_CrawlerConfig</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_CrawlerConfigCrawlerExecution.html">Marktjagd_Database_DbTable_CrawlerConfigCrawlerExecution</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_CrawlerExecution.html">Marktjagd_Database_DbTable_CrawlerExecution</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_CrawlerLog.html">Marktjagd_Database_DbTable_CrawlerLog</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_CrawlerLogType.html">Marktjagd_Database_DbTable_CrawlerLogType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_CrawlerType.html">Marktjagd_Database_DbTable_CrawlerType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_Exception.html">Marktjagd_Database_DbTable_Exception</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_GeoRegion.html">Marktjagd_Database_DbTable_GeoRegion</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_IntervallType.html">Marktjagd_Database_DbTable_IntervallType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_Partner.html">Marktjagd_Database_DbTable_Partner</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_QualityCheckCompanyInfos.html">Marktjagd_Database_DbTable_QualityCheckCompanyInfos</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_QualityCheckErrors.html">Marktjagd_Database_DbTable_QualityCheckErrors</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_Redmine.html">Marktjagd_Database_DbTable_Redmine</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_Role.html">Marktjagd_Database_DbTable_Role</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_Select.html">Marktjagd_Database_DbTable_Select</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_Status.html">Marktjagd_Database_DbTable_Status</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_Stellwerk.html">Marktjagd_Database_DbTable_Stellwerk</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_Task.html">Marktjagd_Database_DbTable_Task</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_TriggerConfig.html">Marktjagd_Database_DbTable_TriggerConfig</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_TriggerLog.html">Marktjagd_Database_DbTable_TriggerLog</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_TriggerType.html">Marktjagd_Database_DbTable_TriggerType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_User.html">Marktjagd_Database_DbTable_User</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_Users.html">Marktjagd_Database_DbTable_Users</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_DbTable_Zipcode.html">Marktjagd_Database_DbTable_Zipcode</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity.html">Marktjagd_Database_Entity</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_Abstract.html">Marktjagd_Database_Entity_Abstract</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_AdAnalysis.html">Marktjagd_Database_Entity_AdAnalysis</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_AdditionalRetailerInfos.html">Marktjagd_Database_Entity_AdditionalRetailerInfos</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_AdvertisingSettings.html">Marktjagd_Database_Entity_AdvertisingSettings</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_AmountBrochures.html">Marktjagd_Database_Entity_AmountBrochures</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_AmountProducts.html">Marktjagd_Database_Entity_AmountProducts</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_AmountStores.html">Marktjagd_Database_Entity_AmountStores</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_Author.html">Marktjagd_Database_Entity_Author</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_CompaniesWithAdMaterial.html">Marktjagd_Database_Entity_CompaniesWithAdMaterial</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_Company.html">Marktjagd_Database_Entity_Company</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_CompanyAdditionalInfos.html">Marktjagd_Database_Entity_CompanyAdditionalInfos</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_CrawlerBehaviour.html">Marktjagd_Database_Entity_CrawlerBehaviour</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_CrawlerConfig.html">Marktjagd_Database_Entity_CrawlerConfig</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_CrawlerConfigCrawlerExecution.html">Marktjagd_Database_Entity_CrawlerConfigCrawlerExecution</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_CrawlerExecution.html">Marktjagd_Database_Entity_CrawlerExecution</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_CrawlerLog.html">Marktjagd_Database_Entity_CrawlerLog</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_CrawlerLogType.html">Marktjagd_Database_Entity_CrawlerLogType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_CrawlerType.html">Marktjagd_Database_Entity_CrawlerType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_Exception.html">Marktjagd_Database_Entity_Exception</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_GeoRegion.html">Marktjagd_Database_Entity_GeoRegion</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_IntervallType.html">Marktjagd_Database_Entity_IntervallType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_Partner.html">Marktjagd_Database_Entity_Partner</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_QualityCheckCompanyInfos.html">Marktjagd_Database_Entity_QualityCheckCompanyInfos</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_QualityCheckErrors.html">Marktjagd_Database_Entity_QualityCheckErrors</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_Redmine.html">Marktjagd_Database_Entity_Redmine</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_Role.html">Marktjagd_Database_Entity_Role</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_Status.html">Marktjagd_Database_Entity_Status</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_Stellwerk.html">Marktjagd_Database_Entity_Stellwerk</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_Task.html">Marktjagd_Database_Entity_Task</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_TriggerConfig.html">Marktjagd_Database_Entity_TriggerConfig</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_TriggerLog.html">Marktjagd_Database_Entity_TriggerLog</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_TriggerType.html">Marktjagd_Database_Entity_TriggerType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_User.html">Marktjagd_Database_Entity_User</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Entity_Users.html">Marktjagd_Database_Entity_Users</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Exception.html">Marktjagd_Database_Exception</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper.html">Marktjagd_Database_Mapper</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_Abstract.html">Marktjagd_Database_Mapper_Abstract</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_AdAnalysis.html">Marktjagd_Database_Mapper_AdAnalysis</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_AdditionalRetailerInfos.html">Marktjagd_Database_Mapper_AdditionalRetailerInfos</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_AdvertisingSettings.html">Marktjagd_Database_Mapper_AdvertisingSettings</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_AmountBrochures.html">Marktjagd_Database_Mapper_AmountBrochures</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_AmountProducts.html">Marktjagd_Database_Mapper_AmountProducts</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_AmountStores.html">Marktjagd_Database_Mapper_AmountStores</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_Author.html">Marktjagd_Database_Mapper_Author</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_CompaniesWithAdMaterial.html">Marktjagd_Database_Mapper_CompaniesWithAdMaterial</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_Company.html">Marktjagd_Database_Mapper_Company</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_CompanyAdditionalInfos.html">Marktjagd_Database_Mapper_CompanyAdditionalInfos</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_CrawlerBehaviour.html">Marktjagd_Database_Mapper_CrawlerBehaviour</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_CrawlerConfig.html">Marktjagd_Database_Mapper_CrawlerConfig</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_CrawlerConfigCrawlerExecution.html">Marktjagd_Database_Mapper_CrawlerConfigCrawlerExecution</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_CrawlerExecution.html">Marktjagd_Database_Mapper_CrawlerExecution</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_CrawlerLog.html">Marktjagd_Database_Mapper_CrawlerLog</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_CrawlerLogType.html">Marktjagd_Database_Mapper_CrawlerLogType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_CrawlerType.html">Marktjagd_Database_Mapper_CrawlerType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_Exception.html">Marktjagd_Database_Mapper_Exception</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_GeoRegion.html">Marktjagd_Database_Mapper_GeoRegion</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_IntervallType.html">Marktjagd_Database_Mapper_IntervallType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_Partner.html">Marktjagd_Database_Mapper_Partner</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_QualityCheckCompanyInfos.html">Marktjagd_Database_Mapper_QualityCheckCompanyInfos</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_QualityCheckErrors.html">Marktjagd_Database_Mapper_QualityCheckErrors</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_Redmine.html">Marktjagd_Database_Mapper_Redmine</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_Role.html">Marktjagd_Database_Mapper_Role</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_Status.html">Marktjagd_Database_Mapper_Status</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_Stellwerk.html">Marktjagd_Database_Mapper_Stellwerk</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_Task.html">Marktjagd_Database_Mapper_Task</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_TriggerConfig.html">Marktjagd_Database_Mapper_TriggerConfig</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_TriggerLog.html">Marktjagd_Database_Mapper_TriggerLog</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_TriggerType.html">Marktjagd_Database_Mapper_TriggerType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_User.html">Marktjagd_Database_Mapper_User</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_Users.html">Marktjagd_Database_Mapper_Users</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Mapper_Zipcode.html">Marktjagd_Database_Mapper_Zipcode</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_Abstract.html">Marktjagd_Database_Service_Abstract</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_AdAnalysis.html">Marktjagd_Database_Service_AdAnalysis</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_AdditionalRetailerInfos.html">Marktjagd_Database_Service_AdditionalRetailerInfos</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_AdvertisingSettings.html">Marktjagd_Database_Service_AdvertisingSettings</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_AmountBrochures.html">Marktjagd_Database_Service_AmountBrochures</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_AmountProducts.html">Marktjagd_Database_Service_AmountProducts</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_AmountStores.html">Marktjagd_Database_Service_AmountStores</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_Author.html">Marktjagd_Database_Service_Author</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_CompaniesWithAdMaterial.html">Marktjagd_Database_Service_CompaniesWithAdMaterial</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_Company.html">Marktjagd_Database_Service_Company</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_CompanyAdditionalInfos.html">Marktjagd_Database_Service_CompanyAdditionalInfos</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_CrawlerBehaviour.html">Marktjagd_Database_Service_CrawlerBehaviour</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_CrawlerConfig.html">Marktjagd_Database_Service_CrawlerConfig</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_CrawlerLog.html">Marktjagd_Database_Service_CrawlerLog</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_CrawlerLogType.html">Marktjagd_Database_Service_CrawlerLogType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_CrawlerType.html">Marktjagd_Database_Service_CrawlerType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_GeoRegion.html">Marktjagd_Database_Service_GeoRegion</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_IntervallType.html">Marktjagd_Database_Service_IntervallType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_Partner.html">Marktjagd_Database_Service_Partner</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_QualityCheckCompanyInfos.html">Marktjagd_Database_Service_QualityCheckCompanyInfos</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_QualityCheckErrors.html">Marktjagd_Database_Service_QualityCheckErrors</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_Redmine.html">Marktjagd_Database_Service_Redmine</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_Role.html">Marktjagd_Database_Service_Role</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_Status.html">Marktjagd_Database_Service_Status</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_Stellwerk.html">Marktjagd_Database_Service_Stellwerk</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_Task.html">Marktjagd_Database_Service_Task</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_TriggerConfig.html">Marktjagd_Database_Service_TriggerConfig</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_TriggerLog.html">Marktjagd_Database_Service_TriggerLog</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_TriggerType.html">Marktjagd_Database_Service_TriggerType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_User.html">Marktjagd_Database_Service_User</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_Users.html">Marktjagd_Database_Service_Users</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Database_Service_Zipcode.html">Marktjagd_Database_Service_Zipcode</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Entity_Api_Abstract.html">Marktjagd_Entity_Api_Abstract</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Entity_Api_Article.html">Marktjagd_Entity_Api_Article</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Entity_Api_Brochure.html">Marktjagd_Entity_Api_Brochure</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Entity_Api_Distribution.html">Marktjagd_Entity_Api_Distribution</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Entity_Api_Store.html">Marktjagd_Entity_Api_Store</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Entity_Email.html">Marktjagd_Entity_Email</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Entity_GooglePlaces.html">Marktjagd_Entity_GooglePlaces</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Entity_MarktjagdApi.html">Marktjagd_Entity_MarktjagdApi</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Entity_Page.html">Marktjagd_Entity_Page</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Entity_Password.html">Marktjagd_Entity_Password</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Entity_PhpExcel_Worksheet.html">Marktjagd_Entity_PhpExcel_Worksheet</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Entity_Trigger.html">Marktjagd_Entity_Trigger</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Entity_TriggerType.html">Marktjagd_Entity_TriggerType</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Compare_Collection_Store.html">Marktjagd_Service_Compare_Collection_Store</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Compare_Collection_StoreCompletely.html">Marktjagd_Service_Compare_Collection_StoreCompletely</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Compare_Update_Store.html">Marktjagd_Service_Compare_Update_Store</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Generator_Password.html">Marktjagd_Service_Generator_Password</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Generator_Url.html">Marktjagd_Service_Generator_Url</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Input_Archive.html">Marktjagd_Service_Input_Archive</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Input_Csv.html">Marktjagd_Service_Input_Csv</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Input_FtpTrigger.html">Marktjagd_Service_Input_FtpTrigger</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Input_GooglePlaces.html">Marktjagd_Service_Input_GooglePlaces</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Input_GoogleProducts.html">Marktjagd_Service_Input_GoogleProducts</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Input_MarktjagdApi.html">Marktjagd_Service_Input_MarktjagdApi</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Input_MarktjagdCsv.html">Marktjagd_Service_Input_MarktjagdCsv</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Input_Page.html">Marktjagd_Service_Input_Page</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Input_Pdf.html">Marktjagd_Service_Input_Pdf</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Input_PhpExcel.html">Marktjagd_Service_Input_PhpExcel</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Input_Redmine.html">Marktjagd_Service_Input_Redmine</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Input_ScriptStart.html">Marktjagd_Service_Input_ScriptStart</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Input_Trigger.html">Marktjagd_Service_Input_Trigger</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Mastercrawler_Connector.html">Marktjagd_Service_Mastercrawler_Connector</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Output_File.html">Marktjagd_Service_Output_File</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Output_GooglePlaces.html">Marktjagd_Service_Output_GooglePlaces</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Output_MarktjagdApi.html">Marktjagd_Service_Output_MarktjagdApi</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Output_MarktjagdCsvAbstract.html">Marktjagd_Service_Output_MarktjagdCsvAbstract</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Output_MarktjagdCsvArticle.html">Marktjagd_Service_Output_MarktjagdCsvArticle</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Output_MarktjagdCsvBrochure.html">Marktjagd_Service_Output_MarktjagdCsvBrochure</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Output_MarktjagdCsvStore.html">Marktjagd_Service_Output_MarktjagdCsvStore</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Output_Pdf.html">Marktjagd_Service_Output_Pdf</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Output_QualityCheck.html">Marktjagd_Service_Output_QualityCheck</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Output_Redmine.html">Marktjagd_Service_Output_Redmine</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Text_Address.html">Marktjagd_Service_Text_Address</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Text_Encoding.html">Marktjagd_Service_Text_Encoding</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Text_Numbers.html">Marktjagd_Service_Text_Numbers</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Text_TextFormat.html">Marktjagd_Service_Text_TextFormat</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Text_Times.html">Marktjagd_Service_Text_Times</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Text_Url.html">Marktjagd_Service_Text_Url</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Transfer_Download.html">Marktjagd_Service_Transfer_Download</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Transfer_Email.html">Marktjagd_Service_Transfer_Email</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Transfer_Ftp.html">Marktjagd_Service_Transfer_Ftp</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Transfer_FtpMarktjagd.html">Marktjagd_Service_Transfer_FtpMarktjagd</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Transfer_Http.html">Marktjagd_Service_Transfer_Http</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Validator_RobotsTxt.html">Marktjagd_Service_Validator_RobotsTxt</a></li>
+                                                    <li class="class"><a href="../classes/Marktjagd_Service_Zend_Cli.html">Marktjagd_Service_Zend_Cli</a></li>
+                                            </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        </div>
+    </section>
+    <section class="row-fluid">
+        <div class="span10 offset2">
+            <div class="row-fluid">
+                <div class="span8 content file">
+                    <nav>
+                                                                    </nav>
+
+                    <a href="#source-view" role="button" class="pull-right btn" data-toggle="modal"><i class="icon-code"></i></a>
+                    <h1><small>Database/Mapper</small>CrawlerLog.php</h1>
+                    <p><em></em></p>
+                    
+
+                    
+                    
+                                        <h2>Classes</h2>
+                    <table class="table table-hover">
+                                            <tr>
+                            <td><a href="../classes/Marktjagd_Database_Mapper_CrawlerLog.html">Marktjagd_Database_Mapper_CrawlerLog</a></td>
+                            <td><em></em></td>
+                        </tr>
+                                        </table>
+                                    </div>
+
+                <aside class="span4 detailsbar">
+                    <dl>
+                                                    <dt>Package</dt>
+                            <dd><div class="namespace-wrapper">\Default</div></dd>
+                        
+                        
+                    </dl>
+                    <h2>Tags</h2>
+                    <table class="table table-condensed">
+                                                    <tr><td colspan="2"><em>None found</em></td></tr>
+                                            </table>
+
+                </aside>
+            </div>
+
+            
+            
+        </div>
+    </section>
+
+    <div id="source-view" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="source-view-label" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="source-view-label"></h3>
+        </div>
+        <div class="modal-body">
+            <pre data-src="../files/Database/Mapper/CrawlerLog.php.txt" class="language-php line-numbers"></pre>
+        </div>
+    </div>
+
+    <footer class="row-fluid">
+        <section class="span10 offset2">
+            <section class="row-fluid">
+                <section class="span10 offset1">
+                    <section class="row-fluid footer-sections">
+                        <section class="span4">
+                                                        <h1><i class="icon-code"></i></h1>
+                            <div>
+                                <ul>
+                                                                            <li><a href="../namespaces/Marktjagd.html">\Marktjagd</a></li>
+                                                                    </ul>
+                            </div>
+                        </section>
+                        <section class="span4">
+                                                        <h1><i class="icon-bar-chart"></i></h1>
+                            <div>
+                                <ul>
+                                    <li><a href="../graphs/class.html">Class Hierarchy Diagram</a></li>
+                                </ul>
+                            </div>
+                        </section>
+                        <section class="span4">
+                                                        <h1><i class="icon-pushpin"></i></h1>
+                            <div>
+                                <ul>
+                                    <li><a href="../reports/errors.html">Errors</a></li>
+                                    <li><a href="../reports/markers.html">Markers</a></li>
+                                </ul>
+                            </div>
+                        </section>
+                    </section>
+                </section>
+            </section>
+            <section class="row-fluid">
+                <section class="span10 offset1">
+                    <hr />
+                    Documentation is powered by <a href="http://www.phpdoc.org/">phpDocumentor </a> and authored
+                    on June 23rd, 2017 at 16:13.
+                </section>
+            </section>
+        </section>
+    </footer>
+</div>
+
+</body>
+</html>

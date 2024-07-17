@@ -1,0 +1,86 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the ArticleResource class.
+ *
+ * PHP version 5
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  article
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Resource\Article;
+
+use Marktjagd\ApiClient\Resource;
+
+/**
+ * Article resource
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  article
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+class ArticleResource extends Resource\Resource
+{
+
+    protected static $hasCollection = true;
+
+    /**
+     * Sets the resource definition
+     *
+     * @return void
+     */
+    protected function setResourceDefinition()
+    {
+        $this
+            ->hasAttribute(new Resource\ResourceAttributeBoolean('favored'))
+
+            ->hasField(new Resource\ResourceFieldInteger('id'), true)
+            ->hasField(new Resource\ResourceFieldString('partner'))
+            ->hasField(new Resource\ResourceFieldString('number'))
+            ->hasField(new Resource\ResourceFieldBoolean('number_is_generated'))
+            ->hasField(new Resource\ResourceFieldString('status'))
+            ->hasField(new Resource\ResourceFieldInteger('company_id'))
+            ->hasField(new Resource\ResourceFieldInteger('catalog_id'))
+            ->hasField(new Resource\ResourceFieldString('title'))
+            ->hasField(new Resource\ResourceFieldString('time_constraint'))
+            ->hasField(new Resource\ResourceFieldString('description'))
+            ->hasField(new Resource\ResourceFieldString('ean'))
+            ->hasField(new Resource\ResourceFieldInteger('category_id'))
+            ->hasField(new Resource\ResourceFieldFloat('price'))
+            ->hasField(new Resource\ResourceFieldBoolean('price_multiple'))
+            ->hasField(new Resource\ResourceFieldString('shipping'))
+            ->hasField(new Resource\ResourceFieldString('manufacturer_price'))
+            ->hasField(new Resource\ResourceFieldString('manufacturer_number'))
+            ->hasField(new Resource\ResourceFieldString('url'))
+            ->hasField(new Resource\ResourceFieldString('size'))
+            ->hasField(new Resource\ResourceFieldString('color'))
+            ->hasField(new Resource\ResourceFieldString('amount'))
+            ->hasField(new Resource\ResourceFieldString('datetime_from'))
+            ->hasField(new Resource\ResourceFieldString('datetime_to'))
+            ->hasField(new Resource\ResourceFieldString('datetime_visible_from'))
+            ->hasField(new Resource\ResourceFieldString('datetime_visible_to'))
+            ->hasField(new Resource\ResourceFieldString('datetime_created'))
+            ->hasField(new Resource\ResourceFieldString('datetime_modified'))
+            ->hasField(new Resource\ResourceFieldString('datetime_removed'))
+            ->hasField(new Resource\ResourceFieldFloat('distance'))
+            ->hasField(new Resource\ResourceFieldFloat('score'))
+            ->hasField(new Resource\ResourceFieldArrayString('tracking_bugs'))
+            ->hasField(new Resource\ResourceFieldString('external_tracking_id'))
+
+            ->hasResource(Resource\ResourceFactory::create('catalog'))
+            ->hasResource(Resource\ResourceFactory::create('rating'))
+            ->hasResource(Resource\ResourceFactory::create('tags'))
+            ->hasResource(Resource\ResourceFactory::create('images'))
+            ->hasResource(Resource\ResourceFactory::create('stores'));
+    }
+
+}

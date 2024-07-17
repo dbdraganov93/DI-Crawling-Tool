@@ -1,0 +1,47 @@
+<?php
+
+class Marktjagd_Database_Service_Redmine extends Marktjagd_Database_Service_Abstract
+{
+    /**
+     * Ermittelt alle verfügbaren Redmine-ID's
+     * @return Marktjagd_Database_Collection_Redmine
+     */
+    public function findAll()
+    {
+        $cRedmine = new Marktjagd_Database_Collection_Redmine();
+        $mRedmine = new Marktjagd_Database_Mapper_Redmine();
+        $mRedmine->fetchAll(null, $cRedmine);
+        
+        return $cRedmine;
+    }
+    
+    /**
+     * 
+     * @param string $companyId
+     * @return Marktjagd_Database_Entity_Redmine
+     */
+    public function find($companyId)
+    {
+        $eRedmine = new Marktjagd_Database_Entity_Redmine();
+        $mRedmine = new Marktjagd_Database_Mapper_Redmine();
+        
+        $mRedmine->find($companyId, $eRedmine);
+        
+        return $eRedmine;
+    }
+    
+    /**
+     * Findet Company-ID anhand der Redmine-ID
+     * 
+     * @param Marktjagd_Database_Entity_Redmine $redmineId
+     */
+    public function findByRedmineId($redmineId) {
+        $eRedmine = new Marktjagd_Database_Entity_Redmine();
+        $mRedmine = new Marktjagd_Database_Mapper_Redmine();
+        
+        $mRedmine->findByRedmineId($redmineId, $eRedmine);
+        
+        return $eRedmine;
+        
+    }
+}

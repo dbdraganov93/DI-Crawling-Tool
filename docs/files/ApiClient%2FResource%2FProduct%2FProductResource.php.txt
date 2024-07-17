@@ -1,0 +1,93 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the ProductResource class.
+ *
+ * PHP version 5
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  product
+ * @author      Robert Freigang <robert.freigang@marktjagd.de>
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Resource\Product;
+
+use Marktjagd\ApiClient\Resource;
+
+/**
+ * Product resource.
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  product
+ * @author      Robert Freigang <robert.freigang@marktjagd.de>
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Marktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+class ProductResource extends Resource\Resource
+{
+
+    const
+        STATUS_ACTIVE = 'active',
+        STATUS_INACTIVE = 'inactive',
+        TYPE_PRIMARY = 'primary',
+        TYPE_SECONDARY = 'secondary',
+        CATEGORY_STANDARD = 'standard',
+        CATEGORY_ACQUISITION = 'acquisition',
+        CATEGORY_LISTING = 'listing',
+        CATEGORY_LIGHT = 'light',
+        CATEGORY_BREAK = 'break',
+        CATEGORY_CUSTOM = 'custom',
+        PRICE_PER_MONTH_TYPE_PARTIAL = 'partial',
+        PRICE_PER_MONTH_TYPE_FIXED = 'fixed',    
+        CHARGE_LIMIT_TYPE_MONTH = 'month',
+        CHARGE_LIMIT_TYPE_TERM = 'term';
+
+    protected static $hasCollection = true;
+
+    /**
+     * Sets the resource definition.
+     *
+     * @return void
+     */
+    protected function setResourceDefinition()
+    {
+        $this
+            ->hasField(new Resource\ResourceFieldInteger('id'), true)
+            ->hasField(new Resource\ResourceFieldString('title'))
+            ->hasField(new Resource\ResourceFieldString('description'))
+            ->hasField(new Resource\ResourceFieldString('status'))
+            ->hasField(new Resource\ResourceFieldString('type'))
+            ->hasField(new Resource\ResourceFieldString('category'))
+            ->hasField(new Resource\ResourceFieldInteger('priority'))
+            ->hasField(new Resource\ResourceFieldFloat('price_per_month'))
+            ->hasField(new Resource\ResourceFieldString('price_per_month_type'))
+            ->hasField(new Resource\ResourceFieldFloat('price_per_store'))
+            ->hasField(new Resource\ResourceFieldFloat('cpc_article'))
+            ->hasField(new Resource\ResourceFieldFloat('cpc_brochure'))
+            ->hasField(new Resource\ResourceFieldFloat('cpc_coupon'))
+            ->hasField(new Resource\ResourceFieldFloat('cpc_store'))
+            ->hasField(new Resource\ResourceFieldFloat('lead'))
+            ->hasField(new Resource\ResourceFieldFloat('charge_min'))
+            ->hasField(new Resource\ResourceFieldFloat('charge_limit'))
+            ->hasField(new Resource\ResourceFieldString('charge_limit_type'))
+            ->hasField(new Resource\ResourceFieldInteger('accounting_period'))
+            ->hasField(new Resource\ResourceFieldInteger('minimum_accounting_period'))
+            ->hasField(new Resource\ResourceFieldInteger('cancellation_period'))
+            ->hasField(new Resource\ResourceFieldString('datetime_to'))
+            ->hasField(new Resource\ResourceFieldInteger('followup_id'))
+            ->hasField(new Resource\ResourceFieldBoolean('allow_secondary'))
+            ->hasField(new Resource\ResourceFieldArrayInteger('partner_ids'))
+            ->hasField(new Resource\ResourceFieldArrayInteger('partner_group_ids'))
+
+            ->hasResource(Resource\ResourceFactory::create('permissions'));
+    }
+
+}
+

@@ -1,0 +1,59 @@
+<?php
+
+class Marktjagd_Database_Mapper_TriggerLog extends Marktjagd_Database_Mapper_Abstract
+{
+    /**
+     * Returns the database table class, if no one exists,
+     * default will be created.
+     *
+     * @return  Marktjagd_Database_DbTable_TriggerLog
+     */
+    public function getDbTable()
+    {
+        return parent::getDbTable();
+    }
+
+    /**
+     * Saves data to database. If the primary key is set,
+     * data will be updated.
+     *
+     * @param Marktjagd_Database_Entity_TriggerLog $oTriggerLog Object data
+     * @param bool $bNull Save also null values
+     *
+     * @return int|mixed
+     */
+    public function save(Marktjagd_Database_Entity_TriggerLog $oTriggerLog, $bNull = false)
+    {
+        return parent::_save($oTriggerLog, $bNull);
+    }
+
+    /**
+     * Loads data by primary key(s). By multiple primary
+     * keys use an array with the values of the primary key columns.
+     *
+     * @param mixed $mId Primary key(s) value(s)
+     * @param Marktjagd_Database_Entity_TriggerLog  $oTriggerLog Object for data
+     *
+     * @return bool True if found, otherwise false
+     */
+    public function find($mId, Marktjagd_Database_Entity_TriggerLog $oTriggerLog)
+    {
+        return parent::_find($mId, $oTriggerLog);
+    }
+
+    /**
+     * @param int $hours Stunden in die Vergangenheit, bis zu denen die FTP-Aktionen aufgelistet werden sollen
+     * @param Marktjagd_Database_Collection_TriggerLog $oTriggerLog
+     * @return bool
+     */
+    public function findForLastHours($hours, $oTriggerLog)
+    {
+        $result = $this->getDbTable()->findForLastHours($hours);
+        if (count($result) > 0) {
+            $oTriggerLog->setOptions($result);
+            return true;
+        }
+
+        return false;
+    }
+}

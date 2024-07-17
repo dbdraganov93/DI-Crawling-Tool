@@ -1,0 +1,683 @@
+<?php
+
+/**
+ * Service zum Transferieren von Dateien via FTP
+ *
+ * Class Marktjagd_Service_Transfer_Ftp
+ */
+class Marktjagd_Service_Transfer_Ftp
+{
+    protected $_hostname = '';
+    protected $_username = '';
+    protected $_password = '';
+    protected $_port = 21;
+    protected $_passive = TRUE;
+    protected $_connId = FALSE;
+    protected $_logger = FALSE;
+
+    /**
+     * Constructor - Sets Preferences
+     *
+     * The constructor can be passed an array of config values
+     */
+    public function __construct($config = array())
+    {
+        /* @var $logger Zend_Log */
+        $this->_logger = Zend_Registry::get('logger');
+        if (count($config) > 0) {
+            $this->initialize($config);
+        }
+
+        $this->_logger->log('FTP Class Initialized', Zend_Log::DEBUG);
+    }
+
+    /**
+     * Initialize preferences
+     *
+     * @param    $config array
+     * @return    void
+     */
+    public function initialize($config = array())
+    {
+        foreach ($config as $key => $val) {
+            if (substr($key, 0, 1) != '_') {
+                $key = '_' . $key;
+            }
+
+            if (isset($this->$key)) {
+                $this->$key = $val;
+            }
+        }
+
+        // Prep the hostname
+        $this->_hostname = preg_replace('|.+?://|', '', $this->_hostname);
+    }
+
+    /**
+     * FTP Connect
+     *
+     * @param    array $config the connection values
+     * @return    bool
+     */
+    public function connect($config = array())
+    {
+        if (count($config) > 0) {
+            $this->initialize($config);
+        }
+
+        if (FALSE === ($this->_connId = @ftp_connect($this->_hostname, $this->_port))) {
+            $this->_logger->err('ftp_unable_to_connect');
+            return FALSE;
+        }
+
+        if (!$this->_login()) {
+            $this->_logger->err('ftp_unable_to_login');
+            return FALSE;
+        }
+
+        // Set passive mode if needed
+        if ($this->_passive == TRUE) {
+            ftp_pasv($this->_connId, TRUE);
+        }
+
+        return TRUE;
+    }
+
+    /**
+     * FTP Login
+     *
+     * @return    bool
+     */
+    private function _login()
+    {
+        return @ftp_login($this->_connId, $this->_username, $this->_password);
+    }
+
+    /**
+     * Validates the connection ID
+     *
+     * @return    bool
+     */
+    private function _isConn()
+    {
+        if (!is_resource($this->_connId)) {
+            $this->_logger->log('ftp_no_connection', Zend_Log::ERR);
+            return FALSE;
+        }
+        return TRUE;
+    }
+
+    /**
+     * Change directory
+     *
+     * The second parameter lets us momentarily turn off debugging so that
+     * this function can be used to test for the existence of a folder
+     * without throwing an error.  There's no FTP equivalent to is_dir()
+     * so we do it by trying to change to a particular directory.
+     * Internally, this parameter is only used by the "mirror" function below.
+     *
+     * @param    string
+     * @return    bool
+     */
+    public function changedir($path = '')
+    {
+        if ($path == '' OR !$this->_isConn()) {
+            return FALSE;
+        }
+
+        $result = @ftp_chdir($this->_connId, $path);
+
+        if ($result === FALSE) {
+            $this->_logger->log('ftp_unable_to_changedir', Zend_Log::ERR);
+            return FALSE;
+        }
+
+        return TRUE;
+    }
+
+    /**
+     * Create a directory
+     *
+     * @param    string $path
+     * @param    string $permissions
+     * @return   bool
+     */
+    public function mkdir($path = '', $permissions = NULL)
+    {
+        if ($path == '' OR !$this->_isConn()) {
+            return FALSE;
+        }
+
+        $result = @ftp_mkdir($this->_connId, $path);
+
+        if ($result === FALSE) {
+            $this->_logger->log('ftp_unable_to_makedir', Zend_Log::ERR);
+            return FALSE;
+        }
+
+        // Set file permissions if needed
+        if (!is_null($permissions)) {
+            $this->chmod($path, (int)$permissions);
+        }
+
+        return TRUE;
+    }
+
+    /**
+     * Upload a file to the server
+     *
+     * @param    string $locpath
+     * @param    string $rempath
+     * @param    string $mode
+     * @param    null|string $permissions
+     * @return    bool
+     */
+    public function upload($locpath, $rempath, $mode = 'auto', $permissions = NULL)
+    {
+        if (!$this->_isConn()) {
+            return FALSE;
+        }
+
+        if (!file_exists($locpath)) {
+            $this->_logger->log('ftp_no_source_file', Zend_Log::ERR);
+            return FALSE;
+        }
+
+        // Set the mode if not specified
+        if ($mode == 'auto') {
+            // Get the file extension so we can set the upload type
+            $ext = $this->_getExt($locpath);
+            $mode = $this->_setType($ext);
+        }
+
+        $mode = ($mode == 'ascii') ? FTP_ASCII : FTP_BINARY;
+
+        $result = ftp_put($this->_connId, $rempath, $locpath, $mode);
+
+        if ($result === FALSE) {
+            $this->_logger->log('ftp_unable_to_upload: ', Zend_Log::ERR);
+            foreach (error_get_last() as $singleInfo) {
+                echo $this->_logger->log($singleInfo, Zend_Log::ERR);
+            }
+            return FALSE;
+        }
+
+        // Set file permissions if needed
+        if (!is_null($permissions)) {
+            $this->chmod($rempath, (int)$permissions);
+        }
+
+        return TRUE;
+    }
+
+    /**
+     * Download a file from a remote server to the local server
+     *
+     * @param    string $rempath
+     * @param    string $locpath
+     * @param    string $mode
+     * @return    bool
+     */
+    public function download($rempath, $locpath, $mode = 'auto')
+    {
+        if (!$this->_isConn()) {
+            return FALSE;
+        }
+
+        // Set the mode if not specified
+        if ($mode == 'auto') {
+            // Get the file extension so we can set the upload type
+            $ext = $this->_getExt($rempath);
+            $mode = $this->_setType($ext);
+        }
+
+        $mode = ($mode == 'ascii') ? FTP_ASCII : FTP_BINARY;
+
+        $result = @ftp_get($this->_connId, $locpath, $rempath, $mode);
+        $filePath = $locpath . basename($rempath);
+
+        if ($result === FALSE) {
+            $this->_logger->log('Fehlermeldung vom FTP: Konnte Datei ' . $rempath
+                . ' nicht zu ' . $locpath . ' herunterladen', Zend_Log::ERR);
+            return FALSE;
+        }
+
+        return $filePath;
+    }
+
+    /**
+     * Rename (or move) a file
+     *
+     * @param    string
+     * @param    string
+     * @param    bool
+     * @return    bool
+     */
+    public function rename($old_file, $new_file, $move = FALSE)
+    {
+        if (!$this->_isConn()) {
+            return FALSE;
+        }
+
+        $result = @ftp_rename($this->_connId, $old_file, $new_file);
+
+        if ($result === FALSE) {
+            $msg = ($move == FALSE) ? 'ftp_unable_to_rename' : 'ftp_unable_to_move';
+            $this->_logger->log($msg, Zend_Log::ERR);
+            return FALSE;
+        }
+
+        return TRUE;
+    }
+
+    /**
+     * Move a file
+     *
+     * @param    string $oldFile
+     * @param    string $newFile
+     * @return    bool
+     */
+    public function move($oldFile, $newFile)
+    {
+        return $this->rename($oldFile, $newFile, TRUE);
+    }
+
+    /**
+     * Rename (or move) a file
+     *
+     * @param    string $filepath
+     * @return    bool
+     */
+    public function deleteFile($filepath)
+    {
+        if (!$this->_isConn()) {
+            return FALSE;
+        }
+
+        $result = @ftp_delete($this->_connId, $filepath);
+
+        if ($result === FALSE) {
+            $this->_logger->log('ftp_unable_to_delete', Zend_Log::ERR);
+            return FALSE;
+        }
+
+        return TRUE;
+    }
+
+    /**
+     * Delete a folder and recursively delete everything (including sub-folders)
+     * containted within it.
+     *
+     * @param    string $filepath
+     * @return    bool
+     */
+    public function deleteDir($filepath)
+    {
+        if (!$this->_isConn()) {
+            return FALSE;
+        }
+
+        // Add a trailing slash to the file path if needed
+        $filepath = preg_replace("/(.+?)\/*$/", "\\1/", $filepath);
+
+        $list = $this->listFiles($filepath);
+
+        if ($list !== FALSE AND count($list) > 0) {
+            foreach ($list as $item) {
+                // If we can't delete the item it's probaly a folder so
+                // we'll recursively call delete_dir()
+                if (!@ftp_delete($this->_connId, $item)) {
+                    $this->deleteDir($item);
+                }
+            }
+        }
+
+        $result = @ftp_rmdir($this->_connId, $filepath);
+
+        if ($result === FALSE) {
+            $this->_logger->log('ftp_unable_to_delete', Zend_Log::ERR);
+            return FALSE;
+        }
+
+        return TRUE;
+    }
+
+    /**
+     * Set file permissions
+     *
+     * @param    string $path the file path
+     * @param    string $perm the permissions
+     * @return    bool
+     */
+    public function chmod($path, $perm)
+    {
+        if (!$this->_isConn()) {
+            return FALSE;
+        }
+
+        // Permissions can only be set when running PHP 5
+        if (!function_exists('ftp_chmod')) {
+            $this->_logger->log('ftp_unable_to_chmod', Zend_Log::ERR);
+            return FALSE;
+        }
+
+        $result = @ftp_chmod($this->_connId, $perm, $path);
+
+        if ($result === FALSE) {
+            $this->_logger->log('ftp_unable_to_chmod', Zend_Log::ERR);
+            return FALSE;
+        }
+
+        return TRUE;
+    }
+
+    /**
+     * FTP List files in the specified directory.
+     * If $pattern is given, only files for the given pattern are listed.
+     * If $recursiv = true, all files (also in subfolders) will be listed
+     *
+     * @param string $path
+     * @param string $pattern preg_match Pattern for the files to find
+     * @param bool $recursiv
+     * @return array
+     */
+    public function listFiles($path = '.', $pattern = null, $recursiv = false)
+    {
+        $aListFilter = array();
+        if (!$this->_isConn()) {
+            return $aListFilter;
+        }
+
+        if ($recursiv) {
+            $aList = $this->_listFilesRecursiv($this->_connId, $path, 10);
+        } else {
+            $aList = ftp_nlist($this->_connId, $path);
+        }
+
+        // check if filter files by pattern
+        if (!$pattern) {
+            $aListFilter = $aList;
+        } else {
+            // filter files by pattern
+            foreach ($aList as $listEntry) {
+                if (preg_match($pattern, $listEntry)) {
+                    $aListFilter[] = $listEntry;
+                }
+            }
+        }
+
+        return $aListFilter;
+    }
+
+    /**
+     * Listet Dateien auf einem FTP rekursiv auf
+     *
+     * @param $conn
+     * @param $path
+     * @param int $maxLevel
+     * @return array
+     */
+    protected function _listFilesRecursiv($conn, $path, $maxLevel = 0)
+    {
+        $files = array();
+
+        if ($maxLevel < 0) {
+            return $files;
+        }
+
+        if ($path !== '/'
+            && $path[strlen($path) - 1] !== '/'
+        ) {
+            $path .= '/';
+        }
+
+        $filesList = ftp_nlist($conn, $path);
+
+        foreach ($filesList as $f) {
+            if ($f !== '.'
+                && $f !== '..'
+                && $f !== $path
+            ) {
+                if (strpos($f, '.') === FALSE) {
+                    $files = array_merge($files, $this->_listFilesRecursiv($conn, $f, $maxLevel - 1));
+                } else {
+                    $files[] = $f;
+                }
+            }
+        }
+
+        return $files;
+    }
+
+    /**
+     * Read a directory and recreate it remotely
+     *
+     * This function recursively reads a folder and everything it contains (including
+     * sub-folders) and creates a mirror via FTP based on it.  Whatever the directory structure
+     * of the original file path will be recreated on the server.
+     *
+     * @param    string $locpath path to source with trailing slash
+     * @param    string $rempath path to destination - include the base folder with trailing slash
+     * @return    bool
+     */
+    public function mirror($locpath, $rempath)
+    {
+        if (!$this->_isConn()) {
+            return FALSE;
+        }
+
+        // Open the local file path
+        if ($fp = @opendir($locpath)) {
+            // Attempt to open the remote file path.
+            if (!$this->changedir($rempath, TRUE)) {
+                // If it doesn't exist we'll attempt to create the direcotory
+                if (!$this->mkdir($rempath) OR !$this->changedir($rempath)) {
+                    return FALSE;
+                }
+            }
+
+            // Recursively read the local directory
+            while (FALSE !== ($file = readdir($fp))) {
+                if (@is_dir($locpath . $file) && substr($file, 0, 1) != '.') {
+                    $this->mirror($locpath . $file . "/", $rempath . $file . "/");
+                } elseif (substr($file, 0, 1) != ".") {
+                    // Get the file extension so we can se the upload type
+                    $ext = $this->_getExt($file);
+                    $mode = $this->_setType($ext);
+
+                    $this->upload($locpath . $file, $rempath . $file, $mode);
+                }
+            }
+            return TRUE;
+        }
+
+        return FALSE;
+    }
+
+    /**
+     * Extract the file extension
+     *
+     * @param    string $filename
+     * @return    string
+     */
+    private function _getExt($filename)
+    {
+        if (FALSE === strpos($filename, '.')) {
+            return 'txt';
+        }
+
+        $x = explode('.', $filename);
+        return end($x);
+    }
+
+    /**
+     * Set the upload type
+     *
+     * @param    string $ext
+     * @return    string
+     */
+    private function _setType($ext)
+    {
+        $text_types = array(
+            'txt',
+            'text',
+            'php',
+            'phps',
+            'php4',
+            'js',
+            'css',
+            'htm',
+            'html',
+            'phtml',
+            'shtml',
+            'log',
+            'xml'
+        );
+
+        return (in_array($ext, $text_types)) ? 'ascii' : 'binary';
+    }
+
+    /**
+     * Close the connection
+     *
+     * @return    bool
+     */
+    public function close()
+    {
+        if (!$this->_isConn()) {
+            return FALSE;
+        }
+
+        return @ftp_close($this->_connId);
+    }
+
+    /**
+     * Liefert das Konfigurationsarray für den MJ-FTP
+     *
+     * @return array
+     */
+    public function getMjFtpConfig()
+    {
+        $configIni = new Zend_Config_Ini(APPLICATION_PATH . '/configs/application.ini', 'production');
+        $config = array(
+            'hostname' => $configIni->ftp->mj->host,
+            'username' => $configIni->ftp->mj->username,
+            'password' => $configIni->ftp->mj->password
+        );
+
+        return $config;
+    }
+
+    /**
+     * Liefert das Konfigurationsarray für den neuen MJ-FTP
+     *
+     * @return array
+     */
+    public function getMjFtpConfigNew()
+    {
+        $configIni = new Zend_Config_Ini(APPLICATION_PATH . '/configs/application.ini', 'production');
+        $config = array(
+            'hostname' => $configIni->ftp->mjnew->host,
+            'username' => $configIni->ftp->mjnew->username,
+            'password' => $configIni->ftp->mjnew->password
+        );
+
+        if (!strlen($config['username'])
+            || !strlen($config['password'])) {
+            throw new Exception('invalid username or password');
+        }
+
+        if (!strlen($config['hostname'])) {
+            throw new Exception('invalid hostname');
+        }
+
+        return $config;
+    }
+
+    /**
+     * Generiert einen lokalen Downloadpfad für FTP-Downloads und legt ggfs. diesen Pfad an
+     *
+     * @param int $companyId
+     * @return string
+     */
+    public function generateLocalDownloadFolder($companyId)
+    {
+        $localFolderName = APPLICATION_PATH . '/../public/files/ftp/' . $companyId . '/' . date('Y-m-d-H-i-s') . '/';
+        if (!is_dir($localFolderName)) {
+            if (!mkdir($localFolderName, 0775, true)) {
+                $this->_logger->log('generic ftp-crawler for company ' . $companyId . "\n"
+                    . 'unable to create local folder for ftp-download:' . $localFolderName, Zend_Log::CRIT);
+                return false;
+            }
+        }
+
+        return $localFolderName;
+    }
+
+    /**
+     * Downloads a file from FTP to a desired local directory and keeps the file name
+     *
+     * @return bool|string
+     */
+    public function downloadFtpToCompanyDir(string $remoteFilePath, int $companyId)
+    {
+        $localFolderName = $this->generateLocalDownloadFolder($companyId);
+        return $this->downloadFtpToDir($remoteFilePath, $localFolderName);
+    }
+
+    /**
+     * Lädt eine Datei vom FTP in ein gewünschtes lokales Verzeichnis runter und behält den Dateinamen
+     *
+     * @param string $remFilePath
+     * @param string $locFolderName
+     * @return bool|string
+     */
+    public function downloadFtpToDir($remFilePath, $locFolderName)
+    {
+        $aRemFilePath = explode('/', $remFilePath);
+        $fileName = end($aRemFilePath);
+        $fileName = preg_replace('#\s#', '_', $fileName);
+        $localFileName = $locFolderName . $fileName;
+
+        if (!$this->download($remFilePath, $localFileName)) {
+            return false;
+        }
+
+        return $localFileName;
+    }
+
+    /**
+     * Generiert die öffentlich erreichbare URL für Dateien, welche unter /public/files/ftp abgelegt wurden
+     *
+     * @param string $localFilePath
+     * @return bool|string
+     */
+    public function generatePublicFtpUrl($localFilePath)
+    {
+        $configCrawler = new Zend_Config_Ini(APPLICATION_PATH . '/configs/application.ini', APPLICATION_ENV);
+
+        if (!preg_match('#.*?(/files/ftp/(.*?))$#', $localFilePath, $match)) {
+            $this->_logger->log(
+                'invalid filename for generating public ftp-file url, filename: ' . $localFilePath,
+                Zend_Log::ERR
+            );
+
+            return false;
+        }
+
+        $s3Config = $configCrawler->crawler->s3;
+
+        if ($s3Config->active) {
+            // Let S3File service handle the details.
+            $fileHandle = new Marktjagd_Service_Output_S3File('ftp/', Marktjagd_Collection_Api_Brochure::getUniqueName($localFilePath));
+            $filePath = $fileHandle->saveFileInS3($localFilePath);
+
+            unlink($localFilePath);
+
+        } else {
+            $filePath = $configCrawler->crawler->publicUrl . $match[1];
+        }
+
+        return $filePath;
+    }
+}

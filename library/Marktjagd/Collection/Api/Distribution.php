@@ -1,0 +1,34 @@
+<?php
+
+class Marktjagd_Collection_Api_Distribution extends Marktjagd_Collection_Api_Abstract
+{
+
+    /**
+     * @param Marktjagd_Entity_Api_Distribution $element
+     * @return bool
+     */
+    public function addElement($element)
+    {
+        /* @var $logger Zend_Log */
+        $logger = Zend_Registry::get('logger');
+        $hash  = $element->getHash();
+
+        // skip empty elements
+        if ($hash == 'd41d8cd98f00b204e9800998ecf8427e') {
+            $logger->log('skip empty element', Zend_Log::DEBUG);
+            return false;
+        }
+
+        if (!array_key_exists($hash, $this->_elements)) {
+            $this->_elements[$hash] = $element;
+            return true;
+        } else {
+            /* @var $logger Zend_Log */
+            $logger = Zend_Registry::get('logger');
+            $logger->log('duplicate elements detected, want to add element with hash ' . $hash
+                , Zend_Log::DEBUG);
+            return false;
+        }
+    }
+
+}

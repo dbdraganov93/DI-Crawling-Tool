@@ -1,0 +1,36 @@
+<?php
+
+/**
+ * Service für Crawler Start
+ */
+class Marktjagd_Service_Input_ScriptStart {
+
+    /**
+     * Skript anhand des Crontabs starten
+     * 
+     * @param string $strCron
+     * @param string $strScript
+     * @return boolean|string
+     * @throws Exception
+     */
+    public function startByCron($strCron, $strScript) {
+        $sTimes = new Marktjagd_Service_Text_Times();
+        $logger = Zend_Registry::get('logger');
+        
+        if ($sTimes->checkCron($strCron)) {
+            $logger->log($strScript . ' started', Zend_Log::INFO);
+            exec('php ' . $strScript . ' 2>&1', $success, $returnVar);
+            if ($returnVar) {
+                throw new Exception('an error occured while running ' . $strScript);
+            }
+            foreach ($success as $singleMessage) {
+                if (strlen($singleMessage)) {
+                    $logger->log($singleMessage, Zend_Log::INFO);
+                }
+            }
+            return true;
+        }
+        return 'crontab checked successfully. conditions didn\'t match.';
+    }
+
+}

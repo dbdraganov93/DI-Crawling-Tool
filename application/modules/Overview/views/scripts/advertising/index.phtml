@@ -1,0 +1,45 @@
+<h1 class="page-header">Auswertung Werbepläne</h1>
+<div class="panel-heading">
+    <h3 class="panel-title"><?php echo $this->advertisingForm ?></h3>
+</div>
+<?php $aMonthNames = array(
+    '1' => 'Januar',
+    '2' => 'Februar',
+    '3' => 'März',
+    '4' => 'April',
+    '5' => 'Mai',
+    '6' => 'Juni',
+    '7' => 'Juli',
+    '8' => 'August',
+    '9' => 'September',
+    '10' => 'Oktober',
+    '11' => 'November',
+    '12' => 'Dezember'
+        );
+$aColors = array(
+    'kA' => '#A7A7A7',
+    '0' => '#9DC42E',
+    '1' => '#F7A600',
+    '-1' => '#E50054'
+);
+if (count($this->brochuresChecked)) :
+    echo '<div>Legende:</div><br/>'
+        . '<div style="color:#A7A7A7;">keine Angabe</div>'
+        . '<div style="color:#F7A600">mehr als angegeben</div>'
+        . '<div style="color:#9DC42E">alles korrekt</div>'
+        . '<div style="color:#E50054">FEHLER!</div><br/><br/>';
+echo '<div>Übersicht Prospekte:</div><br/>';
+    foreach ($this->brochuresChecked as $singleMonthKey => $singleMonthValue) : echo '<div class="square-title">'. $aMonthNames[$singleMonthKey] . '</div>';
+        foreach ($singleMonthValue as $day => $value): echo '<div class="square" style="background-color:' . $aColors[$value] . ';">'. $day . '</div>';
+        endforeach; echo '<br/><br/><br/>';
+    endforeach;
+endif;
+echo '<hr/>';
+
+if (count($this->productsChecked)) :
+echo '<div>Übersicht Produkte:</div><br/>';
+    foreach ($this->productsChecked as $singleMonthKey => $singleMonthValue) : echo '<div class="square-title">'. $aMonthNames[$singleMonthKey] . '</div>';
+        foreach ($singleMonthValue as $day => $value): echo '<div class="square" style="background-color:' . $aColors[$value] . ';">'. $day . '</div>';
+        endforeach; echo '<br/><br/><br/>';
+    endforeach;
+endif;

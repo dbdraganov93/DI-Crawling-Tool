@@ -1,0 +1,251 @@
+<?php
+
+/** Contains Base class for all Collection Resources. Extend this class for
+ * explicit collection implementations.
+ *
+ * PHP version 5
+ *
+ * @category Resource
+ * @package  Resource
+ * @author   Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license  Martktjagd GmbH
+ * @link     http://www.marktjagd.det
+ */
+
+namespace Marktjagd\ApiClient\Resource;
+
+/**
+ * Base class for all Collection Resources. Extend this class for
+ * explicit collection implementations.
+ *
+ * @category Resource
+ * @package  Resource
+ * @author   Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license  Martktjagd GmbH
+ * @link     http://www.marktjagd.de
+ */
+abstract class CollectionResource extends Resource implements \Iterator, \Countable
+{
+
+    /**
+     * Iterator position
+     *
+     * @var int
+     */
+    protected $position = 0;
+
+    /**
+     * Returns the name of a single resource in the collection.
+     *
+     * @return string resource name
+     */
+    protected static function getResourceName()
+    {
+        $class = self::getClassNameWithoutNamespace(self::getChildClassName());
+        $self  = self::getClassNameWithoutNamespace(__CLASS__);
+
+        return self::underscore(substr($class, 0, -strlen($self)));
+    }
+
+    /**
+     * Returns the name of the collection resource.
+     *
+     * @return string collection resource name
+     */
+    protected static function getName()
+    {
+        return self::getResourceName() . 's';
+    }
+
+    /**
+     * Returns the class name of the first child that extends this class.
+     *
+     * @return string class name
+     */
+    protected static function getChildClassName()
+    {
+        $class = get_called_class();
+
+        while (__CLASS__ != get_parent_class($class))
+        {
+            $class = get_parent_class($class);
+        }
+
+        return $class;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->position = 0;
+        $this->resources[self::getResourceName()] = array();
+    }
+
+    /**
+     * Load the resource using a json request response.
+     *
+     * @param stdClass $response  json request response
+     * @param string   $className class for item instantiation
+     *
+     * @return CollectionResource current instance
+     */
+    public function load(\stdClass $response, $className = null)
+    {
+        parent::load($response);
+
+        $resourceName = self::getResourceName();
+
+        $this->position = 0;
+        $this->resources[$resourceName] = array();
+
+        if (isset($response->$resourceName))
+        {
+            foreach ($response->$resourceName as $r)
+            {
+                $item = is_null($className) ? ResourceFactory::create($resourceName) : new $className;
+                $item->load($r);
+                $this->resources[$resourceName][] = $item;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Resets the iterator position. Implements Iterator.
+     *
+     * @return void
+     */
+    public function rewind()
+    {
+        $this->position = 0;
+    }
+
+    /**
+     * Return the collection element at the current iterator position.
+     * Implements Iterator.
+     *
+     * @return Resource current element
+     */
+    public function current()
+    {
+        return $this->resources[self::getResourceName()][$this->position];
+    }
+
+    /**
+     * Returns the current iterator position. Implements Iterator.
+     *
+     * @return int iterator position
+     */
+    public function key()
+    {
+        return $this->position;
+    }
+
+    /**
+     * Increments the current iterator position. Implements Iterator.
+     *
+     * @return void
+     */
+    public function next()
+    {
+        $this->position++;
+    }
+
+    /**
+     * Tests wether the current iterator position is a valid element.
+     * Implements Iterator.
+     *
+     * @return bool TRUE if the elements exists, FALSE otherwise
+     */
+    public function valid()
+    {
+        return isset($this->resources[self::getResourceName()][$this->position]);
+    }
+
+    /**
+     * Returns the number of collection items. Implements Countable.
+     *
+     * @return int number of collection items
+     */
+    public function count()
+    {
+        return count($this->resources[self::getResourceName()]);
+    }
+
+    /**
+     * Tests wether an attribute or collection item exists. Implements ArrayAccess.
+     *
+     * @param string|int $index attribute name or collection index
+     *
+     * @return bool TRUE if the attribute is set, FALSE otherwise
+     */
+    public function offsetExists($index)
+    {
+        if (is_string($index))
+        {
+            return parent::offsetExists($index);
+        }
+
+        return isset($this->resources[self::getResourceName()][$index]);
+    }
+
+    /**
+     * Returns an attribute value or collection item. Implements ArrayAccess.
+     *
+     * @param string|int $index attribute name or collection index
+     *
+     * @return mixed attribute value or resource
+     */
+    public function offsetGet($index)
+    {
+        if (is_string($index))
+        {
+            return parent::offsetGet($index);
+        }
+
+        if (!isset($this->resources[self::getResourceName()][$index]))
+        {
+            throw new ResourceException('Undefined index ' . $index);
+        }
+
+        return $this->resources[self::getResourceName()][$index];
+    }
+
+    /**
+     * Appends the elements of the given collection to the end of the current
+     * collection.
+     *
+     * @param CollectionResource $collection the collection to append
+     * @return CollectionResource current instance with appended elements
+     * @throws InvalidArgumentException
+     */
+    public function merge(CollectionResource $collection)
+    {
+        if (get_class($collection) != get_class($this))
+        {
+            throw new \InvalidArgumentException('Parameter 1 must be an instance of class ' .
+                get_class($this) . ', ' . get_class($collection) . ' given');
+        }
+
+        $resourceName = self::getResourceName();
+
+        $this->resources[$resourceName] = array_merge($this->resources[$resourceName], $collection->resources[$resourceName]);
+
+        // set hits to null because you can no longer rely on it
+        if (isset($this->attributes['hits']))
+        {
+            $this->attributes['hits'] = null;
+        }
+
+        return $this;
+    }
+
+}
+

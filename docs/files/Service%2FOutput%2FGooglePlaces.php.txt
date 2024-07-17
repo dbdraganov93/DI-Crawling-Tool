@@ -1,0 +1,302 @@
+<?php
+use Marktjagd\ApiClient\Resource;
+
+/**
+ * Service zum Export von Daten zu GooglePlaces
+ *
+ * Class Marktjagd_Service_Output_GooglePlaces
+ */
+class Marktjagd_Service_Output_GooglePlaces
+{
+    /**
+     * Generiert eine GooglePlaces CSV anhand einer (Standort-)Kollection
+     *
+     * @param Marktjagd_Collection_Api_Store $cStores
+     * @param int $industrieId
+     * @return string|boolean
+     */
+    public function generateExportCsvByCollection($cStores, $industrieId, $fallbackCountryCode, $fallbackState)
+    {
+        $sContent = $this->_generateHeadlineForExportCsv();
+        $sGeoRegion = new Marktjagd_Database_Service_GeoRegion();
+        
+        $cStores = $cStores->getElements();
+        
+        /* @var $eStore Marktjagd_Entity_Api_Store  */
+        foreach ($cStores as $eStore) {                           
+            $eGooglePlaces = new Marktjagd_Entity_GooglePlaces();
+            $eGooglePlaces->setStoreCode($eStore->getStoreNumber())
+                          ->setAddressLine1($eStore->getStreet() . ' ' . $eStore->getStreetNumber())
+                          ->setPostalCode($eStore->getZipcode())
+                          ->setCity($eStore->getCity())
+                          ->setName($eStore->getTitle())
+                          ->setHomepage($eStore->getWebsite())
+                          ->setEmail($eStore->getEmail())
+                          ->setMainPhone($eStore->getPhone())
+                          ->setState($sGeoRegion->findShortRegionByZipCode($eStore->getZipcode()))
+                          ->setFax($eStore->getFax())
+                          ->setHours($this->_convertMarktjagdCSVTimeToGoogleTime($eStore->getStoreHours()))
+                          ->setCountryCode('DE')
+                          ->setCategories($this->_mapCategoryFromMarktjagdToGoogle($industrieId))
+                          ->setImages($eStore->getImage());
+
+            if (!strlen($eGooglePlaces->getState())){
+                $eGooglePlaces->setCountryCode($fallbackCountryCode);
+                $eGooglePlaces->setState($fallbackState);
+            }            
+            
+            // Google erlaubt nur Beschreibungen bis 200 Zeichen
+            if (strlen($eStore->getText()) < 200) {
+                $eGooglePlaces->setDescription($eStore->getText());
+            } else {
+                $eGooglePlaces->setDescription(substr($eStore->getText(), 0, 196) . "...");
+            }
+            
+            $sContent .= $this->_generateContentLineForExportCsv($eGooglePlaces);
+        }
+        
+        $sContent = trim($sContent);
+
+        if ($sContent == trim($this->_generateHeadlineForExportCsv())) {
+            return false;
+        }
+
+        $sFile = new Marktjagd_Service_Output_File(
+            '/googlecsv/',
+            'googlePlaces_' . date('YmdHis') . '.csv');
+        if ($sFile->saveContentInFile($sContent, 'w')) {
+            $filePath = $sFile->getFilePath();
+        } else {
+            $filePath = false;
+        }
+
+        return $filePath;
+        
+    }
+        
+    /**
+     * Generiert eine GooglePlaces CSV anhand der Company-Id
+     *
+     * @param int $companyId
+     * @return string|boolean
+     */
+    public function generateExportCsvByCompanyId($companyId)
+    {
+        $count = 500;
+        $page = 1;
+
+        $sContent = $this->_generateHeadlineForExportCsv();
+        $sGeoRegion = new Marktjagd_Database_Service_GeoRegion();
+
+        $apiClient = new Marktjagd_Entity_MarktjagdApi();
+        $apiClient->setEnvironmentByCompanyId($companyId);
+
+        do {
+            $stores = Resource\Store\StoreResource::findAll(
+                array(
+                    'with_offer_flags' => false,
+                    'company_id' => $companyId,
+                    'count' => $count,
+                    'page' => $page++,
+                    'status' => Resource\Store\StoreResource::STATUS_VISIBLE
+                ));
+
+            foreach ($stores as $eStore) {
+                $eGooglePlaces = new Marktjagd_Entity_GooglePlaces();
+                $eGooglePlaces->setStoreCode($eStore->number)
+                              ->setAddressLine1($eStore->street . ' ' . $eStore->street_number)
+                              ->setPostalCode($eStore->zipcode)
+                              ->setCity($eStore->city)
+                              ->setName($eStore->title)
+                              ->setHomepage($eStore->homepage)
+                              ->setEmail($eStore->email)
+                              ->setMainPhone($eStore->phone_number)
+                              ->setState($sGeoRegion->findShortRegionByZipCode($eStore->zipcode))
+                              ->setFax($eStore->fax_number)
+                              ->setHours($this->_convertMarktjagdTimeToGoogleTime($eStore->hours))
+                              ->setCountryCode('DE')
+                              ->setCategories($this->_mapCategoryFromMarktjagdToGoogle($eStore->industry->id));
+
+                // Google erlaubt nur Beschreibungen bis 200 Zeichen
+                if (strlen($eStore->description) < 200) {
+                    $eGooglePlaces->setDescription($eStore->description);
+                } else {
+                    $eGooglePlaces->setDescription(substr($eStore->description, 0, 196) . "...");
+                }
+
+                // Bilder, wenn vorhanden, hinzufügen
+                $sGoogleImages = '';
+                if ($eStore->images->image
+                    && count ($eStore->images->image) > 0
+                ) {
+                    foreach ($eStore->images->image as $keyImage => $image) {
+                        if ($keyImage > 0) {
+                            $sGoogleImages .= ',';
+                        }
+
+                        $sGoogleImages .= $image->dimensions->dimension[0]->url;
+                    }
+                    $eGooglePlaces->setImages($sGoogleImages);
+                }
+                $sContent .= $this->_generateContentLineForExportCsv($eGooglePlaces);
+            }
+        } while (count($stores) == $count);
+
+        $sContent = trim($sContent);
+
+        if ($sContent == trim($this->_generateHeadlineForExportCsv())) {
+            return false;
+        }
+
+        $sFile = new Marktjagd_Service_Output_File(
+            '/googlecsv/',
+            'googlePlaces_' . date('YmdHis') . '.csv');
+        if ($sFile->saveContentInFile($sContent, 'w')) {
+            $filePath = $sFile->getFilePath();
+        } else {
+            $filePath = false;
+        }
+
+        return $filePath;
+    }
+
+    /**
+     * Konvertiert Zeiten vom Marktjagd-Format in Google-Places Format
+     *
+     * @param $hours
+     * @return string
+     */
+    protected function _convertMarktjagdTimeToGoogleTime($hours)
+    {
+        $sGoogleTime = '';
+        $weekdays = array(
+            'So' => 1,
+            'Mo' => 2,
+            'Di' => 3,
+            'Mi' => 4,
+            'Do' => 5,
+            'Fr' => 6,
+            'Sa' => 7
+        );
+
+        foreach ($hours as $keyHour => $hour) {
+            if ($keyHour > 0) {
+                $sGoogleTime .= ',';
+            }
+
+            $dayFrom = str_replace(array_keys($weekdays), array_values($weekdays), $hour->day_from);
+            $dayTo = str_replace(array_keys($weekdays), array_values($weekdays), $hour->day_to);
+
+            $keyDay = 0;
+            while ($dayFrom <= $dayTo)
+            {
+                if ($keyDay > 0) {
+                    $sGoogleTime .= ',';
+                }
+                $sGoogleTime .= $dayFrom . ':' . $hour->time_from . ':' . $hour->time_to;
+                $dayFrom++;
+                $keyDay++;
+            }
+        }
+        return $sGoogleTime;
+    }
+
+    /**
+     * Konvertiert Zeiten aus CSV / Collectionin Google-Places Format
+     *
+     * @param $hours
+     * @return string
+     */
+    protected function _convertMarktjagdCSVTimeToGoogleTime($hours)
+    {
+       $pattern = array('#[^0-9]{1}([0-9]{1})([^0-9]{1})#',
+                        '#Mo#',
+                        '#Di#',
+                        '#Mi#',
+                        '#Do#',
+                        '#Fr#',
+                        '#Sa#',
+                        '#So#',
+                        '#-#',
+                        '#\s*#'
+                        );
+       
+       $replace = array('0${1}${2}',
+                        '2:',
+                        '3:',
+                        '4:',
+                        '5:',
+                        '6:',
+                        '7:',
+                        '1:',
+                        ':',
+                        ''
+                        );
+        
+       $sGoogleTime = preg_replace($pattern, $replace, $hours);
+       
+        return $sGoogleTime;
+    }
+        
+    /**
+     * Mappt die Marktjagd-Kategorie-ID auf die entsprechende Google-Kategorie-Id
+     *
+     * @param int $mjCategoryId
+     * @return int
+     */
+    protected function _mapCategoryFromMarktjagdToGoogle($mjCategoryId)
+    {
+        $configPlaces = new Zend_Config_Ini(APPLICATION_PATH . '/modules/Google/config/mappingMjGoogle.ini');
+        $category = 230;
+        if ($configPlaces->$mjCategoryId) {
+            $category = $configPlaces->$mjCategoryId;
+        }
+
+        return $category;
+    }
+
+    /**
+     * Generiert die Kopfzeile für die CSV
+     *
+     * @return string
+     */
+    protected function _generateHeadlineForExportCsv()
+    {
+        $headline = 'Geschäftscode;Name;Adresszeile 1;Adresszeile 2;Stadt;Bezirk;Bundesland/-staat;Land;Postleitzahl;'
+            . 'Telefonnummer;Alternative Telefonnummer;Mobiltelefon;Fax;Homepage;E-Mail;Öffnungszeiten;'
+            . 'Zahlungsmethoden;Primäre Kategorie;Beschreibung;Bilder' . "\n";
+        return $headline;
+    }
+
+    /**
+     * Generiert eine Content-Zeile für die CSV
+     *
+     * @param Marktjagd_Entity_GooglePlaces $eGooglePlaces
+     * @return string
+     */
+    protected function _generateContentLineForExportCsv(Marktjagd_Entity_GooglePlaces $eGooglePlaces)
+    {
+        $content = '"' . $eGooglePlaces->getStoreCode() . '";'
+            . '"' . $eGooglePlaces->getName() . '";'
+            . '"' .$eGooglePlaces->getAddressLine1() . '";'
+            . '"' .$eGooglePlaces->getAddressLine2() . '";'
+            . '"' .$eGooglePlaces->getCity() . '";'
+            . ';'
+            . '"' .$eGooglePlaces->getState() . '";'
+            . '"' .$eGooglePlaces->getCountryCode() . '";'
+            . $eGooglePlaces->getPostalCode() . ';'
+            . '"' .$eGooglePlaces->getMainPhone() . '";'
+            . '"' .$eGooglePlaces->getAlternativePhone() . '";'
+            . '"' .$eGooglePlaces->getMobilePhone() . '";'
+            . '"' .$eGooglePlaces->getFax() . '";'
+            . '"' .$eGooglePlaces->getHomepage() . '";'
+            . $eGooglePlaces->getEmail() . ';'
+            . $eGooglePlaces->getHours() . ';'
+            . $eGooglePlaces->getPaymentTypes() . ';'
+            . $eGooglePlaces->getCategories() . ';'
+            . '"' . $eGooglePlaces->getDescription() . '";'
+            . '"' .$eGooglePlaces->getImages() . '"' . "\n";
+
+        return $content;
+    }
+}

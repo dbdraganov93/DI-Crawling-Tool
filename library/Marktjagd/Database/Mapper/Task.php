@@ -1,0 +1,107 @@
+<?php
+
+class Marktjagd_Database_Mapper_Task extends Marktjagd_Database_Mapper_Abstract {
+
+    /**
+     * Returns the database table class, if no one exists,
+     * default will be created.
+     *
+     * @return  Marktjagd_Database_DbTable_Task
+     */
+    public function getDbTable() {
+        return parent::getDbTable();
+    }
+
+    /**
+     * 
+     * @param string $idCompany
+     * @param Marktjagd_Database_Collection_Task $oTask
+     * @return boolean
+     */
+    public function findTasksByCompanyId($idCompany, $oTask) {
+        $result = $this->getDbTable()->findTasksByCompanyId($idCompany);
+        if (count($result) > 0) {
+            $oTask->setOptions($result);
+            return true;
+        }
+        return false;
+    }
+    
+        /**
+     * 
+     * @param string $idCompany
+     * @param Marktjagd_Database_Collection_Task $oTask
+     * @return boolean
+     */
+    public function findFutureTasksByCompanyId($idCompany, $startDate, $oTask) {
+        $result = $this->getDbTable()->findFutureTasksByCompanyId($idCompany, $startDate);
+        if (count($result) > 0) {
+            $oTask->setOptions($result);
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * 
+     * @param string $taskId
+     * @param Marktjagd_Database_Collection_Task $oTask
+     * @return boolean
+     */
+    public function findSingleTaskByTaskId($taskId, $oTask) {
+        $result = $this->getDbTable()->findSingleTaskByTaskId($taskId);
+        if (count($result) > 0) {
+            $oTask->setOptions($result);
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * 
+     * @param array $aTask
+     * @param Marktjagd_Database_Collection_Task $oTask
+     * @return boolean
+     */
+    public function findNewCreatedTask($aTask, $oTask) {
+        $result = $this->getDbTable()->findNewCreatedTask($aTask);
+        if (count($result) > 0) {
+            $oTask->setOptions($result);
+            return true;
+        }
+        return false;
+    }
+    
+
+    public function deleteTask($taskId) {
+        $result = $this->getDbTable()->deleteTask($taskId);
+        return true;
+    }
+
+    /**
+     * Saves data to database. If the primary key is set,
+     * data will be updated.
+     *
+     * @param Marktjagd_Database_Entity_Task $oTask Object data
+     * @param bool $bNull Save also null values
+     *
+     * @return int|mixed
+     */
+    public function save($oTask, $bNull = false) {
+        return parent::_save($oTask, $bNull);
+    }
+
+    /**
+     * Loads data by primary key(s). By multiple primary
+     * keys use an array with the values of the primary key columns.
+     *
+     * @param mixed $mId Primary key(s) value(s)
+     * @param Marktjagd_Database_Entity_Task  $oTask Object for data
+     *
+     * @return bool True if found, otherwise false
+     */
+    public function find($mId, $oTask) {
+        return parent::_find($mId, $oTask);
+    }
+
+}

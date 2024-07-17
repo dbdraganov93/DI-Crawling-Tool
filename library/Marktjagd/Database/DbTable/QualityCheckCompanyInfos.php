@@ -1,0 +1,40 @@
+<?php
+
+class Marktjagd_Database_DbTable_QualityCheckCompanyInfos extends Marktjagd_Database_DbTable_Abstract {
+    
+    protected $_name = 'QualityCheckCompanyInfos';
+    
+    protected $_primary = 'idQualityCheckCompanyInfos';
+    
+    protected $_referenceMap = array(
+        'IdCompany' => array(
+         'columns'       => 'idCompany',
+         'refTableClass' => 'Marktjagd_Database_DbTable_Company',
+         'refColumns'    => 'idCompany')
+    );
+    
+    /**
+     * Ermittelt QA-Einstellung mithilfe der Unternehmens-ID
+     * 
+     * @param string $companyId
+     * @return Zend_Db_Table_Rowset_Abstract
+     */
+    public function findByCompanyId($companyId) {
+        $select = $this->select()->setIntegrityCheck(false);
+        $select ->from($this->_name)
+                ->join('Company', 'Company.idCompany = QualityCheckCompanyInfos.idCompany')
+                ->where('QualityCheckCompanyInfos.idCompany = ?', (int)$companyId);
+        
+        return $this->fetchRow($select);
+    }
+    
+    public function findCompaniesWithBrochureCheck() {
+        $select = $this->select()->setIntegrityCheck(false)
+                ->from($this->_name)
+                ->join('Company', 'Company.idCompany = QualityCheckCompanyInfos.idCompany')
+                ->where('brochures = 1')
+                ->order('QualityCheckCompanyInfos.idCompany');
+
+        return $this->fetchAll($select);
+    }
+}

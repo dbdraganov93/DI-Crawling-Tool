@@ -1,0 +1,193 @@
+<?php
+
+class Marktjagd_Database_DbTable_CrawlerConfig extends Marktjagd_Database_DbTable_Abstract
+{
+    protected $_name = 'CrawlerConfig';
+
+    protected $_primary = 'idCrawlerConfig';
+
+    protected $_referenceMap = array(
+      'IdCrawlerType' => array(
+         'columns'       => 'idCrawlerType',
+         'refTableClass' => 'Marktjagd_Database_DbTable_CrawlerType',
+         'refColumns'    => 'idCrawlerType'),
+      'IdAuthor' => array(
+         'columns'       => 'idAuthor',
+         'refTableClass' => 'Marktjagd_Database_DbTable_Author',
+         'refColumns'    => 'idAuthor'),
+      'IdCompany' => array(
+         'columns'       => 'idCompany',
+         'refTableClass' => 'Marktjagd_Database_DbTable_Company',
+         'refColumns'    => 'idCompany'),
+      'IdCrawlerBehaviour' => array(
+         'columns'       => 'idCrawlerBehaviour',
+         'refTableClass' => 'Marktjagd_Database_DbTable_CrawlerBehaviour',
+         'refColumns'    => 'idCrawlerBehaviour'));
+
+
+    /**
+     * Findet alle Crawler anhand von CompanyId und Typ
+     *
+     * @param int $companyId
+     * @param string $type
+     * @param ?string $status
+     * @param string $env
+     * @return Zend_Db_Table_Rowset_Abstract
+     */
+    public function findByCompanyType($companyId, $type, $status=null, $env=Marktjagd_Database_Entity_CrawlerConfig::BACKEND_ENV_PROD)
+    {
+        $select = $this->select()->setIntegrityCheck(false);
+        $select->from($this->_name)
+               ->join('CrawlerType', 'CrawlerConfig.idCrawlerType = CrawlerType.idCrawlerType'
+                        . ' AND CrawlerType.type = "' . (string) $type . '"')
+               ->join('Company', 'CrawlerConfig.idCompany = Company.idCompany')
+               ->where('CrawlerConfig.idCompany = ?', (int) $companyId);
+        if ($status !== null && strlen($status) > 0) {
+            $select->where('CrawlerConfig.CrawlerStatus LIKE ?',  '%' . $status . '%');
+        }
+        $select->where('CrawlerConfig.backendEnv = ?',  $env);
+
+        return $this->fetchAll($select);
+    }
+
+    /**
+     * Findet alle Crawler für einen bestimmten Crawlertyp
+     *
+     * @param $type
+     * @param $sort
+     * @paran $env
+     * @return Zend_Db_Table_Rowset_Abstract
+     */
+    public function findByType($type, $sort='CrawlerConfig.idCompany', $env=Marktjagd_Database_Entity_CrawlerConfig::BACKEND_ENV_PROD)
+    {
+        $select = $this->select()->setIntegrityCheck(false);
+        $select->from($this->_name)
+               ->join('CrawlerType', 'CrawlerConfig.idCrawlerType = CrawlerType.idCrawlerType')
+               ->join('Company', 'CrawlerConfig.idCompany = Company.idCompany')
+               ->join('Author', 'CrawlerConfig.idAuthor =  Author.idAuthor')
+               ->join('CrawlerBehaviour', 'CrawlerConfig.idCrawlerBehaviour = CrawlerBehaviour.idCrawlerBehaviour')
+               ->where('CrawlerType.type = ?', $type)
+               ->where('CrawlerConfig.backendEnv = ?', $env)
+               ->order($sort);
+        return $this->fetchAll($select);
+    }
+
+    /**
+     * Findet einen Crawler anhand der Konfigurations-Id
+     * @param $idCrawlerConfig
+     * @return Zend_Db_Table_Row_Abstract
+     */
+    public function findById($idCrawlerConfig)
+    {
+        $select  = $this->select()->setIntegrityCheck(false);
+        $select->from($this->_name)
+               ->join('CrawlerType', 'CrawlerConfig.idCrawlerType = CrawlerType.idCrawlerType')
+               ->join('Company', 'CrawlerConfig.idCompany = Company.idCompany')
+               ->join('Author', 'CrawlerConfig.idAuthor =  Author.idAuthor')
+               ->join('CrawlerBehaviour', 'CrawlerConfig.idCrawlerBehaviour = CrawlerBehaviour.idCrawlerBehaviour')
+               ->where('CrawlerConfig.idCrawlerConfig = ?', (int) $idCrawlerConfig);
+
+        return $this->fetchRow($select);
+    }
+
+    /**
+     * Ermittelt zu allen Crawler-Autoren die Anzahl der aktiven Crawler
+     *
+     * @return Zend_Db_Table_Rowset_Abstract
+     */
+    public function countActiveCrawlerByUser()
+    {
+        $select  = $this->select()->setIntegrityCheck(false);
+        $select->from(
+                    $this->_name,
+                    array(
+                        'anzahl' => new Zend_Db_Expr('count(CrawlerConfig.idCrawlerConfig)')
+                    )
+                )
+               ->join(
+                   'Author',
+                   $this->_name . '.idAuthor = Author.idAuthor',
+                   array(
+                       'name' => new Zend_Db_Expr('CONCAT(Author.firstName, " ", Author.lastName)')
+                   )
+               )
+               ->where('CrawlerConfig.CrawlerStatus NOT LIKE ?', '%deaktiviert%')
+               ->group(array('Author.idAuthor', 'Author.firstName', 'Author.lastName'))
+               ->order('anzahl DESC');
+
+        return $this->fetchAll($select);
+    }
+
+    /**
+     * Ermittelt die Anzahl alter und neuer Crawler
+     *
+     * @return Zend_Db_Table_Rowset_Abstract
+     */
+    public function countCrawlerByVersionType()
+    {
+        $select  = $this->select()->setIntegrityCheck(false);
+        $select->from(
+            $this->_name,
+            array(
+                'crawlerType' => new Zend_Db_Expr("IF(substring_index(fileName, '/', 1) = 'application', 'PHP-Crawler', 'Mastercrawler')"),
+                'count' => new Zend_Db_Expr('COUNT(idCrawlerConfig)')
+            ))
+            ->where('CrawlerStatus NOT LIKE ?', '%deaktiviert%')
+            ->group('crawlerType')
+            ->order('count DESC');
+
+        return $this->fetchAll($select);
+    }
+
+    /**
+     * Ermittelt die Anzahl von Standort-, Artikel-, PDF-Crawler
+     *
+     * @return Zend_Db_Table_Rowset_Abstract
+     */
+    public function countCrawlerByType()
+    {
+        $select  = $this->select()->setIntegrityCheck(false);
+        $select->from(
+            $this->_name,
+            array(
+                'count' => new Zend_Db_Expr('COUNT(idCrawlerConfig)')
+            ))
+               ->join(
+                   'CrawlerType',
+                   $this->_name . '.idCrawlerType = CrawlerType.idCrawlerType',
+                   'type',
+                   array()
+                   )
+               ->where('CrawlerStatus NOT LIKE ?', '%deaktiviert%')
+               ->group(array('CrawlerConfig.idCrawlerType', 'CrawlerType.type'))
+               ->order('count DESC');
+        return $this->fetchAll($select);
+    }
+
+    /**
+     * Ermittelt die Anzahl modifizierter Standort-, Artikel-, PDF-Crawler
+     *
+     * @return Zend_Db_Table_Rowset_Abstract
+     */
+    public function countModifiedByType()
+    {
+        $select  = $this->select()->setIntegrityCheck(false);
+        $select->from(
+            $this->_name,
+            array(
+                'month' => new Zend_Db_Expr('substring(CrawlerConfig.lastModified, 1, 7)'),
+                'count' => new Zend_Db_Expr('COUNT(CrawlerConfig.idCrawlerConfig)')
+
+            ))
+               ->join(
+                   'CrawlerType',
+                   $this->_name . '.idCrawlerType = CrawlerType.idCrawlerType',
+                   'type'
+               )
+               ->where('CrawlerStatus NOT LIKE ?', '%deaktiviert%')
+               ->where('DATEDIFF(CURDATE(), CrawlerConfig.lastModified) <= ?', 180)
+               ->group(array('month', 'CrawlerType.idCrawlerType', 'CrawlerType.type'))
+               ->order('month ASC');
+        return $this->fetchAll($select);
+    }
+}

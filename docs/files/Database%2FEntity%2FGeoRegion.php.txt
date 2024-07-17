@@ -1,0 +1,246 @@
+<?php
+
+class Marktjagd_Database_Entity_GeoRegion extends Marktjagd_Database_Entity_Abstract
+{
+    // table fields
+    protected $_id;
+    protected $_cityId;
+    protected $_zipCode;
+    protected $_city;
+    protected $_longitude;
+    protected $_latitude;
+    protected $_state;
+    protected $_county;
+    protected $_url;
+    protected $_pid;
+    protected $_municCode;
+
+    /**
+     * Contains mapping of table columns to function
+     *
+     * @var array
+     */
+    protected $_aColumnMap = array(
+        'region_id' => 'Id',
+        'city_id' => 'CityId',
+        'region_zipcode' => 'ZipCode',
+        'region_city' => 'City',
+        'region_longitude' => 'Longitude',
+        'region_latitude' => 'Latitude',
+        'region_state' => 'state',
+        'region_county' => 'County',
+        'region_url' => 'Url',
+        'region_pid' => 'Pid',
+        'munic_code' => 'MunicCode'
+    );
+
+    /**
+     * Returns the mapper class, if no one exists, default will be created.
+     *
+     * @return  Marktjagd_Database_Mapper_GeoRegion
+     */
+    public function getMapper()
+    {
+        return parent::getMapper();
+    }
+
+    /**
+     * @param string $city
+     * @return Marktjagd_Database_Entity_GeoRegion
+     */
+    public function setCity($city)
+    {
+        $this->_city = $city;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCity()
+    {
+        return $this->_city;
+    }
+
+    /**
+     * @param int $cityId
+     * @return Marktjagd_Database_Entity_GeoRegion
+     */
+    public function setCityId($cityId)
+    {
+        $this->_cityId = $cityId;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getCityId()
+    {
+        return $this->_cityId;
+    }
+
+    /**
+     * @param string $county
+     * @return Marktjagd_Database_Entity_GeoRegion
+     */
+    public function setCounty($county)
+    {
+        $this->_county = $county;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCounty()
+    {
+        return $this->_county;
+    }
+
+    /**
+     * @param int $id
+     * @return Marktjagd_Database_Entity_GeoRegion
+     */
+    public function setId($id)
+    {
+        $this->_id = $id;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getId()
+    {
+        return $this->_id;
+    }
+
+    /**
+     * @param string $latitude
+     * @return Marktjagd_Database_Entity_GeoRegion
+     */
+    public function setLatitude($latitude)
+    {
+        $this->_latitude = $latitude;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLatitude()
+    {
+        return $this->_latitude;
+    }
+
+    /**
+     * @param string $longitude
+     * @return Marktjagd_Database_Entity_GeoRegion
+     */
+    public function setLongitude($longitude)
+    {
+        $this->_longitude = $longitude;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLongitude()
+    {
+        return $this->_longitude;
+    }
+
+    /**
+     * @param string $municCode
+     * @return Marktjagd_Database_Entity_GeoRegion
+     */
+    public function setMunicCode($municCode)
+    {
+        $this->_municCode = $municCode;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getMunicCode()
+    {
+        return $this->_municCode;
+    }
+
+    /**
+     * @param int $pid
+     * @return Marktjagd_Database_Entity_GeoRegion
+     */
+    public function setPid($pid)
+    {
+        $this->_pid = $pid;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPid()
+    {
+        return $this->_pid;
+    }
+
+    /**
+     * @param string $zipCode
+     * @return Marktjagd_Database_Entity_GeoRegion
+     */
+    public function setZipCode($zipCode)
+    {
+        $this->_zipCode = $zipCode;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getZipCode()
+    {
+        return $this->_zipCode;
+    }
+
+    /**
+     * @param string $url
+     * @return Marktjagd_Database_Entity_GeoRegion
+     */
+    public function setUrl($url)
+    {
+        $this->_url = $url;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUrl()
+    {
+        return $this->_url;
+    }
+
+    /**
+     * @param string $state
+     * @return Marktjagd_Database_Entity_GeoRegion
+     */
+    public function setState($state)
+    {
+        $this->_state = $state;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getState()
+    {
+        return $this->_state;
+    }
+
+
+}

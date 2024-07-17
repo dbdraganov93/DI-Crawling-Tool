@@ -1,0 +1,6 @@
+version: '2'
+services:
+
+    mysql-php-gui:
+        build: .
+        image: ${IMAGE}

@@ -1,0 +1,10 @@
+<?php
+
+/**
+ * Class Marktjagd_Database_DbTable_Role
+ */
+class Marktjagd_Database_DbTable_Role extends Marktjagd_Database_DbTable_Abstract
+{
+    protected $_name = 'Role';
+    protected $_primary = 'idRole';
+}

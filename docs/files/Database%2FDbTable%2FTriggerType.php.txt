@@ -1,0 +1,23 @@
+<?php
+
+class Marktjagd_Database_DbTable_TriggerType extends Marktjagd_Database_DbTable_Abstract
+{
+    protected $_name = 'TriggerType';
+
+    protected $_primary = 'idTriggerType';
+
+    /**
+     * Ermittelt die Triggertypen anhand des Namens
+     *
+     * @param $name
+     * @return Zend_Db_Table_Row_Abstract
+     */
+    public function findByName($name)
+    {
+        $select = $this->select()->setIntegrityCheck(false);
+        $select->from($this->_name)
+               ->where('TriggerType.name = ?', (string) $name);
+
+        return $this->fetchRow($select);
+    }
+}

@@ -1,0 +1,97 @@
+<div class="col-lg-12">
+    <h1 class="page-header">Zusätzliche Händlerinfos</h1>
+</div>
+
+<div class="col-lg-12">
+    <?php echo $this->companyForm ?>
+</div>
+
+<?php if (count($this->aRetailerInfos)): $configIni = new Zend_Config_Ini(APPLICATION_PATH . '/configs/application.ini', 'production');?>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    Aufgabenübersicht
+                </div>
+                <div class="panel-body">
+                    <div class="col-lg-12">
+                        <div class="table">
+                            <table class="table" id="retailerOverview">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align: center">Company-ID</th>
+                                        <th style="text-align: center">Store-ID</th>
+                                        <th style="text-align: center">UNV-Link</th>
+                                        <th>Aktion</th>
+                                        <th>zu ändernde Infos</th>
+                                        <th>gültig bis</th>
+                                        <th style="text-align: center">User</th>
+                                        <th style="text-align: center">Löschen?</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    foreach ($this->aRetailerInfos as $singleRetailerInfo):
+                                        $strTimeToAdd = '90 days';
+                                        if (strlen($singleRetailerInfo->getValidityLength())) {
+                                            $strTimeToAdd = $singleRetailerInfo->getValidityLength();
+                                        }
+                                        ?>
+                                    <tr onclick="window.location = '/Crawler/crawler/retailer/store/<?php echo $singleRetailerInfo->getIdStore(); ?>'" style="cursor:pointer;">
+                                            <td style="text-align: center"><?php echo $singleRetailerInfo->getIdCompany(); ?></a></td>
+                                            <td style="text-align: center"><?php echo $singleRetailerInfo->getIdStore(); ?></td>
+                                            <td style="text-align: center"><a href="<?php echo preg_replace(array('#\\\#', '#\[\[COMPANYID\]\]#', '#\[\[STOREID\]\]#'), array('', $singleRetailerInfo->getIdCompany(), $singleRetailerInfo->getIdStore()), $configIni->retailer->urlpattern); ?>"><?php echo preg_replace(array('#\\\#', '#\[\[COMPANYID\]\]#', '#\[\[STOREID\]\]#'), array('', $singleRetailerInfo->getIdCompany(), $singleRetailerInfo->getIdStore()), $configIni->retailer->urlpattern); ?></a></td>
+                                            <td><?php echo $singleRetailerInfo->getAction(); ?></td>
+                                            <td><?php echo preg_replace('#\[\[NULL\]\]#', 'ignored', $singleRetailerInfo->getInfosToChange()); ?></td>
+                                            <td><?php echo date('d.m.Y', strtotime($singleRetailerInfo->getTimeAdded() . '+ ' . $strTimeToAdd)); ?></td>
+                                            <td style="text-align: center"><?php echo $singleRetailerInfo->getUser(); ?></td>
+                                            <td style="text-align: center"><a href="/Crawler/crawler/retailer/store/<?php echo $singleRetailerInfo->getIdStore(); ?>/delete/1"><i class="fa fa-trash-o"></i></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif;
+?>
+
+<div class="row">
+    <div class="col-lg-5">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                Zusätzliche Händerinfo anlegen
+            </div>
+            <div class="panel-body">
+                <?php echo $this->retailerInfoForm ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#retailerOverview').dataTable({
+            "oLanguage": {
+                "sProcessing": "Bitte warten...",
+                "sLengthMenu": "Zeige _MENU_ Einträge pro Seite",
+                "sZeroRecords": "Nichts gefunden. Entschuldigung",
+                "sInfo": "Zeige _START_ bis _END_ von _TOTAL_ Einträgen",
+                "sInfoEmpty": "Zeige 0 bis 0 von 0 Einträgen",
+                "sInfoFiltered": "(gefiltert aus allen _MAX_ Einträgen)",
+                "sInfoPostFix": "",
+                "sSearch": "Suchen",
+                "sUrl": "",
+                "oPaginate": {
+                    "sFirst": "Erster",
+                    "sPrevious": "Zurück",
+                    "sNext": "Nächster",
+                    "sLast": "Letzter"
+                }
+            }
+        });
+    });
+</script>

@@ -1,0 +1,71 @@
+<?php
+
+/**
+ * Contains Description of ResourceFieldArrayString.
+ *
+ * PHP version 5
+ *
+ * @category Resource
+ * @package  Resource
+ * @author   Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license  Martktjagd GmbH
+ * @link     http://www.marktjagd.det
+ */
+
+namespace Marktjagd\ApiClient\Resource;
+
+/**
+ * Description of ResourceFieldArrayString
+ *
+ * @category Resource
+ * @package  Resource
+ * @author   Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license  Martktjagd GmbH
+ * @link     http://www.marktjagd.de
+ */
+class ResourceFieldArrayString extends ResourceField
+{
+
+    public function __construct($name, $default = null)
+    {
+        if (!is_null($default))
+        {
+            if (!is_array($default))
+            {
+                throw new ResourceException(sprintf(
+                    'Default value must be an array, %s given',
+                    gettype($default)
+                ));
+            }
+
+            $default = array_map(function($a)
+                {
+                    return (string) $a;
+                }, $default);
+        }
+
+        parent::__construct($name, $default);
+    }
+
+    public function setValue($value)
+    {
+        if (!is_null($value))
+        {
+            if (!is_array($value))
+            {
+                throw new ResourceException(sprintf(
+                    'Default value must be an array, %s given',
+                    gettype($value)
+                ));
+            }
+
+            $value = array_map(function($a)
+                {
+                    return (string) $a;
+                }, $value);
+        }
+
+        parent::setValue($value);
+    }
+
+}

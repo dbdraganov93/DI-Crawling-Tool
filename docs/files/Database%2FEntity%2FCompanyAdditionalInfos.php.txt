@@ -1,0 +1,227 @@
+<?php
+
+class Marktjagd_Database_Entity_CompanyAdditionalInfos extends Marktjagd_Database_Entity_Abstract {
+
+    // table fields
+    protected $_idAdditionalInfos;
+    protected $_idCompany;
+    protected $_bonusCards;
+    protected $_toilet;
+    protected $_services;
+    protected $_section;
+    protected $_parking;
+    protected $_barrierFree;
+    protected $_payment;
+
+    /**
+     * Contains mapping of table columns to function
+     *
+     * @var array
+     */
+    protected $_aColumnMap = array('idAdditionalInfos' => 'IdAdditionalInfos',
+        'idCompany' => 'IdCompany',
+        'bonusCards' => 'BonusCards',
+        'toilet' => 'Toilet',
+        'services' => 'Services',
+        'section' => 'Section',
+        'parking' => 'Parking',
+        'barrierFree' => 'BarrierFree',
+        'payment' => 'Payment');
+
+    /**
+     * 
+     * @return string
+     */
+    public function getIdAdditionalInfos() {
+        return $this->_idAdditionalInfos;
+    }
+
+    /**
+     * 
+     * @return string
+     */
+    public function getIdCompany() {
+        return $this->_idCompany;
+    }
+
+    /**
+     * 
+     * @return string
+     */
+    public function getBonusCards() {
+        return $this->_bonusCards;
+    }
+
+    /**
+     * 
+     * @return string
+     */
+    public function getToilet() {
+        return $this->_toilet;
+    }
+
+    /**
+     * 
+     * @return string
+     */
+    public function getServices() {
+        return $this->_services;
+    }
+
+    /**
+     * 
+     * @return string
+     */
+    public function getSection() {
+        return $this->_section;
+    }
+
+    /**
+     * 
+     * @return string
+     */
+    public function getParking() {
+        return $this->_parking;
+    }
+
+    /**
+     * 
+     * @return string
+     */
+    public function getBarrierFree() {
+        return $this->_barrierFree;
+    }
+    
+    /**
+     * 
+     * @return string
+     */
+    public function getPayment() {
+        return $this->_payment;
+    }
+
+    /**
+     * 
+     * @param string $idAdditionalInfos
+     * @return Marktjagd_Database_Entity_CompanyAdditionalInfos
+     */
+    public function setIdAdditionalInfos($idAdditionalInfos) {
+        $this->_idAdditionalInfos = $idAdditionalInfos;
+        return $this;
+    }
+
+    /**
+     * 
+     * @param string $idCompany
+     * @return Marktjagd_Database_Entity_CompanyAdditionalInfos
+     */
+    public function setIdCompany($idCompany) {
+        $this->_idCompany = $idCompany;
+        return $this;
+    }
+
+    /**
+     * 
+     * @param string $bonusCards
+     * @return Marktjagd_Database_Entity_CompanyAdditionalInfos
+     */
+    public function setBonusCards($bonusCards) {
+        $this->_bonusCards = $bonusCards;
+        return $this;
+    }
+
+    /**
+     * 
+     * @param string $toilet
+     * @return Marktjagd_Database_Entity_CompanyAdditionalInfos
+     */
+    public function setToilet($toilet) {
+        $this->_toilet = $toilet;
+        return $this;
+    }
+
+    /**
+     * 
+     * @param string $services
+     * @return Marktjagd_Database_Entity_CompanyAdditionalInfos
+     */
+    public function setServices($services) {
+        $this->_services = $services;
+        return $this;
+    }
+
+    /**
+     * 
+     * @param string $section
+     * @return Marktjagd_Database_Entity_CompanyAdditionalInfos
+     */
+    public function setSection($section) {
+        $this->_section = $section;
+        return $this;
+    }
+
+    /**
+     * 
+     * @param string $parking
+     * @return Marktjagd_Database_Entity_CompanyAdditionalInfos
+     */
+    public function setParking($parking) {
+        $this->_parking = $parking;
+        return $this;
+    }
+
+    /**
+     * 
+     * @param string $barrierFree
+     * @return Marktjagd_Database_Entity_CompanyAdditionalInfos
+     */
+    public function setBarrierFree($barrierFree) {
+        $this->_barrierFree = $barrierFree;
+        return $this;
+    }
+    
+    /**
+     * 
+     * @param string $payment
+     * @return Marktjagd_Database_Entity_CompanyAdditionalInfos
+     */
+    public function setPayment($payment) {
+        $this->_payment = $payment;
+        return $this;
+    }
+
+    /**
+     * Returns the mapper class, if no one exists, default will be created.
+     *
+     * @return  Marktjagd_Database_Mapper_CompanyAdditionalInfos
+     */
+    public function getMapper() {
+        return parent::getMapper();
+    }
+
+    /**
+     * Saves data to database If the primary key is set,
+     * data will be updated.
+     *
+     * @param bool $bNull Save also null values
+     * @param bool $bForceInsert
+     * @return void
+     */
+    public function save($bNull = false, $bForceInsert = false) {
+        $this->getMapper()->save($this, $bNull, $bForceInsert);
+    }
+
+    /**
+     * Loads the data by primary key(s). By multiple primary
+     * keys use an array with the values of the primary key columns.
+     *
+     * @param mixed $mId Primary key(s) value(s)
+     *
+     * @return bool True if found, otherwise false
+     */
+    public function find($mId) {
+        return $this->getMapper()->find($mId, $this);
+    }
+
+}
+

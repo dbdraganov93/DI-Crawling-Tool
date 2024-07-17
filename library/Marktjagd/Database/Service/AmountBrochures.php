@@ -1,0 +1,33 @@
+<?php
+
+class Marktjagd_Database_Service_AmountBrochures extends Marktjagd_Database_Service_Abstract {
+    
+    /**
+     * 
+     * @param type $companyId
+     * @return \Marktjagd_Database_Entity_AmountBrochures
+     */
+    public function findLatestState($companyId) {
+        $eBrochures = new Marktjagd_Database_Entity_AmountBrochures();
+        $mBrochures = new Marktjagd_Database_Mapper_AmountBrochures();
+        $mBrochures->findLatestState($companyId, $eBrochures);
+        
+        return $eBrochures;
+    }
+    
+    /**
+     * 
+     * @param type $companyId
+     * @param type $startDate
+     * @param type $endDate
+     * @return \Marktjagd_Database_Collection_AmountBrochures
+     */
+    public function findByCompanyIdAndTime($companyId, $startDate, $endDate) {
+        $cBrochures = new Marktjagd_Database_Collection_AmountBrochures();
+        $mBrochures = new Marktjagd_Database_Mapper_AmountBrochures();
+
+        $mBrochures->findByCompanyIdAndTime($companyId, $startDate, $endDate, $cBrochures);
+        
+        return $cBrochures;
+    }
+}

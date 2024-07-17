@@ -1,0 +1,108 @@
+<?php
+class Marktjagd_Service_Validator_RobotsTxt
+{
+    /**
+     * Prüft ob die übergebene URL laut der robots.txt der Webseite gelesen werden darf.
+     *
+     * @param string $url URL die gelesen werden soll
+     * @return bool
+     */
+    public function checkRobotsPermission($url)
+    {
+        $robots = $this->_findRobots($url);
+
+        if (preg_match('#marktjagd\.de#i', $url)) {
+            return true;
+        }
+
+        // Den Pfad der URL extrahieren:
+        $urlParts = parse_url($url);
+        $path = null;
+        if (array_key_exists('path', $urlParts)) {
+            $path = $urlParts['path'];
+        }
+
+        if (!$path) {
+            $path = '/';
+        }
+
+        // Versuchen alle Regeln auf die URL anzuwenden:
+        foreach ($robots as $rule) {
+            if (!preg_match('#[\.$\*]#',$rule)) {
+                $rule .= '.*';
+            }
+            $erg = @preg_match("#^$rule#i",$path);
+            if (false === $erg) {
+                continue;
+            }
+            if ($erg) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Liefert die robots.txt Regeln für die übergebene Seite zurück.
+     *
+     * @param string $url URL der Webseite (kann eine beliebige Seite der Domain sein)
+     * @return array
+     */
+    protected function _findRobots($url)
+    {
+        global $robots;
+
+        // URL zur robots.txt bauen:
+        $urlParts = parse_url($url);
+        $url = $urlParts['scheme'] . '://' . $urlParts['host'];
+        $url .= '/robots.txt';
+
+        // Prüfen ob die robots.txt schon analysiert wurde:
+        if (!$robots) {
+            $robots = array();
+        }
+
+        if (array_key_exists($url, $robots)) {
+            return $robots[$url];
+        }
+
+        $robots[$url] = array();
+
+        // Die robots.txt herunterladen:
+        $robotsFile = @file_get_contents($url);
+
+        if (!$robotsFile) {
+            return $robots[$url];
+        }
+
+        $robotsFile = explode("\n",$robotsFile);
+
+        // Die Datei Zeilenweise durchgehen:
+        $agent = null;
+        foreach ($robotsFile as $line) {
+            // Kommentare löschen:
+            $line = trim(preg_replace('/^(.*?)#.*$/','$1',$line));
+
+            // Nur weitermachen wenn der User-Agent passt:
+            if (preg_match('/^User-agent:(.*)$/i',$line,$match)) {
+                $agent = trim($match[1]);
+            }
+
+            if(!($agent == '*' || preg_match('#Marktjagd\-Suchdienst#i', $agent))) {
+                continue;
+            }
+
+            if (preg_match('/^Disallow:(.*)$/i',$line,$match)) {
+                $what = trim($match[1]);
+                if(!$what){
+                    // Alles ist erlaubt:
+                    $robots[$url] = array();
+                    break;
+                }
+                $robots[$url][] = $what;
+            }
+        }
+
+        return $robots[$url];
+    }
+}

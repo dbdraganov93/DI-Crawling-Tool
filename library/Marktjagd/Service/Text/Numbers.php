@@ -1,0 +1,41 @@
+<?php
+/**
+ * Beinhaltet Funktionen zum Umwandeln/Formatieren von Zahlen bzw. Preisinformationen
+ */
+class Marktjagd_Service_Text_Numbers
+{
+    /**
+     * Bereinigt eine Preisangabe um nicht benötigte Zeichen
+     *
+     * @param string $price
+     * @return string
+     */
+    public function normalizePrice($price)
+    {
+        $fromPrice = false;
+
+        $pattern = '#(^ab|\s+ab)\s+#is';
+        if (preg_match($pattern, $price)) {
+            $fromPrice = true;
+        }
+
+        // komische Preisangaben rausfiltern
+        $price = preg_replace('#[^0-9\.\,]#', '', $price);
+
+        // Punkt durch Komma ersetzen
+        $price = preg_replace('#\.([0-9]{2})$#', ',$1', $price);
+
+        // evtl. Tausendertrenner entfernen
+        $price = preg_replace('#\.#', '', $price);
+
+        if ($fromPrice) {
+            $price = 'ab ' . $price;
+        }
+
+        if (!preg_match('#\,[0-9]{2}$#', $price)) {
+            $price .= ',00';
+        }
+
+        return $price;
+    }
+}

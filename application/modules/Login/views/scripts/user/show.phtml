@@ -1,0 +1,74 @@
+<div class="col-lg-12">
+    <h1 class="page-header">Administration</h1>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="col-lg-2 col-lg-offset-5">
+                    <a class="btn btn-info btn-xs" href="<?php echo $this->_baseUrl?>/Login/user/add/">Neuen Nutzer anlegen</a>
+                </div>
+                <div class="table-responsive col-lg-12">
+                    <table class="table table-striped table-bordered table-hover dataTable no-footer" id="crawlerConfig">
+                        <thead>
+                        <tr>
+                            <td>Login</td>
+                            <td>Angezeigter Name</td>
+                            <td>Rolle</td>
+                            <td>Aktion</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php
+                        /* @var $eUser Marktjagd_Database_Entity_User */
+                        foreach ($this->users as $eUser) : ?>
+                            <tr>
+                                <td><?php echo $eUser->getUserName() ?></td>
+                                <td><?php echo $eUser->getRealName() ?></td>
+                                <td><?php echo $eUser->getRole()->getName() ?></td>
+                                <td>
+                                    <a href="<?php
+                                    echo '/Login/user/add/userId/' . $eUser->getIdUser()
+                                    ?>"><i class="fa fa-pencil-square-o"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="<?php
+                                    echo '/Login/user/delete/userId/' . $eUser->getIdUser()
+                                    ?>"><i class="fa fa-trash-o"></i></a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#crawlerConfig').dataTable({
+            "oLanguage": {
+                "sProcessing":   "Bitte warten...",
+                "sLengthMenu": "Zeige _MENU_ Einträge pro Seite",
+                "sZeroRecords": "Nichts gefunden. Entschuldigung",
+                "sInfo": "Zeige _START_ bis _END_ von _TOTAL_ Einträgen",
+                "sInfoEmpty": "Zeige 0 bis 0 von 0 Einträgen",
+                "sInfoFiltered": "(gefiltert aus allen _MAX_ Einträgen)",
+                "sInfoPostFix":  "",
+                "sSearch":       "Suchen",
+                "sUrl":          "",
+                "oPaginate": {
+                    "sFirst":    "Erster",
+                    "sPrevious": "Zurück",
+                    "sNext":     "Nächster",
+                    "sLast":     "Letzter"
+                }
+            },
+            "fnPreDrawCallback": function(oSettings, json) {
+                $('.dataTables_filter input').addClass('form-control input-sm');
+                $('.dataTables_filter input').css('width', '200px');
+                $('.dataTables_length select').addClass('form-control input-sm');
+                $('.dataTables_length select').css('width', '75px');
+            }
+        } );
+    } );
+</script>

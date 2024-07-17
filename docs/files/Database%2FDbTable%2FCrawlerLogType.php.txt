@@ -1,0 +1,9 @@
+<?php
+
+class Marktjagd_Database_DbTable_CrawlerLogType extends Marktjagd_Database_DbTable_Abstract
+{
+    protected $_name = 'CrawlerLogType';
+
+    protected $_primary = 'idCrawlerLogType';
+
+}

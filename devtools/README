@@ -1,0 +1,34 @@
+# Einmalige Anmeldung an der Docker registry,
+# Notwendig zum pullen von Docker Images,
+# Login mit Gitlab-Credantials
+docker login docker-registry.marktjagd.de
+
+# Starten der Development-Umgebung
+./devstools start dev-php
+
+# Starten der Development-Umgebung nach lokaler DB-Änderung bspw. in mysql-php-gui/dev/Dump[...].sql
+./devstools start dev-php --build
+
+# Anzeigen aller existierenden Docker Container
+docker ps -a
+
+# Herunterfahren der Development-Umgebung
+./devtools stop dev-php
+
+# Anzeigen der Container-Log-Files
+docker logs crawler_mysql-gui
+
+# Terminal im laufenden Container starten
+docker exec -it apache-di-gui /bin/bash
+
+# Anzeige aller existierenden Docker Images
+docker images
+
+# Löschen eines Docker Images
+docker rmi [Imagename]
+
+# Löschen aller Docker Images
+docker rmi $(docker images -q)
+
+# Pushen des Images in die Docker-Registry
+./devtools.sh push dev-php

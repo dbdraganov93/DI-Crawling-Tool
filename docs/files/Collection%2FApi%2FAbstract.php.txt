@@ -1,0 +1,76 @@
+<?php
+
+/**
+ * Abstrakte Klasse einer MarktjagdAPI-Collection
+ *
+ * Class Marktjagd_Collection_Api_Abstract
+ */
+abstract class Marktjagd_Collection_Api_Abstract {
+    /**
+     * Elemente der Collection
+     *
+     * @var array
+     */
+    protected $_elements = array();
+
+    /**
+     * Kopfzeile für die CSV
+     *
+     * @var string
+     */
+    protected $_headline;
+
+    /**
+     * Hinzufügen eines Elements zur Collection
+     *
+     * @param Marktjagd_Entity_Api_Abstract $element
+     */
+    abstract function addElement($element);
+
+    /**
+     * Hinzufügen mehrerer Elemente zur Collection
+     *
+     * @param array $elements
+     */
+    public function addElements($elements)
+    {
+        foreach ($elements as $element) {
+            $this->addElement($element);
+        }
+    }
+
+    /**
+     * Ermitteln aller Elemente einer Collection
+     *
+     * @return array
+     */
+    public function getElements()
+    {
+        return $this->_elements;
+    }
+
+    /**
+     * Ermitteln der Kopfzeile für die CSV
+     *
+     * @return mixed
+     */
+    public function getHeadline()
+    {
+        return $this->_headline;
+    }
+
+    /**
+     * Leert alle Elemente einer Collection
+     */
+    public function clearElements()
+    {
+        $this->_elements = array();
+    }
+    
+    public function removeElement($key)
+    {
+        if (array_key_exists($key, $this->_elements)) {
+            unset($this->_elements[$key]);
+        }
+    }
+}

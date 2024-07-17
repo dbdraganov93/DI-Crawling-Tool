@@ -1,0 +1,16 @@
+<?php
+/**
+ * Class Marktjagd_Database_Collection_Users
+ */
+class Marktjagd_Database_Collection_Users extends Marktjagd_Database_Collection_Abstract
+{
+    /**
+     * Returns the mapper class, if no one exists, default will be created.
+     *
+     * @return Marktjagd_Database_Mapper_Users
+     */
+    public function getMapper()
+    {
+      return parent::getMapper();
+    }
+}

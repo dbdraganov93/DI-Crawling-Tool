@@ -1,0 +1,61 @@
+<?php
+
+/**
+ * This file is part of the Marktjagd RESTful API Client and
+ * contains the CityResource class.
+ *
+ * PHP version 5
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  geo
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+
+namespace Marktjagd\ApiClient\Resource\Geo;
+
+use Marktjagd\ApiClient\Resource;
+use Marktjagd\ApiClient\Request\Request;
+
+/**
+ * City resource.
+ *
+ * @category    resource
+ * @package     resource
+ * @subpackage  geo
+ * @author      Lutz Petzoldt <lutz.petzoldt@marktjagd.de>
+ * @license     Martktjagd GmbH
+ * @link        http://www.marktjagd.de
+ */
+class CityResource extends Resource\Resource
+{
+
+    protected static $hasCollection = true;
+
+    /**
+     * Sets the resource definition.
+     *
+     * @return void
+     */
+    protected function setResourceDefinition()
+    {
+        $this
+            ->hasAttribute(new Resource\ResourceAttributeInteger('store_hits'))
+
+            ->hasField(new Resource\ResourceFieldInteger('id'), true, Request::METHOD_NONE)
+            ->hasField(new Resource\ResourceFieldInteger('region_id'))
+            ->hasField(new Resource\ResourceFieldInteger('county_id'))
+            ->hasField(new Resource\ResourceFieldString('title'))
+            ->hasField(new Resource\ResourceFieldString('url_name'))
+            ->hasField(new Resource\ResourceFieldString('county'))
+            ->hasField(new Resource\ResourceFieldString('state'))
+            ->hasField(new Resource\ResourceFieldFloat('longitude'))
+            ->hasField(new Resource\ResourceFieldFloat('latitude'))
+            ->hasField(new Resource\ResourceFieldInteger('rank'))
+            ->hasField(new Resource\ResourceFieldFloat('num_stores'))
+            ->hasField(new Resource\ResourceFieldFloat('distance'));
+    }
+
+}
