@@ -40,6 +40,7 @@
                     <td>
                         <a class="waves-effect waves-light btn-small" href="{{ path('app_user_show', {'id': user.id}) }}">Show</a>
                         <a class="waves-effect waves-light btn-small orange" href="{{ path('app_user_edit', {'id': user.id}) }}">Edit</a>
+                        <a class="btn red">{{ include('user/_delete_form.html.twig', {'id': user.id}) }}</a>
                     </td>
                 </tr>
             {% else %}
