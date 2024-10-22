@@ -33,6 +33,7 @@ security:
     access_control:
         - { path: ^/home, roles: ROLE_USER }
         - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/user, roles: ROLE_ADMIN }
         - { path: ^/profile, roles: ROLE_USER }
 
 # Test-specific settings for password hashers to speed up testing
