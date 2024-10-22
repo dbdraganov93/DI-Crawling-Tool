@@ -1,0 +1,18 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.container {
+    margin-top: 50px;
+}
+
+h1 {
+    margin-bottom: 30px;
+}
+select {
+    display: block !important;
+    width: 100% !important;
+    padding: 10px !important;
+    border: 1px solid #ccc !important;
+    border-radius: 5px !important;
+}

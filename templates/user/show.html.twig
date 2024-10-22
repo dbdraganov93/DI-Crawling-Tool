@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Details{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1 class="center-align">User Details</h1>
+
+        <table class="striped highlight responsive-table">
+            <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ user.id }}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{ user.email }}</td>
+            </tr>
+            <tr>
+                <th>Roles</th>
+                <td>{{ user.roles ? user.roles|json_encode : 'N/A' }}</td>
+            </tr>
+            <tr>
+                <th>Password</th>
+                <td>{{ user.password ? '******' : 'N/A' }}</td> {# For security, don't display raw password #}
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="right-align mt-4">
+            <a href="{{ path('app_user_index') }}" class="waves-effect waves-light btn">Back to List</a>
+            <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="waves-effect waves-light btn orange">Edit</a>
+            {{ include('user/_delete_form.html.twig', {'id': user.id}) }}
+        </div>
+    </div>
+{% endblock %}
