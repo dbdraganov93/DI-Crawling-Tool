@@ -1,0 +1,18 @@
+stages:
+  - lint
+
+phpcs:
+  stage: lint
+  image: php:8.2
+  before_script:
+    # Install necessary tools and dependencies
+    - apt-get update && apt-get install -y git unzip libzip-dev
+    - docker-php-ext-install zip
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - composer install --prefer-dist --no-scripts --no-progress --no-suggest
+  script:
+    - vendor/bin/phpcs --standard=PSR12 src/
+  artifacts:
+    paths:
+      - build/phpcs-report
+  allow_failure: false
