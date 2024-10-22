@@ -1,0 +1,7 @@
+{{ form_start(form) }}
+    {{ form_row(form.email) }}
+    {{ form_row(form.roles) }} {# Ensure this renders the roles field #}
+    {{ form_row(form.password) }}
+
+<button class="waves-effect waves-light btn" type="submit">{{ button_label|default('Save') }}</button>
+{{ form_end(form) }}
