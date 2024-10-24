@@ -4,6 +4,8 @@
 
 ## Getting started
 Run codestyle localy: vendor/bin/phpcs --standard=PSR12 src/
+
+
 Run codestyle with the custom config: vendor/bin/phpcs
 Full report: vendor/bin/phpcs --standard=PSR12 --report=full src/
 Diff: vendor/bin/phpcs --standard=PSR12 --report=diff src/
