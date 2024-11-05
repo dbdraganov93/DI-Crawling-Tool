@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Crawler{% endblock %}
+
+{% block body %}
+    <h1>Crawler</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ crawler.id }}</td>
+            </tr>
+            <tr>
+                <th>Name</th>
+                <td>{{ crawler.name }}</td>
+            </tr>
+            <tr>
+                <th>Type</th>
+                <td>{{ crawler.type }}</td>
+            </tr>
+            <tr>
+                <th>Source</th>
+                <td>{{ crawler.source }}</td>
+            </tr>
+            <tr>
+                <th>Cron</th>
+                <td>{{ crawler.cron }}</td>
+            </tr>
+            <tr>
+                <th>Behaviour</th>
+                <td>{{ crawler.behaviour }}</td>
+            </tr>
+            <tr>
+                <th>Status</th>
+                <td>{{ crawler.status }}</td>
+            </tr>
+            <tr>
+                <th>Script</th>
+                <td>{{ crawler.script }}</td>
+            </tr>
+            <tr>
+                <th>Created</th>
+                <td>{{ crawler.created ? crawler.created|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Updated</th>
+                <td>{{ crawler.updated ? crawler.updated|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_crawler_index') }}">back to list</a>
+
+    <a href="{{ path('app_crawler_edit', {'id': crawler.id}) }}">edit</a>
+
+    {{ include('crawler/_delete_form.html.twig') }}
+{% endblock %}
