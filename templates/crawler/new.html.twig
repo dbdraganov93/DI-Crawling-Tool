@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Crawler{% endblock %}
+
+{% block body %}
+    <h1>Create new Crawler</h1>
+
+    {{ include('crawler/_form.html.twig') }}
+
+    <a href="{{ path('app_crawler_index') }}">back to list</a>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Company Index{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1 class="center-align">Company Management</h1>
+
+        <table id="companyTable" class="striped highlight responsive-table">
+            <thead>
+            <tr>
+                <th>Id</th>
+                <th>IprotoId</th>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for company in companies %}
+                <tr>
+                    <td>{{ company.id }}</td>
+                    <td>{{ company.iprotoid }}</td>
+                    <td>{{ company.name }}</td>
+                    <td>
+                        <a href="{{ path('app_company_show', {'id': company.id}) }}" class="btn-small waves-effect waves-light">Show</a>
+                        <a href="{{ path('app_company_edit', {'id': company.id}) }}" class="btn-small orange waves-effect waves-light">Edit</a>
+                        <a class="btn red">{{ include('company/_delete_form.html.twig', {'id': company.id}) }}</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="4" class="center-align">No records found</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="right-align">
+            <a href="{{ path('app_company_new') }}" class="btn waves-effect waves-light">Create New Company</a>
+        </div>
+    </div>
+{% endblock %}
+{% block javascripts %}
+    <script>
+        $(document).ready(function() {
+            $('#companyTable').DataTable({
+                "pagingType": "full_numbers",
+                "responsive": true
+            });
+        });
+    </script>
+{% endblock %}

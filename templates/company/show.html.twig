@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Company Details{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1>Company Details</h1>
+        <table class="table">
+            <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ company.id }}</td>
+            </tr>
+            <tr>
+                <th>Name</th>
+                <td>{{ company.name }}</td>
+            </tr>
+            <tr>
+                <th>IprotoId</th>
+                <td>{{ company.iprotoId }}</td>
+            </tr>
+            </tbody>
+        </table>
+        {{ include('company/_delete_form.html.twig') }}
+        <a href="{{ path('app_company_index') }}" class="btn waves-effect waves-light grey">Back to list</a>
+    </div>
+{% endblock %}
