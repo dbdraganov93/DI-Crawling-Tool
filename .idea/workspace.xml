@@ -5,9 +5,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="848e6fc2-58ef-4c68-9708-c4d917c1830c" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/codeception.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/diCrawler.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/diCrawler.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/phpspec.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/phpspec.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/packages/security.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/packages/security.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/base.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html.twig" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/composer.json" beforeDir="false" afterPath="$PROJECT_DIR$/composer.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/composer.lock" beforeDir="false" afterPath="$PROJECT_DIR$/composer.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/services.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/services.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Command/RunCrawlerScriptCommand.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Command/RunCrawlerScriptCommand.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CrawlerScripts/CrawlerScriptInterface.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/CrawlerScripts/CrawlerScriptInterface.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CrawlerScripts/SampleCrawlerScript.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/CrawlerScripts/SampleCrawlerScript.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -248,6 +257,10 @@
       <path value="$PROJECT_DIR$/vendor/symfony/polyfill-intl-messageformatter" />
       <path value="$PROJECT_DIR$/vendor/bin/.phpunit" />
       <path value="$PROJECT_DIR$/vendor/squizlabs/php_codesniffer" />
+      <path value="$PROJECT_DIR$/vendor/league/mime-type-detection" />
+      <path value="$PROJECT_DIR$/vendor/league/flysystem-local" />
+      <path value="$PROJECT_DIR$/vendor/league/flysystem" />
+      <path value="$PROJECT_DIR$/vendor/league/flysystem-ftp" />
     </include_path>
   </component>
   <component name="ProjectColorInfo">{
@@ -288,8 +301,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-PS-241.17890.8" />
-        <option value="bundled-php-predefined-ba97393d7c68-48a1a656d44e-com.jetbrains.php.sharedIndexes-PS-241.17890.8" />
+        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-PS-242.23726.107" />
+        <option value="bundled-php-predefined-a98d8de5180a-90914f2295cb-com.jetbrains.php.sharedIndexes-PS-242.23726.107" />
       </set>
     </attachedChunks>
   </component>
@@ -310,12 +323,28 @@
       <workItem from="1729602193124" duration="8223000" />
       <workItem from="1730797069378" duration="2365000" />
       <workItem from="1730804625358" duration="4601000" />
-      <workItem from="1730812862657" duration="3912000" />
+      <workItem from="1730812862657" duration="7065000" />
+      <workItem from="1730896484819" duration="715000" />
+      <workItem from="1730904582240" duration="50000" />
+      <workItem from="1731338381494" duration="936000" />
+      <workItem from="1731340029982" duration="2457000" />
+      <workItem from="1731938252908" duration="1096000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
