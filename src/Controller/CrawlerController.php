@@ -11,10 +11,19 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\HttpKernel\KernelInterface;
 #[Route('/crawler')]
 final class CrawlerController extends AbstractController
 {
+    private CsrfTokenManagerInterface $csrfTokenManager;
+
+    public function __construct(CsrfTokenManagerInterface $csrfTokenManager)
+    {
+        $this->csrfTokenManager = $csrfTokenManager;
+    }
     #[Route(name: 'app_crawler_index', methods: ['GET'])]
     public function index(CrawlerRepository $crawlerRepository): Response
     {
@@ -76,8 +85,11 @@ final class CrawlerController extends AbstractController
     #[Route('/{id}', name: 'app_crawler_show', methods: ['GET'])]
     public function show(Crawler $crawler): Response
     {
+        $csrfToken = $this->csrfTokenManager->getToken('run_crawler_' . $crawler->getId())->getValue();
+
         return $this->render('crawler/show.html.twig', [
             'crawler' => $crawler,
+            'csrf_token' => $csrfToken,
         ]);
     }
 
@@ -138,4 +150,88 @@ final class CrawlerController extends AbstractController
         // Update the crontab
         shell_exec("echo '$updatedCrontab' | crontab -");
     }
+
+    #[Route('/crawler/run/{id}', name: 'app_crawler_run', methods: ['POST'])]
+    public function run(int $id, Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $token = $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('run' . $id, $token)) {
+            return new JsonResponse(['success' => false, 'error' => 'Invalid CSRF token'], 403);
+        }
+
+        // Find the crawler by ID
+        $crawler = $entityManager->getRepository(Crawler::class)->find($id);
+
+        if (!$crawler) {
+            return new JsonResponse(['success' => false, 'error' => 'Crawler not found'], 404);
+        }
+
+        // Run the crawler command
+        $scriptName = $crawler->getScript();
+        $companyId = $crawler->getCompanyId();
+
+        // Use Symfony Process to execute the command
+        $process = new Process([
+            'php',
+            'bin/console',
+            'app:crawler:run-script',
+            $scriptName,
+            $companyId
+        ]);
+
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            return new JsonResponse([
+                'success' => false,
+                'error' => $process->getErrorOutput(),
+            ]);
+        }
+
+        return new JsonResponse([
+            'success' => true,
+            'output' => $process->getOutput(),
+        ]);
+    }
+
+    #[Route('/crawler/run/{id}', name: 'app_crawler_run', methods: ['POST'])]
+    public function runCrawler(Crawler $crawler, KernelInterface $kernel): JsonResponse
+    {
+        $companyId = $crawler->getCompanyId()->getId();
+        $scriptName = $crawler->getScript();
+
+        // Get the full path to the console file
+        $consolePath = $kernel->getProjectDir() . '/bin/console';
+
+        // Add `--no-debug` to suppress debug information
+        $command = sprintf(
+            'php %s app:crawler:run-script %s %d --no-debug 2>&1',
+            escapeshellarg($consolePath),
+            escapeshellarg($scriptName),
+            $companyId
+        );
+
+        $output = [];
+        $returnVar = null;
+        exec($command, $output, $returnVar);
+
+        if ($returnVar !== 0) {
+            $errorOutput = implode("\n", $output);
+            return new JsonResponse([
+                'success' => false,
+                'error' => "Command execution failed: {$errorOutput}"
+            ]);
+        }
+
+        // Replace file path with a URL for download
+        $csvPath = end($output); // Assume CSV path is the last line of output
+        $csvUrl = str_replace($kernel->getProjectDir() . '/public', '', $csvPath);
+
+        return new JsonResponse([
+            'success' => true,
+            'output' => implode("\n", array_slice($output, 0, -1)), // Exclude the last line (CSV path)
+            'downloadUrl' => $csvUrl,
+        ]);
+    }
+
 }

@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Crawler Results{% endblock %}
+
+{% block body %}
+    <h1>Crawler Results</h1>
+
+    <pre>{{ output }}</pre>
+
+    {% if output contains 'CSV created at:' %}
+        {% set filePath = output|split('CSV created at: ')[1]|trim %}
+        <a href="{{ filePath|replace({'/var/www/html/diCrawler/public': ''}) }}" download>Download CSV</a>
+    {% endif %}
+{% endblock %}

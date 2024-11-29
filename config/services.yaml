@@ -1,15 +1,17 @@
-# config/services.yaml
-
 services:
+    # Alias for the service container (needed for dynamic container access)
+    Symfony\Component\DependencyInjection\ContainerInterface: '@service_container'
+
     # Default configuration for services
     _defaults:
-        autowire: true
-        autoconfigure: true
+        autowire: true      # Automatically injects dependencies into services
+        autoconfigure: true # Automatically registers services as commands, event subscribers, etc.
         bind:
-            string $ftpServer: '%env(FTP_SERVER)%'
-            string $ftpUsername: '%env(FTP_USERNAME)%'
-            string $ftpPassword: '%env(FTP_PASSWORD)%'
-            int $ftpPort: '%env(int:FTP_PORT)%'
+            $ftpServer: '%env(FTP_SERVER)%'       # Bind the FTP server environment variable
+            $ftpUsername: '%env(FTP_USERNAME)%'  # Bind the FTP username environment variable
+            $ftpPassword: '%env(FTP_PASSWORD)%'  # Bind the FTP password environment variable
+            $ftpPort: '%env(int:FTP_PORT)%'      # Bind the FTP port as an integer
+            $csvDir: '%kernel.project_dir%/public/csv' # Bind the CSV directory for CsvService
 
     # Makes classes in src/ available to be used as services
     App\:
@@ -19,10 +21,30 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    # Register FtpService
+    # Register all crawler scripts
+    App\CrawlerScripts\:
+        resource: '../src/CrawlerScripts/'
+        tags: ['app.crawler_script']
+
+    # Register the RunCrawlerScriptCommand and inject all crawler scripts
+    App\Command\RunCrawlerScriptCommand:
+        arguments:
+            $crawlerScripts: !tagged_iterator app.crawler_script
+
+    # Register FtpService explicitly
     App\Service\FtpService:
         arguments:
             $ftpServer: '%env(FTP_SERVER)%'
             $ftpUsername: '%env(FTP_USERNAME)%'
             $ftpPassword: '%env(FTP_PASSWORD)%'
             $ftpPort: '%env(int:FTP_PORT)%'
+
+    # Register CsvService explicitly and inject the CSV directory
+    App\Service\CsvService:
+        arguments:
+            $csvDir: '%kernel.project_dir%/public/csv'
+
+    # Ensure StoreService is properly autowired
+    App\Service\StoreService: ~
+
+    # SampleCrawlerScript will be autowired as part of App\CrawlerScripts\ namespace and does not require explicit definition

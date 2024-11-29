@@ -1,58 +1,74 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Crawler{% endblock %}
+{% block title %}Crawler Details{% endblock %}
 
 {% block body %}
-    <h1>Crawler</h1>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Crawler Details</h1>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ crawler.id }}</td>
-            </tr>
-            <tr>
-                <th>Name</th>
-                <td>{{ crawler.name }}</td>
-            </tr>
-            <tr>
-                <th>Type</th>
-                <td>{{ crawler.type }}</td>
-            </tr>
-            <tr>
-                <th>Source</th>
-                <td>{{ crawler.source }}</td>
-            </tr>
-            <tr>
-                <th>Cron</th>
-                <td>{{ crawler.cron }}</td>
-            </tr>
-            <tr>
-                <th>Behaviour</th>
-                <td>{{ crawler.behaviour }}</td>
-            </tr>
-            <tr>
-                <th>Status</th>
-                <td>{{ crawler.status }}</td>
-            </tr>
-            <tr>
-                <th>Script</th>
-                <td>{{ crawler.script }}</td>
-            </tr>
-            <tr>
-                <th>Created</th>
-                <td>{{ crawler.created ? crawler.created|date('Y-m-d H:i:s') : '' }}</td>
-            </tr>
-            <tr>
-                <th>Updated</th>
-                <td>{{ crawler.updated ? crawler.updated|date('Y-m-d H:i:s') : '' }}</td>
-            </tr>
-        </tbody>
-    </table>
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">{{ crawler.name }}</h2>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <tbody>
+                    <tr>
+                        <th class="bg-light">Id</th>
+                        <td>{{ crawler.id }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">Name</th>
+                        <td>{{ crawler.name }}</td>
+                    </tr>
+                    <tr>
+                        <th class="bg-light">Company ID</th>
+                        <td>{{ crawler.companyId.id }}</td>
+                    </tr>
+                    <!-- Add other fields as necessary -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer text-center">
+                <a href="{{ path('app_crawler_index') }}" class="btn btn-secondary">Back to List</a>
+                <a href="{{ path('app_crawler_edit', {'id': crawler.id}) }}" class="btn btn-warning">Edit</a>
+                {{ include('crawler/_delete_form.html.twig') }}
+                <button id="run-crawler-btn" class="btn btn-success mt-2">Run Crawler</button>
+            </div>
+        </div>
 
-    <a href="{{ path('app_crawler_index') }}">back to list</a>
+        <div id="output-container" class="mt-4 d-none">
+            <h4>Command Output:</h4>
+            <pre id="command-output" class="p-3 bg-dark text-white rounded"></pre>
+        </div>
+    </div>
+{% endblock %}
 
-    <a href="{{ path('app_crawler_edit', {'id': crawler.id}) }}">edit</a>
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.getElementById('run-crawler-btn').addEventListener('click', function () {
+            const outputContainer = document.getElementById('output-container');
+            const commandOutput = document.getElementById('command-output');
 
-    {{ include('crawler/_delete_form.html.twig') }}
+            outputContainer.classList.remove('d-none'); // Show output container
+            commandOutput.textContent = 'Running command...'; // Placeholder text
+
+            fetch('{{ path('app_crawler_run', {'id': crawler.id}) }}', {
+                method: 'POST',
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        commandOutput.textContent = data.output;
+                    } else {
+                        commandOutput.textContent = 'Error: ' + data.error;
+                    }
+                })
+                .catch(error => {
+                    commandOutput.textContent = 'An error occurred: ' + error.message;
+                });
+        });
+
+    </script>
 {% endblock %}
