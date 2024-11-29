@@ -1,0 +1,2 @@
+store_number,city,zipcode,street,street_number,latitude,longitude,title,subtitle,text,phone,fax,email,store_hours,store_hours_notes,payment,website,distribution,parking,barrier_free,bonus_card,section,service,toilet,default_radius
+12345,Berlin,10115,"Example Street",42,52.5200,13.4050,"Sample Store","Best Store in Town","A sample description.",123-456-7890,123-456-7891,sample@store.com,"8 AM - 10 PM","Closed on public holidays","Cash, Card",https://www.samplestore.com,Local,Available,Yes,Available,Electronics,"Customer Support",Available,5km
