@@ -9,7 +9,7 @@ class SampleCrawlerScript implements CrawlerScriptInterface
 {
 
 
-    public function crawl(int $companyId): string
+    public function crawl(int $companyId): ?array
     {
         // Initialize StoreService
         $storeService = new StoreService($companyId);
@@ -105,10 +105,6 @@ class SampleCrawlerScript implements CrawlerScriptInterface
         }
 
         // Generate CSV
-        $filePath = $csvService->createCsvFromStores($storeService);
-
-        echo "CSV created at: {$filePath}\n";
-
-        return $filePath;
+        return $csvService->createCsvFromStores($storeService);
     }
 }

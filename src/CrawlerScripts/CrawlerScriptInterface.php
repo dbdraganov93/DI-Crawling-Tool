@@ -2,6 +2,8 @@
 
 namespace App\CrawlerScripts;
 
+use Symfony\Component\HttpFoundation\JsonResponse;
+
 interface CrawlerScriptInterface
 {
     /**
@@ -10,5 +12,5 @@ interface CrawlerScriptInterface
      * @param int $companyId The ID of the company to crawl.
      * @return string A URL for the generated output (e.g., a CSV file).
      */
-    public function crawl(int $companyId): string;
+    public function crawl(int $companyId): ?array;
 }

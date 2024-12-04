@@ -189,7 +189,7 @@ class StoreService
         return $this;
     }
 
-    public function setDefaultRadius(string $defaultRadius): self
+    public function setDefaultRadius(string $defaultRadius = '10km'): self
     {
         $this->defaultRadius = $defaultRadius;
         return $this;
