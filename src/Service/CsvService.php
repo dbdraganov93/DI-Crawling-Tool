@@ -7,21 +7,21 @@ use SplTempFileObject;
 
 class CsvService
 {
-    public function __construct($csvDir = './')
+    private string $csvDir;
+
+    public function __construct(string $csvDir = './')
     {
-        // Constructor logic (if needed)
+        $this->csvDir = rtrim($csvDir, '/');
     }
 
-    public function createCsvFromStores(StoreService $storeService): string
+    public function createCsvFromStores(StoreService $storeService): array
     {
-        // Retrieve the data for all stores
         $stores = $storeService->getStores();
 
         if (empty($stores)) {
             throw new \RuntimeException('No stores to export.');
         }
 
-        // Define the CSV headers
         $headers = [
             'store_number', 'city', 'zipcode', 'street', 'street_number',
             'latitude', 'longitude', 'title', 'subtitle', 'text', 'phone',
@@ -30,29 +30,31 @@ class CsvService
             'section', 'service', 'toilet', 'default_radius'
         ];
 
-        // Create the CSV writer
         $csv = Writer::createFromFileObject(new SplTempFileObject());
         $csv->insertOne($headers);
 
-        // Insert all store rows
         foreach ($stores as $store) {
             $csv->insertOne(array_values($store));
         }
 
-        // Generate a timestamp in milliseconds
         $timestamp = round(microtime(true) * 1000);
+        $fileName = sprintf('stores_%d_company_%d.csv', $timestamp, $storeService->getCompanyId());
+        $filePath = $this->csvDir . './public/csv/' . $fileName;
 
-        // Define the file path with the prefix "stores_" and the timestamp
-        $filePath = sprintf(
-            '%s/public/csv/stores_%d_%d.csv',
-            __DIR__ . '/../../',
-            $storeService->getCompanyId(),
-            $timestamp
-        );
+        // Ensure the directory exists
+        $directory = dirname($filePath);
+        if (!is_dir($directory)) {
+            if (!mkdir($directory, 0755, true) && !is_dir($directory)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $directory));
+            }
+        }
 
-        // Save the CSV file
         file_put_contents($filePath, $csv->toString());
-
-        return $filePath;
+        $domain = getenv('APP_DOMAIN');
+        return [
+            'filePath' => $filePath,
+            'message' => "CSV created successfully: {$fileName}. \n Download at http://127.0.0.1:8000/csv/{$fileName}",
+            'downloadLink' => $domain . "http://127.0.0.1:8000/csv/{$fileName}",
+        ];
     }
 }

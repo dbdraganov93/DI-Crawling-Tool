@@ -5,17 +5,55 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="848e6fc2-58ef-4c68-9708-c4d917c1830c" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/diCrawler.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/diCrawler.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732884232725_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732884376693_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732884484137_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732884533122_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732884717492_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732884724135_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732884793595_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732884932270_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732884963272_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885133970_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885245496_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885258642_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885277256_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885284260_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885289293_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885329943_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885338870_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885345684_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885357281_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885365210_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885374420_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885401369_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885411987_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885438108_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885453590_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885457459_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885476382_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885495910_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732885866872_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/csv/stores_1732892610892_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/public/csv/stores_1732885216567_company_4.csv" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/public/csv/stores_1732885240614_company_4.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composer.json" beforeDir="false" afterPath="$PROJECT_DIR$/composer.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composer.lock" beforeDir="false" afterPath="$PROJECT_DIR$/composer.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/services.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/services.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Command/RunCrawlerScriptCommand.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Command/RunCrawlerScriptCommand.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Controller/CrawlerController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controller/CrawlerController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/csv/company_12.csv" beforeDir="false" afterPath="$PROJECT_DIR$/public/csv/stores_1732883470296_company_4.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/csv/company_1288.csv" beforeDir="false" afterPath="$PROJECT_DIR$/public/csv/stores_1732883544988_company_4.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/csv/company_4.csv" beforeDir="false" afterPath="$PROJECT_DIR$/public/csv/stores_1732883179834_company_4.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/csv/store_1288_20241118200534357.csv" beforeDir="false" afterPath="$PROJECT_DIR$/public/csv/stores_1732883650951_company_4.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/csv/store_1288_20241118200547716.csv" beforeDir="false" afterPath="$PROJECT_DIR$/public/csv/stores_1732884206017_company_4.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/csv/store_1288_20241118201601092.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/csv/store_4_20241118200633212.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/csv/store_4_20241118200658745.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/csv/stores_4_1732881904083.csv" beforeDir="false" afterPath="$PROJECT_DIR$/public/csv/stores_1732883429554_company_4.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CrawlerScripts/CrawlerScriptInterface.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/CrawlerScripts/CrawlerScriptInterface.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CrawlerScripts/SampleCrawlerScript.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/CrawlerScripts/SampleCrawlerScript.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/crawler/show.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/crawler/show.html.twig" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Form/CrawlerType.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Form/CrawlerType.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Service/CsvService.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Service/CsvService.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Service/StoreService.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Service/StoreService.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/crawler/_delete_form.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/crawler/_delete_form.html.twig" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,6 +78,10 @@
               <option name="branches">
                 <list>
                   <RecentBranch>
+                    <option name="branchName" value="features" />
+                    <option name="lastUsedInstant" value="1732892653" />
+                  </RecentBranch>
+                  <RecentBranch>
                     <option name="branchName" value="Readme" />
                     <option name="lastUsedInstant" value="1729759861" />
                   </RecentBranch>
@@ -54,10 +96,6 @@
                   <RecentBranch>
                     <option name="branchName" value="StartPage" />
                     <option name="lastUsedInstant" value="1729603106" />
-                  </RecentBranch>
-                  <RecentBranch>
-                    <option name="branchName" value="Cosmetic" />
-                    <option name="lastUsedInstant" value="1729600526" />
                   </RecentBranch>
                 </list>
               </option>
@@ -278,7 +316,8 @@
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;Readme&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;features&quot;,
     &quot;last_opened_file_path&quot;: &quot;/var/www/html/diCrawler/public/images&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
@@ -301,8 +340,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-PS-242.23726.107" />
-        <option value="bundled-php-predefined-a98d8de5180a-90914f2295cb-com.jetbrains.php.sharedIndexes-PS-242.23726.107" />
+        <option value="bundled-js-predefined-d6986cc7102b-e768b9ed790e-JavaScript-PS-243.21565.202" />
+        <option value="bundled-php-predefined-a98d8de5180a-5fbe0c30323e-com.jetbrains.php.sharedIndexes-PS-243.21565.202" />
       </set>
     </attachedChunks>
   </component>
@@ -333,6 +372,11 @@
       <workItem from="1732008201132" duration="2074000" />
       <workItem from="1732093606568" duration="5000" />
       <workItem from="1732108724240" duration="237000" />
+      <workItem from="1732892605714" duration="1005000" />
+      <workItem from="1732981469007" duration="3387000" />
+      <workItem from="1733127644272" duration="20000" />
+      <workItem from="1733221457647" duration="20000" />
+      <workItem from="1733300862839" duration="604000" />
     </task>
     <servers />
   </component>
