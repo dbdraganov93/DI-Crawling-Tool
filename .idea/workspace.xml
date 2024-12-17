@@ -5,6 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="848e6fc2-58ef-4c68-9708-c4d917c1830c" name="Changes" comment="">
+<<<<<<< Updated upstream
       <change afterPath="$PROJECT_DIR$/public/csv/stores_1732884232725_company_4.csv" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/public/csv/stores_1732884376693_company_4.csv" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/public/csv/stores_1732884484137_company_4.csv" afterDir="false" />
@@ -54,6 +55,12 @@
       <change beforePath="$PROJECT_DIR$/src/Service/CsvService.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Service/CsvService.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Service/StoreService.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Service/StoreService.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/crawler/_delete_form.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/crawler/_delete_form.html.twig" afterDir="false" />
+=======
+      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CrawlerScripts/SampleCrawlerScript.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/CrawlerScripts/SampleCrawlerScript.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Service/FtpService.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Service/FtpService.php" afterDir="false" />
+>>>>>>> Stashed changes
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,6 +85,10 @@
               <option name="branches">
                 <list>
                   <RecentBranch>
+                    <option name="branchName" value="terminalstyle" />
+                    <option name="lastUsedInstant" value="1734465292" />
+                  </RecentBranch>
+                  <RecentBranch>
                     <option name="branchName" value="features" />
                     <option name="lastUsedInstant" value="1732892653" />
                   </RecentBranch>
@@ -92,10 +103,6 @@
                   <RecentBranch>
                     <option name="branchName" value="pipeline" />
                     <option name="lastUsedInstant" value="1729605811" />
-                  </RecentBranch>
-                  <RecentBranch>
-                    <option name="branchName" value="StartPage" />
-                    <option name="lastUsedInstant" value="1729603106" />
                   </RecentBranch>
                 </list>
               </option>
@@ -313,6 +320,7 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
+<<<<<<< Updated upstream
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
@@ -326,8 +334,23 @@
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;database.data.csv.formats&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+=======
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "terminalstyle",
+    "last_opened_file_path": "/var/www/html/diCrawler/public/images",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "database.data.csv.formats",
+    "vue.rearranger.settings.migration": "true"
+>>>>>>> Stashed changes
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/public/images" />
@@ -377,6 +400,13 @@
       <workItem from="1733127644272" duration="20000" />
       <workItem from="1733221457647" duration="20000" />
       <workItem from="1733300862839" duration="604000" />
+<<<<<<< Updated upstream
+=======
+      <workItem from="1733902530974" duration="327000" />
+      <workItem from="1734008196175" duration="1578000" />
+      <workItem from="1734014441405" duration="4409000" />
+      <workItem from="1734464731507" duration="1381000" />
+>>>>>>> Stashed changes
     </task>
     <servers />
   </component>
