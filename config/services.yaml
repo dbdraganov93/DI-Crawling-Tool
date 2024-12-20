@@ -47,4 +47,5 @@ services:
     # Ensure StoreService is properly autowired
     App\Service\StoreService: ~
 
-    # SampleCrawlerScript will be autowired as part of App\CrawlerScripts\ namespace and does not require explicit definition
+    # Ensure ShopfullyService is properly autowired
+    App\Service\ShopfullyService: ~

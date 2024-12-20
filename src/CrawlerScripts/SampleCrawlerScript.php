@@ -3,29 +3,37 @@
 namespace App\CrawlerScripts;
 
 use App\Service\CsvService;
+use App\Service\ShopfullyService;
 use App\Service\StoreService;
 use App\Service\FtpService;
 class SampleCrawlerScript implements CrawlerScriptInterface
 {
     private FtpService $ftpService;
+   private ShopfullyService $shopfullyService;
 
-    public function __construct()
-    {
+    public function __construct(
+        ShopfullyService $shopfullyService,
+    ) {
         // Initialize the FTP service with example credentials
         $ftpServer = 'ftp.marktjagd.de';
         $ftpUsername = 'crawler';
         $ftpPassword = '0fa5fa8f351febcddedf0bbd1324a885';
 
         $this->ftpService = new FtpService($ftpServer, $ftpUsername, $ftpPassword);
+       $this->shopfullyService = $shopfullyService;
     }
 
     public function crawl(int $companyId): ?array
     {
+
+             var_dump($this->shopfullyService->fetchBrochureData('1258799', 'it_it'));
+        var_dump($this->shopfullyService->fetchPublicationData(1261667));
         // List files from the FTP server root directory
+
         $ftpFiles = $this->ftpService->listFiles('/73102');
 
         // Dump the directory listing
-        var_dump($ftpFiles);
+       // var_dump($ftpFiles);
 
         // Initialize StoreService
         $storeService = new StoreService($companyId);
