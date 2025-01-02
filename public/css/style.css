@@ -19,3 +19,16 @@ select {
 .red-background {
     background-color: red;
 }
+.navbar .dropdown:hover .dropdown-menu {
+    display: block;
+    margin-top: 0; /* Adjust based on your design */
+}
+
+.dropdown-menu {
+    background-color: #fff; /* Match your theme */
+}
+
+.dropdown-item:hover {
+    background-color: #f0f0f0; /* Hover color for dropdown items */
+    width: auto;
+}

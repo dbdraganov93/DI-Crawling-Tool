@@ -26,8 +26,8 @@ class SampleCrawlerScript implements CrawlerScriptInterface
     public function crawl(int $companyId): ?array
     {
 
-             var_dump($this->shopfullyService->fetchBrochureData('1258799', 'it_it'));
-        var_dump($this->shopfullyService->fetchPublicationData(1261667));
+         $brochureData = $this->shopfullyService->fetchBrochureData('1258799', 'it_it');
+          var_dump($this->shopfullyService->fetchPublicationData($brochureData['publication_id']));
         // List files from the FTP server root directory
 
         $ftpFiles = $this->ftpService->listFiles('/73102');

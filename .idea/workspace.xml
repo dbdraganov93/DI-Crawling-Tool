@@ -6,12 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="848e6fc2-58ef-4c68-9708-c4d917c1830c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composer.json" beforeDir="false" afterPath="$PROJECT_DIR$/composer.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composer.lock" beforeDir="false" afterPath="$PROJECT_DIR$/composer.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/services.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/config/services.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/stores_1734466451125_company_4.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/stores_1734466465308_company_4.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/css/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/public/css/style.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CrawlerScripts/SampleCrawlerScript.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/CrawlerScripts/SampleCrawlerScript.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Service/ShopfullyService.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Service/ShopfullyService.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/base.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html.twig" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,12 +34,12 @@
               <option name="branches">
                 <list>
                   <RecentBranch>
-                    <option name="branchName" value="master" />
-                    <option name="lastUsedInstant" value="1734725962" />
+                    <option name="branchName" value="Shopfully" />
+                    <option name="lastUsedInstant" value="1734726647" />
                   </RecentBranch>
                   <RecentBranch>
-                    <option name="branchName" value="Shopfully" />
-                    <option name="lastUsedInstant" value="1734697715" />
+                    <option name="branchName" value="master" />
+                    <option name="lastUsedInstant" value="1734725962" />
                   </RecentBranch>
                   <RecentBranch>
                     <option name="branchName" value="features" />
@@ -279,21 +277,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master",
-    "last_opened_file_path": "/var/www/html/diCrawler/public/images",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "database.data.csv.formats",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Shopfully&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/var/www/html/diCrawler/public/images&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;database.data.csv.formats&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/public/images" />
@@ -346,7 +344,11 @@
       <workItem from="1733902530974" duration="327000" />
       <workItem from="1734008196175" duration="1578000" />
       <workItem from="1734014441405" duration="4409000" />
-      <workItem from="1734697662212" duration="8790000" />
+      <workItem from="1734697662212" duration="14009000" />
+      <workItem from="1735305223800" duration="21000" />
+      <workItem from="1735632837063" duration="148000" />
+      <workItem from="1735634350157" duration="116000" />
+      <workItem from="1735831470946" duration="397000" />
     </task>
     <servers />
   </component>
