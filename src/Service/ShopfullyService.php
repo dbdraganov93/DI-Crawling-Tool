@@ -29,8 +29,10 @@ class ShopfullyService
         if ($response->getStatusCode() !== 200) {
             throw new \RuntimeException('Failed to fetch brochure data');
         }
-
-        return $response->toArray();
+        $arrayResponse = $response->toArray();
+        $publicationArray = explode('_', $arrayResponse['data'][0]['Flyer']['publication_url']);
+        $arrayResponse['publication_id'] = end($publicationArray);
+        return $arrayResponse;
     }
 
     public function fetchPublicationData(int $brochureId, string $locale = 'it_it'): array
