@@ -3,6 +3,7 @@
 namespace App\CrawlerScripts;
 
 use App\Service\CsvService;
+use App\Service\IprotoService;
 use App\Service\ShopfullyService;
 use App\Service\StoreService;
 use App\Service\FtpService;
@@ -25,7 +26,9 @@ class SampleCrawlerScript implements CrawlerScriptInterface
 
     public function crawl(int $companyId): ?array
     {
-
+        $a = new IprotoService();
+$a->createToken();
+die();
          $brochureData = $this->shopfullyService->fetchBrochureData('1258799', 'it_it');
           var_dump($this->shopfullyService->fetchPublicationData($brochureData['publication_id']));
         // List files from the FTP server root directory
