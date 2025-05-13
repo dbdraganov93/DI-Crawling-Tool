@@ -1,4 +1,7 @@
 services:
+    App\CrawlerScripts\ShopfullyCrawler:
+        autowire: true
+        autoconfigure: true
     # Alias for the service container (needed for dynamic container access)
     Symfony\Component\DependencyInjection\ContainerInterface: '@service_container'
 

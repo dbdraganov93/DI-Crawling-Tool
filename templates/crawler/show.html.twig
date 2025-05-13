@@ -6,10 +6,15 @@
     {{ parent() }}
     <style>
         /* Parent container to align items side by side */
-        .crawler-container {
-            display: flex;
-            flex-direction: row;
-            gap: 20px; /* Space between the two sections */
+        .nav-tabs .nav-link {
+            border: none;
+            border-radius: .5rem .5rem 0 0;
+            font-weight: bold;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #007bff;
         }
 
         /* Adjust terminal width */
@@ -18,7 +23,7 @@
             flex-direction: column;
             justify-content: space-between;
             flex-basis: 45%; /* Terminal takes 45% of the width */
-            max-width: 45%;
+            max-width: 100%;
             background-color: #000;
             color: #00ff00;
             border-radius: 8px;
@@ -55,11 +60,6 @@
             border-bottom-right-radius: 8px;
         }
 
-        /* Details container */
-        .crawler-card {
-            flex-basis: 55%; /* Details card takes 55% of the width */
-            max-width: 55%;
-        }
 
         /* Run Button */
         .btn-run-crawler {
@@ -90,49 +90,64 @@
 {% endblock %}
 
 {% block body %}
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">Crawler Details</h1>
+        <div class="container mt-5" style="width:100%">
+            <h1 class="text-center mb-4">Crawler Details</h1>
 
-        <div class="crawler-container">
-            <!-- Crawler Details Card -->
-            <div class="card shadow-sm crawler-card">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="mb-0">{{ crawler.name }}</h2>
-                </div>
-                <div class="card-body">
-                    <table class="table table-bordered">
-                        <tbody>
-                        <tr>
-                            <th class="bg-light">Id</th>
-                            <td>{{ crawler.id }}</td>
-                        </tr>
-                        <tr>
-                            <th class="bg-light">Name</th>
-                            <td>{{ crawler.name }}</td>
-                        </tr>
-                        <tr>
-                            <th class="bg-light">Company ID</th>
-                            <td>{{ crawler.companyId.id }}</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <!-- Tab navigation -->
+            <ul class="nav nav-tabs mb-3" id="crawlerTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab">Details</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="terminal-tab" data-bs-toggle="tab" data-bs-target="#terminal" type="button" role="tab">Terminal</button>
+                </li>
+            </ul>
 
-            <!-- Terminal Section -->
-            <div class="terminal-container">
-                <div class="terminal-header">
-                    Terminal Output
+            <!-- Tab content -->
+            <div class="tab-content p-3 border rounded bg-white" id="crawlerTabContent">
+                <!-- Details Tab -->
+                <div class="tab-pane fade show active" id="details" role="tabpanel">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h2 class="mb-0">{{ crawler.name }}</h2>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-bordered">
+                                <tbody>
+                                <tr>
+                                    <th class="bg-light">Id</th>
+                                    <td>{{ crawler.id }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="bg-light">Name</th>
+                                    <td>{{ crawler.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th class="bg-light">Company ID</th>
+                                    <td>{{ crawler.companyId.id }}</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-                <div id="command-output" class="terminal">
-                    Ready to execute command...
-                </div>
-                <div class="terminal-footer">
-                    <button id="run-crawler-btn" class="btn btn-run-crawler">Run Crawler</button>
+
+                <!-- Terminal Tab -->
+                <div class="tab-pane fade" id="terminal" role="tabpanel">
+                    <div class="terminal-container mt-2">
+                        <div class="terminal-header">
+                            Terminal Output
+                        </div>
+                        <div id="command-output" class="terminal">
+                            Ready to execute command...
+                        </div>
+                        <div class="terminal-footer">
+                            <button id="run-crawler-btn" class="btn btn-run-crawler">Run Crawler</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 {% endblock %}
 
 {% block javascripts %}
