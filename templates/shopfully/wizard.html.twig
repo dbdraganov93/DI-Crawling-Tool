@@ -1,0 +1,266 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Shopfully Wizard{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+
+    <style>
+        .nav-tabs .nav-link {
+            border: none;
+            border-radius: .5rem .5rem 0 0;
+            font-weight: bold;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #007bff;
+        }
+
+        .terminal-container {
+            background-color: #000;
+            color: #00ff00;
+            border-radius: 8px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+            padding: 20px;
+            min-height: 300px;
+            max-height: 400px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Shopfully Wizard</h1>
+
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">{{ message }}</div>
+        {% endfor %}
+
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs mb-3" id="wizardTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="form-tab" data-bs-toggle="tab" data-bs-target="#form-tab-pane" type="button" role="tab">
+                    Wizard Form
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs-tab-pane" type="button" role="tab">
+                    Logs
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content p-3 border rounded bg-white" id="wizardTabsContent">
+            <!-- Form Tab -->
+            <div class="tab-pane fade show active" id="form-tab-pane" role="tabpanel">
+                {{ form_start(form) }}
+
+                <div id="step-1" class="step">
+                    <h4>Step 1: Select Company</h4>
+                    <div class="mb-3">
+                        {{ form_label(form.company) }}
+                        {{ form_widget(form.company, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.company) }}
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="nextStep(2)">Next</button>
+                </div>
+
+                <div id="step-2" class="step" style="display: none;">
+                    <h4>Step 2: Locale and Brochures</h4>
+
+                    <div class="mb-3">
+                        {{ form_label(form.locale) }}
+                        {{ form_widget(form.locale, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.locale) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {% set prototype %}
+                            <div class="number-entry mb-2">
+                                <div class="row g-2">
+                                    <div class="col">
+                                        {{ form_widget(form.numbers.vars.prototype.number, {'attr': {'class': 'form-control', 'placeholder': 'Number'}}) }}
+                                    </div>
+                                    <div class="col">
+                                        {{ form_widget(form.numbers.vars.prototype.tracking_pixel, {'attr': {'class': 'form-control', 'placeholder': 'Tracking Pixel'}}) }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endset %}
+
+                        <div id="numbers-wrapper" data-prototype="{{ prototype|e('html_attr') }}">
+                            {% for entry in form.numbers %}
+                                <div class="number-entry mb-2" data-real="true">
+                                    <div class="row g-2">
+                                        <div class="col">
+                                            {{ form_widget(entry.number, {'attr': {'class': 'form-control'}}) }}
+                                        </div>
+                                        <div class="col">
+                                            {{ form_widget(entry.tracking_pixel, {'attr': {'class': 'form-control'}}) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <button type="button" class="btn btn-outline-primary mt-2" onclick="addNumberField()">Add Brochure</button>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" onclick="prevStep()">Previous</button>
+                        <button type="button" class="btn btn-primary" onclick="nextStep(3)">Next</button>
+                    </div>
+                </div>
+
+                <div id="step-3" class="step" style="display: none;">
+                    <h4>Step 3: Preview</h4>
+                    <div class="mb-2"><strong>Company:</strong> <span id="preview-company"></span></div>
+                    <div class="mb-2"><strong>Locale:</strong> <span id="preview-locale"></span></div>
+                    <div class="mb-2"><strong>Brochures:</strong> <ul id="preview-numbers" class="list-group"></ul></div>
+
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" onclick="prevStep()">Previous</button>
+                        <button type="submit" class="btn btn-success">Submit</button>
+                    </div>
+                </div>
+
+                {{ form_end(form) }}
+            </div>
+
+            <!-- Logs Tab -->
+            <div class="tab-pane fade" id="logs-tab-pane" role="tabpanel">
+                <table id="logsTable" class="table table-striped table-bordered table-hover" style="width:100%">
+                    <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Created At</th>
+                        <th>Company</th>
+                        <th>Iproto ID</th>
+                        <th>Locale</th>
+                        <th>Data (JSON)</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for log in logs %}
+                        <tr>
+                            <td>{{ log.id }}</td>
+                            <td>{{ log.createdAt ? log.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+                            <td>{{ log.companyName }}</td>
+                            <td>{{ log.iprotoId }}</td>
+                            <td>{{ log.locale }}</td>
+                            <td>
+                                {% set collapseId = 'collapse-log-' ~ log.id %}
+
+                                <a class="btn btn-sm btn-outline-secondary"
+                                   data-bs-toggle="collapse"
+                                   href="#{{ collapseId }}"
+                                   role="button"
+                                   aria-expanded="false"
+                                   aria-controls="{{ collapseId }}">
+                                    📂 {{ log.data|length }} brochure{{ log.data|length > 1 ? 's' : '' }}
+                                </a>
+
+                                <div class="collapse mt-2" id="{{ collapseId }}">
+                                    <ul class="list-group list-group-flush small border rounded">
+                                        {% for brochure in log.data %}
+                                            <li class="list-group-item d-flex justify-content-between">
+                                                <span>#{{ loop.index }}: <strong>{{ brochure.number }}</strong></span>
+                                                <span class="text-muted">Pixel: {{ brochure.tracking_pixel }}</span>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </td>
+
+
+
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+
+        function showStep(step) {
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`step-${i}`).style.display = (i === step ? 'block' : 'none');
+            }
+            currentStep = step;
+        }
+
+        function nextStep(step = currentStep + 1) {
+            if (step === 3) fillPreview();
+            showStep(step);
+        }
+
+        function prevStep() {
+            if (currentStep > 1) showStep(currentStep - 1);
+        }
+
+        function addNumberField() {
+            const wrapper = document.getElementById('numbers-wrapper');
+            const prototype = wrapper.dataset.prototype;
+            const index = wrapper.querySelectorAll('.number-entry[data-real="true"]').length;
+            const newForm = prototype.replace(/__name__/g, index);
+            const div = document.createElement('div');
+            div.classList.add('number-entry', 'mb-2');
+            div.setAttribute('data-real', 'true');
+            div.innerHTML = newForm;
+            wrapper.appendChild(div);
+        }
+
+        function fillPreview() {
+            const companySelect = document.querySelector('[name$="[company]"]');
+            const companyText = companySelect.options[companySelect.selectedIndex]?.text || '';
+            document.getElementById('preview-company').textContent = companyText;
+
+            const locale = document.querySelector('[name$="[locale]"]').value;
+            document.getElementById('preview-locale').textContent = locale;
+
+            const previewList = document.getElementById('preview-numbers');
+            previewList.innerHTML = '';
+
+            const wrappers = document.querySelectorAll('#numbers-wrapper .number-entry[data-real="true"]');
+            let visibleIndex = 1;
+
+            wrappers.forEach(block => {
+                const numberInput = block.querySelector('input[name$="[number]"]');
+                const pixelInput = block.querySelector('input[name$="[tracking_pixel]"]');
+                if (!numberInput || !pixelInput) return;
+
+                const number = numberInput.value.trim();
+                const pixel = pixelInput.value.trim();
+
+                if (number === '' && pixel === '') return;
+
+                const item = document.createElement('li');
+                item.classList.add('list-group-item');
+                item.textContent = `#${visibleIndex++}: ${number} — Pixel: ${pixel}`;
+                previewList.appendChild(item);
+            });
+        }
+    </script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            new DataTable('#logsTable', {
+                responsive: true,
+                pageLength: 10,
+                order: [[1, 'desc']], // Order by date desc
+            });
+        });
+    </script>
+
+{% endblock %}
