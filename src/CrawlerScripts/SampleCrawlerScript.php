@@ -6,6 +6,7 @@ use App\Service\CsvService;
 use App\Service\ShopfullyService;
 use App\Service\StoreService;
 use App\Service\FtpService;
+use App\Service\IprotoService;
 class SampleCrawlerScript implements CrawlerScriptInterface
 {
    private ShopfullyService $shopfullyService;
@@ -13,6 +14,9 @@ class SampleCrawlerScript implements CrawlerScriptInterface
     public function __construct(
         ShopfullyService $shopfullyService,
     ) {
+        $a = new IprotoService();
+        $a->createToken();
+        die();
        $this->shopfullyService = $shopfullyService;
     }
 
