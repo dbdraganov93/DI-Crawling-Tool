@@ -1,4 +1,7 @@
 services:
+    App\Service\IprotoService: ~
+    App\Service\IprotoTokenService: ~
+    App\CrawlerScripts\SampleCrawlerScript: ~
     App\CrawlerScripts\ShopfullyCrawler:
         autowire: true
         autoconfigure: true
