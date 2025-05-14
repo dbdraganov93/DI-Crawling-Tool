@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Service\IprotoService;
+use App\Service\IprotoTokenService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -14,9 +14,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 class IprotoUpdateTokenCommand extends Command
 {
-    private IprotoService $iprotoService;
+    private IprotoTokenService $iprotoService;
 
-    public function __construct(IprotoService $iprotoService)
+    public function __construct(IprotoTokenService $iprotoService)
     {
         parent::__construct();
         $this->iprotoService = $iprotoService;
