@@ -18,18 +18,18 @@ class SampleCrawlerScript implements CrawlerScriptInterface
     ) {
         $this->iprotoService = $iprotoService;
 
-        //$a = new IprotoTokenService();
-        //$a->createToken();
        $this->shopfullyService = $shopfullyService;
     }
 
     public function crawl(int $companyId): ?array
     {
+        //GET STORES FROM IPROTO BY COMPANY
         $stores = $this->iprotoService->findStoresByCompany($companyId);
-        var_dump($stores); die;
-         $brochureData = $this->shopfullyService->fetchBrochureData('1258799', 'it_it');
-          var_dump($this->shopfullyService->fetchPublicationData($brochureData['publication_id']));
-        // List files from the FTP server root directory
+       // var_dump(count($stores)); die;
+
+
+        // $brochureData = $this->shopfullyService->fetchBrochureData('1258799', 'it_it');
+      //    var_dump($this->shopfullyService->fetchPublicationData($brochureData['publication_id']));
 
 
         // Dump the directory listing
