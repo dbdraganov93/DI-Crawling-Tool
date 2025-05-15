@@ -7,6 +7,9 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class IprotoService
 {
+    private const BASE_URL = 'https://iproto.offerista.com';
+    private const MAX_ATTEMPTS = 5;
+
     public function __construct(
         private HttpClientInterface $httpClient,
         private LoggerInterface $logger,
@@ -16,49 +19,54 @@ class IprotoService
     public function findStoresByCompany(int $companyId, bool $visibleOnly = true): array
     {
         $stores = [];
-        $page = 1;
         $pageSize = 100;
+        $page = 1;
+        $hasMore = true;
 
-        do {
-            $params = [
-                'integration' => '/api/integrations/' . $companyId,
-                'page' => $page++,
-                'itemsPerPage' => $pageSize,
-            ];
-
-            if ($visibleOnly) {
-                $params['exists'] = ['deletedAt' => false];
-            }
+        while ($hasMore) {
+            $params = $this->buildStoreQueryParams($companyId, $visibleOnly, $page, $pageSize);
 
             $response = $this->sendRequest('GET', '/api/stores', $params);
 
-            if (!isset($response['body']['hydra:member'])) {
-                var_dump($response);
+            $items = $response['body'] ?? null;
+
+            if (!is_array($items)) {
                 throw new \RuntimeException('Invalid response from iProto');
             }
 
-            foreach ($response['body']['hydra:member'] as $store) {
-                $stores[] = $store; // You can call mapStoreToApi3() here if needed
-            }
-        } while (count($response['body']['hydra:member']) === $pageSize);
+            $stores = array_merge($stores, $items);
+
+            $hasMore = count($items) === $pageSize;
+            $page++;
+        }
 
         return $stores;
     }
 
+    private function buildStoreQueryParams(int $companyId, bool $visibleOnly, int $page, int $pageSize): array
+    {
+        $params = [
+            'integration' => '/api/integrations/' . $companyId,
+             'page' => $page,
+             'itemsPerPage' => $pageSize,
+        ];
+
+        if ($visibleOnly) {
+            $params['exists'] = ['deletedAt' => false];
+        }
+
+        return $params;
+    }
+
+
     private function sendRequest(string $method, string $uri, array $params = [], $body = null, string $bodyMediaType = 'application/ld+json'): array
     {
-        $baseUrl = 'https://iproto.offerista.com';//'https://iproto.public-elb.di-vostok.offerista.com';
         $token = $this->tokenService->getValidToken();
-
         if (!$token) {
             throw new \RuntimeException('No valid token found');
         }
 
-        // Нормализиране и build на query string
-        $normalizedParams = $this->normalizeParams($params);
-        $query = count($normalizedParams) > 0 ? '?' . http_build_query($normalizedParams) : '';
-
-        $url = rtrim($baseUrl, '/') . '/' . ltrim($uri, '/') . $query;
+        $url = $this->buildUrl($uri, $params);
 
         $headers = [
             'Authorization' => 'Bearer ' . $token,
@@ -78,23 +86,21 @@ class IprotoService
             $options['body'] = is_array($body) ? json_encode($body) : $body;
         }
 
-        // DEBUG: покажи какъв е URL и headers (само по време на разработка)
         $this->logger->info("Request: \"$method $url\"");
-        $this->logger->info("Headers: " . json_encode($headers));
         if ($body) {
             $this->logger->info("Body: " . (is_array($body) ? json_encode($body) : $body));
         }
 
         $attempt = 0;
-        $maxAttempts = 5;
 
         do {
             try {
                 $response = $this->httpClient->request($method, $url, $options);
                 $statusCode = $response->getStatusCode();
+
                 $this->logger->info("Response: \"$statusCode $url\"");
 
-                $content = $response->getContent(false); // взимаш и при 401, без throw
+                $content = $response->getContent(false); // do not throw
                 $json = json_decode($content, true);
 
                 if ($statusCode >= 200 && $statusCode < 300) {
@@ -110,11 +116,17 @@ class IprotoService
             }
 
             sleep(pow($attempt++, 2));
-        } while ($attempt < $maxAttempts);
+        } while ($attempt < self::MAX_ATTEMPTS);
 
-        throw new \RuntimeException("iProto API request failed after $maxAttempts attempts: $method $url");
+        throw new \RuntimeException("iProto API request failed after " . self::MAX_ATTEMPTS . " attempts: $method $url");
     }
 
+    private function buildUrl(string $uri, array $params = []): string
+    {
+        $normalizedParams = $this->normalizeParams($params);
+        $query = count($normalizedParams) > 0 ? '?' . http_build_query($normalizedParams) : '';
+        return rtrim(self::BASE_URL, '/') . '/' . ltrim($uri, '/') . $query;
+    }
 
     private function normalizeParams(array $params): array
     {
