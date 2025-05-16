@@ -12,13 +12,17 @@ class ShopfullyService
         $this->httpClient = $httpClient;
     }
 
+    public function getBrochure(string $brochureId, string $locale): array
+    {
+        $response['brochureData'] = $this->fetchBrochureData($brochureId, $locale);
+        $response['publicationData'] = $this->fetchPublicationData($response['brochureData']['publication_id'], $locale);
+
+        return $response;
+    }
+
     public function fetchBrochureData(string $brochureId, string $locale): array
     {
-        $url = sprintf(
-            'https://d1h08qwp2t1dnu.cloudfront.net/v1/%s/flyers.json?conditions[id]=%s',
-            $locale,
-            $brochureId
-        );
+        $url = 'https://d1h08qwp2t1dnu.cloudfront.net/v1/'. $locale .'/flyers/'. $brochureId .'.json';
 
         $response = $this->httpClient->request('GET', $url, [
             'headers' => [
@@ -37,10 +41,7 @@ class ShopfullyService
 
     public function fetchPublicationData(int $brochureId, string $locale = 'it_it'): array
     {
-        $url = sprintf(
-            'https://d1h08qwp2t1dnu.cloudfront.net/v1/'.$locale.'/flyers/%u/publications.json?modifiers=pdf_url',
-            (int) $brochureId
-        );
+        $url = 'https://d1h08qwp2t1dnu.cloudfront.net/v1/'.$locale.'/publications/'.$brochureId.'.json?modifiers=pdf_url';
 
 
         $response = $this->httpClient->request('GET', $url, [
