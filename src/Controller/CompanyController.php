@@ -10,6 +10,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Service\IprotoService;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 #[Route('/company')]
 final class CompanyController extends AbstractController
@@ -77,5 +79,30 @@ final class CompanyController extends AbstractController
         }
 
         return $this->redirectToRoute('app_company_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/api/companies', name: 'api_companies', methods: ['GET'])]
+    public function getCompaniesByOwner(Request $request, IprotoService $iprotoService): JsonResponse
+    {
+        $ownerId = $request->query->get('owner');
+
+        if (!$ownerId) {
+            return new JsonResponse(['error' => 'Owner ID is required'], 400);
+        }
+
+        try {
+            $companies = $iprotoService->getAllCompanies($ownerId);
+        } catch (\Throwable $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 500);
+        }
+
+        $result = [];
+
+        foreach ($companies as $company) {
+            $label = $company['title'] . ' (ID: ' . $company['id'] . ')';
+            $result[] = ['id' => $company['id'], 'label' => $label];
+        }
+
+        return new JsonResponse($result);
     }
 }

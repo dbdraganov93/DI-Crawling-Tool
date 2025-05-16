@@ -60,8 +60,18 @@
             <div class="tab-pane fade show active" id="form-tab-pane" role="tabpanel">
                 {{ form_start(form) }}
 
-                <div id="step-1" class="step">
-                    <h4>Step 1: Select Company</h4>
+                <div id="step-0" class="step">
+                    <h4>Step 1: Select Owner</h4>
+                    <div class="mb-3">
+                        {{ form_label(form.owner) }}
+                        {{ form_widget(form.owner, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.owner) }}
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="nextStep(1)">Next</button>
+                </div>
+
+                <div id="step-1" class="step" style="display: none;">
+                    <h4>Step 2: Select Company</h4>
                     <div class="mb-3">
                         {{ form_label(form.company) }}
                         {{ form_widget(form.company, {'attr': {'class': 'form-control'}}) }}
@@ -71,7 +81,7 @@
                 </div>
 
                 <div id="step-2" class="step" style="display: none;">
-                    <h4>Step 2: Locale and Brochures</h4>
+                    <h4>Step 3: Locale and Brochures</h4>
 
                     <div class="mb-3">
                         {{ form_label(form.locale) }}
@@ -118,7 +128,7 @@
                 </div>
 
                 <div id="step-3" class="step" style="display: none;">
-                    <h4>Step 3: Preview</h4>
+                    <h4>Step 4: Preview</h4>
                     <div class="mb-2"><strong>Company:</strong> <span id="preview-company"></span></div>
                     <div class="mb-2"><strong>Locale:</strong> <span id="preview-locale"></span></div>
                     <div class="mb-2"><strong>Brochures:</strong> <ul id="preview-numbers" class="list-group"></ul></div>
@@ -155,7 +165,6 @@
                             <td>{{ log.locale }}</td>
                             <td>
                                 {% set collapseId = 'collapse-log-' ~ log.id %}
-
                                 <a class="btn btn-sm btn-outline-secondary"
                                    data-bs-toggle="collapse"
                                    href="#{{ collapseId }}"
@@ -164,7 +173,6 @@
                                    aria-controls="{{ collapseId }}">
                                     📂 {{ log.data|length }} brochure{{ log.data|length > 1 ? 's' : '' }}
                                 </a>
-
                                 <div class="collapse mt-2" id="{{ collapseId }}">
                                     <ul class="list-group list-group-flush small border rounded">
                                         {% for brochure in log.data %}
@@ -176,23 +184,19 @@
                                     </ul>
                                 </div>
                             </td>
-
-
-
                         </tr>
                     {% endfor %}
                     </tbody>
                 </table>
             </div>
-
         </div>
     </div>
 
     <script>
-        let currentStep = 1;
+        let currentStep = 0;
 
         function showStep(step) {
-            for (let i = 1; i <= 3; i++) {
+            for (let i = 0; i <= 3; i++) {
                 document.getElementById(`step-${i}`).style.display = (i === step ? 'block' : 'none');
             }
             currentStep = step;
@@ -204,7 +208,7 @@
         }
 
         function prevStep() {
-            if (currentStep > 1) showStep(currentStep - 1);
+            if (currentStep > 0) showStep(currentStep - 1);
         }
 
         function addNumberField() {
@@ -250,6 +254,7 @@
             });
         }
     </script>
+
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
@@ -258,7 +263,39 @@
             new DataTable('#logsTable', {
                 responsive: true,
                 pageLength: 10,
-                order: [[1, 'desc']], // Order by date desc
+                order: [[1, 'desc']],
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ownerSelect = document.querySelector('[name$="[owner]"]');
+            const companySelect = document.querySelector('[name$="[company]"]');
+
+            ownerSelect.addEventListener('change', async function () {
+                const ownerId = this.value;
+                companySelect.innerHTML = '<option value="">Loading companies...</option>';
+                companySelect.disabled = true;
+
+                try {
+                    const response = await fetch(`/company/api/companies?owner=${encodeURIComponent(ownerId)}`);
+                    const companies = await response.json();
+
+                    companySelect.innerHTML = '<option value="">Select a company</option>';
+
+                    companies.forEach(company => {
+                        const option = document.createElement('option');
+                        option.value = company.id;
+                        option.textContent = company.label;
+                        companySelect.appendChild(option);
+                    });
+
+                    companySelect.disabled = false;
+                } catch (e) {
+                    companySelect.innerHTML = '<option value="">Error loading companies</option>';
+                    console.error('Error fetching companies:', e);
+                }
             });
         });
     </script>

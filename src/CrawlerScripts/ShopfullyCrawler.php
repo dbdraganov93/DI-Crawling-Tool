@@ -3,20 +3,23 @@ namespace App\CrawlerScripts;
 
 use App\Entity\Company;
 use App\Entity\ShopfullyLog;
+use App\Service\IprotoService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\ShopfullyService;
 
 class ShopfullyCrawler
 {
     private EntityManagerInterface $em;
+    private IprotoService $iprotoService;
     private ShopfullyService $shopfullyService;
-    public function __construct(EntityManagerInterface $em, ShopfullyService $shopfullyService)
+    public function __construct(EntityManagerInterface $em, ShopfullyService $shopfullyService, IprotoService $iprotoService,)
     {
         $this->em = $em;
         $this->shopfullyService = $shopfullyService;
+        $this->iprotoService = $iprotoService;
     }
 
-    public function handleFormData(array $data): void
+    public function crawl(array $data): void
     {
         /** @var Company $company */
         $company = $data['company'];
