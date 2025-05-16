@@ -16,6 +16,20 @@ class IprotoService
         private IprotoTokenService $tokenService,
     ) {}
 
+    public function getAllCompanies(string $owner, int $itemsPerPage = 1000)
+    {
+        $response = $this->sendRequest('GET', '/api/integrations', ['itemsPerPage' => $itemsPerPage, 'owner' => $owner]);
+
+        return $response['body'];
+    }
+
+    public function getAllOwners()
+    {
+        $response = $this->sendRequest('GET', '/api/owners');
+
+        return $response['body'];
+    }
+
     public function findStoresByCompany(int $companyId, bool $visibleOnly = true): array
     {
         $stores = [];

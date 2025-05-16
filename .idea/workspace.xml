@@ -6,9 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="848e6fc2-58ef-4c68-9708-c4d917c1830c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CrawlerScripts/SampleCrawlerScript.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/CrawlerScripts/SampleCrawlerScript.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Controller/CompanyController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controller/CompanyController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Controller/ShopfullyController.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Controller/ShopfullyController.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CrawlerScripts/ShopfullyCrawler.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/CrawlerScripts/ShopfullyCrawler.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Service/ShopfullyService.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Service/ShopfullyService.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Form/ShopfullyForm.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Form/ShopfullyForm.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Service/IprotoService.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Service/IprotoService.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/shopfully/wizard.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/shopfully/wizard.html.twig" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,6 +36,10 @@
               <option name="branches">
                 <list>
                   <RecentBranch>
+                    <option name="branchName" value="FixShopfully" />
+                    <option name="lastUsedInstant" value="1747381738" />
+                  </RecentBranch>
+                  <RecentBranch>
                     <option name="branchName" value="IprotoService2" />
                     <option name="lastUsedInstant" value="1747219661" />
                   </RecentBranch>
@@ -47,10 +54,6 @@
                   <RecentBranch>
                     <option name="branchName" value="Shopfully" />
                     <option name="lastUsedInstant" value="1734726647" />
-                  </RecentBranch>
-                  <RecentBranch>
-                    <option name="branchName" value="features" />
-                    <option name="lastUsedInstant" value="1732892653" />
                   </RecentBranch>
                 </list>
               </option>
@@ -279,21 +282,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/var/www/html/diCrawler/public/images&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;database.data.csv.formats&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "FixShopfully",
+    "last_opened_file_path": "/var/www/html/diCrawler/public/images",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "database.data.csv.formats",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/public/images" />
@@ -360,7 +363,7 @@
       <workItem from="1747030668373" duration="1881000" />
       <workItem from="1747121981813" duration="3395000" />
       <workItem from="1747290345808" duration="4738000" />
-      <workItem from="1747378405343" duration="3120000" />
+      <workItem from="1747378405343" duration="12707000" />
     </task>
     <servers />
   </component>
