@@ -29,6 +29,13 @@ class ShopfullyForm extends AbstractType
                 'required' => true,
                 'attr' => ['class' => 'form-control'],
             ])
+            ->add('company', ChoiceType::class, [
+                'label' => 'Select Company',
+                'choices' => [],
+                'placeholder' => 'Select a company',
+                'required' => true,
+                'attr' => ['class' => 'form-control'],
+            ])
             ->add('locale', TextType::class, [
                 'required' => true,
             ])
