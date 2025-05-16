@@ -5,11 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="848e6fc2-58ef-4c68-9708-c4d917c1830c" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Command/RunCrawlerScriptCommand.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Command/RunCrawlerScriptCommand.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CrawlerScripts/SampleCrawlerScript.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/CrawlerScripts/SampleCrawlerScript.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Service/IprotoService.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Service/IprotoService.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/CrawlerScripts/ShopfullyCrawler.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/CrawlerScripts/ShopfullyCrawler.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Service/ShopfullyService.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Service/ShopfullyService.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -284,7 +283,7 @@
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;IprotoService2&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
     &quot;last_opened_file_path&quot;: &quot;/var/www/html/diCrawler/public/images&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
@@ -361,6 +360,7 @@
       <workItem from="1747030668373" duration="1881000" />
       <workItem from="1747121981813" duration="3395000" />
       <workItem from="1747290345808" duration="4738000" />
+      <workItem from="1747378405343" duration="3120000" />
     </task>
     <servers />
   </component>

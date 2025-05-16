@@ -24,8 +24,8 @@ class ShopfullyCrawler
         $brochures = $data['numbers'];
 
         foreach ($brochures as $brochure) {
-          //  $brochureData = $this->shopfullyService->fetchBrochureData($brochure['number'], $locale);
-          //  var_dump($this->shopfullyService->fetchPublicationData($brochureData['publication_id'])); die;
+            $brochureData = $this->shopfullyService->getBrochure($brochure['number'], $locale);
+dd($brochureData);
         }
 
         $log = new ShopfullyLog();

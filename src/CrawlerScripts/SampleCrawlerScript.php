@@ -24,12 +24,13 @@ class SampleCrawlerScript implements CrawlerScriptInterface
     public function crawl(int $companyId): ?array
     {
         //GET STORES FROM IPROTO BY COMPANY
-        $stores = $this->iprotoService->findStoresByCompany($companyId);
+       // $stores = $this->iprotoService->findStoresByCompany($companyId);
        // var_dump(count($stores)); die;
 
 
-        // $brochureData = $this->shopfullyService->fetchBrochureData('1258799', 'it_it');
-      //    var_dump($this->shopfullyService->fetchPublicationData($brochureData['publication_id']));
+         //$brochureData = $this->shopfullyService->fetchBrochureData('1324614', 'it_it');
+        // dd($brochureData);
+         // dd($this->shopfullyService->fetchPublicationData('601897'));
 
 
         // Dump the directory listing
