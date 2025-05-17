@@ -14,7 +14,7 @@ class S3Service
         $this->bucket = $bucket;
 
         $this->s3Client = new S3Client([
-            'version'     => 'latest',
+            'version'     => '2006-03-01', //'latest',?
             'region'      => $region,
             'credentials' => [
                 'key'    => $awsKey,
@@ -45,8 +45,12 @@ class S3Service
 
             return $result->get('ObjectURL');
         } catch (S3Exception $e) {
-            // You can log the error here if needed
-            return null;
+            dd('S3Exception: ' . $e->getAwsErrorMessage(), $e->getMessage(), $e->getTraceAsString());
+        } catch (\Throwable $e) {
+            dd('Generic Error: ' . $e->getMessage(), $e->getTraceAsString());
         }
+
+        return null;
     }
+
 }

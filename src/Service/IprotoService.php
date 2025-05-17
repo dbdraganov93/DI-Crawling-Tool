@@ -23,6 +23,13 @@ class IprotoService
         return $response['body'];
     }
 
+    public function createBrochure(array $brochureData)
+    {
+        $response = $this->sendRequest('POST', '/api/brochure_from_pdf', $brochureData);
+
+        return $response['body'];
+    }
+
     public function getAllOwners()
     {
         $response = $this->sendRequest('GET', '/api/owners');
