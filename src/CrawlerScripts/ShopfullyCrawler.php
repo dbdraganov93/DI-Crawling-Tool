@@ -26,6 +26,7 @@ class ShopfullyCrawler
 
     public function crawl(array $brochure): void
     {
+        dd($brochure);
         /** @var Company $company */
         $company = $brochure['company'];
         $locale = $brochure['locale'];
@@ -47,7 +48,7 @@ class ShopfullyCrawler
                 //->setPdfProcessingOptions($brochureData['brochureData']['data'][0]['Flyer']['end_date'])
                 ->addCurrentBrochure();
         }
-
+dd($brochureService);
         $csvService = new CsvService();
         $csvResult = $csvService->createCsvFromBrochure($brochureService);
         dd($csvResult);

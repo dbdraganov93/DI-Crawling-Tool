@@ -7,6 +7,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class IprotoService
 {
+    //stage: https://iproto.public-elb.di-stage.offerista.com/api
     private const BASE_URL = 'https://iproto.offerista.com';
     private const MAX_ATTEMPTS = 5;
 
