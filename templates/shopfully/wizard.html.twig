@@ -7,29 +7,92 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
-        .nav-tabs .nav-link {
-            border: none;
-            border-radius: .5rem .5rem 0 0;
+        .stepper {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .stepper::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: #e0e0e0;
+            z-index: 0;
+        }
+
+        .stepper-step {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            flex: 1;
+        }
+
+        .stepper-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin: 0 auto 0.5rem;
+            background-color: #e0e0e0;
+            color: #fff;
+            line-height: 30px;
             font-weight: bold;
         }
 
-        .nav-tabs .nav-link.active {
-            background-color: #f8f9fa;
-            border-bottom: 2px solid #007bff;
+        .stepper-step.active .stepper-circle,
+        .stepper-step.completed .stepper-circle {
+            background-color: #007bff;
         }
 
-        .terminal-container {
-            background-color: #000;
-            color: #00ff00;
-            border-radius: 8px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-            font-family: 'Courier New', Courier, monospace;
-            overflow: hidden;
-            padding: 20px;
-            min-height: 300px;
-            max-height: 400px;
+        .stepper-step.completed .stepper-circle::after {
+            content: '✓';
         }
+
+        .stepper-label {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .stepper-step.active .stepper-label {
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .btn-loading {
+            pointer-events: none;
+            opacity: 0.7;
+            position: relative;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid transparent;
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        .select2-selection.is-invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.25rem rgba(220,53,69,.25);
+        }
+
+
     </style>
+
 {% endblock %}
 
 {% block body %}
@@ -58,13 +121,36 @@
         <div class="tab-content p-3 border rounded bg-white" id="wizardTabsContent">
             <!-- Form Tab -->
             <div class="tab-pane fade show active" id="form-tab-pane" role="tabpanel">
+                <div class="stepper" id="stepper">
+                    <div class="stepper-step" data-step="0">
+                        <div class="stepper-circle">1</div>
+                        <div class="stepper-label">Owner</div>
+                    </div>
+                    <div class="stepper-step" data-step="1">
+                        <div class="stepper-circle">2</div>
+                        <div class="stepper-label">Company</div>
+                    </div>
+                    <div class="stepper-step" data-step="2">
+                        <div class="stepper-circle">3</div>
+                        <div class="stepper-label">Locale & Brochures</div>
+                    </div>
+                    <div class="stepper-step" data-step="3">
+                        <div class="stepper-circle">4</div>
+                        <div class="stepper-label">Preview</div>
+                    </div>
+                </div>
+
                 {{ form_start(form) }}
 
                 <div id="step-0" class="step">
                     <h4>Step 1: Select Owner</h4>
                     <div class="mb-3">
                         {{ form_label(form.owner) }}
-                        {{ form_widget(form.owner, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_widget(form.owner, {'attr': {
+                            'class': 'form-control',
+                            'required': 'required',
+                            'data-error-message': 'Please select an owner'
+                        }}) }}
                         {{ form_errors(form.owner) }}
                     </div>
                     <button type="button" class="btn btn-primary" onclick="nextStep(1)">Next</button>
@@ -74,7 +160,11 @@
                     <h4>Step 2: Select Company</h4>
                     <div class="mb-3">
                         {{ form_label(form.company) }}
-                        {{ form_widget(form.company, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_widget(form.company, {'attr': {
+                            'class': 'form-control',
+                            'required': 'required',
+                            'data-error-message': 'Please select a company'
+                        }}) }}
                         {{ form_errors(form.company) }}
                     </div>
                     <button type="button" class="btn btn-primary" onclick="nextStep(2)">Next</button>
@@ -153,7 +243,8 @@
 
                     <div class="d-flex justify-content-between">
                         <button type="button" class="btn btn-secondary" onclick="prevStep()">Previous</button>
-                        <button type="submit" class="btn btn-success">Submit</button>
+                        <button type="submit" class="btn btn-success" onclick="prepareAndSubmit(event)">Submit</button>
+
                     </div>
                 </div>
 
@@ -215,15 +306,95 @@
 
         function showStep(step) {
             for (let i = 0; i <= 3; i++) {
-                document.getElementById(`step-${i}`).style.display = (i === step ? 'block' : 'none');
+                const el = document.getElementById(`step-${i}`);
+                el.style.display = (i === step ? 'block' : 'none');
             }
+
+            document.querySelectorAll('#stepper .stepper-step').forEach((stepEl, index) => {
+                stepEl.classList.remove('active', 'completed');
+                if (index < step) {
+                    stepEl.classList.add('completed');
+                } else if (index === step) {
+                    stepEl.classList.add('active');
+                }
+            });
+
             currentStep = step;
         }
 
+        function prepareAndSubmit(e) {
+            e.preventDefault();
+
+            const form = document.querySelector('form');
+            const steps = document.querySelectorAll('.step');
+            const originalStep = currentStep;
+
+            steps.forEach(step => step.style.display = 'block');
+
+            const isValid = form.checkValidity();
+
+            if (!isValid) {
+                form.reportValidity();
+                steps.forEach((step, index) => {
+                    step.style.display = (index === originalStep ? 'block' : 'none');
+                });
+                return;
+            }
+
+            steps.forEach((step, index) => {
+                step.style.display = (index === originalStep ? 'block' : 'none');
+            });
+
+            const submitBtn = e.target;
+            submitBtn.classList.add('btn-loading');
+
+            setTimeout(() => {
+                form.submit();
+            }, 50);
+        }
+
+
+
         function nextStep(step = currentStep + 1) {
+            const currentStepElement = document.getElementById(`step-${currentStep}`);
+            const inputs = currentStepElement.querySelectorAll('input, select, textarea');
+
+            let isValid = true;
+
+            inputs.forEach(input => {
+                const $input = $(input);
+                const isSelect2 = $input.hasClass('select2-hidden-accessible');
+
+                $input.next('.select2-container').find('.select2-selection').removeClass('is-invalid');
+                $input.next('.select2-container').next('.select2-error-message')?.remove();
+
+                if (isSelect2 && input.required && !input.value) {
+                    isValid = false;
+
+                    $input.next('.select2-container').find('.select2-selection')
+                        .addClass('is-invalid');
+
+                    const msg = document.createElement('div');
+                    msg.className = 'text-danger select2-error-message mt-1';
+                    msg.innerText = input.dataset.errorMessage || 'This field is required.';
+                    $input.next('.select2-container').after(msg);
+                }
+
+                if (!isSelect2 && !input.checkValidity()) {
+                    input.reportValidity();
+                    if (input.offsetParent !== null) input.focus();
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) return;
+
             if (step === 3) fillPreview();
             showStep(step);
         }
+
+
+
 
         function prevStep() {
             if (currentStep > 0) showStep(currentStep - 1);
@@ -374,10 +545,16 @@
                 width: '100%'
             });
 
+            $ownerSelect.on('change', function () {
+                this.setCustomValidity('');
+            });
+            $companySelect.on('change', function () {
+                this.setCustomValidity('');
+            });
+
+
             $ownerSelect.on('change', async function () {
                 const ownerId = $(this).val();
-
-                // Clear and disable company select
                 $companySelect.prop('disabled', true).empty().append(new Option('Loading companies...', '', false, false));
 
                 try {
