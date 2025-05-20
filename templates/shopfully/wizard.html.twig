@@ -5,7 +5,7 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
         .nav-tabs .nav-link {
             border: none;
@@ -323,5 +323,53 @@
             });
         });
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const $ownerSelect = $('[name$="[owner]"]');
+            const $companySelect = $('[name$="[company]"]');
+
+            $ownerSelect.select2({
+                placeholder: 'Select an owner',
+                allowClear: true,
+                width: '100%'
+            });
+
+            $companySelect.select2({
+                placeholder: 'Select a company',
+                allowClear: true,
+                width: '100%'
+            });
+
+            $ownerSelect.on('change', async function () {
+                const ownerId = $(this).val();
+
+                // Clear and disable company select
+                $companySelect.prop('disabled', true).empty().append(new Option('Loading companies...', '', false, false));
+
+                try {
+                    const response = await fetch(`/company/api/companies?owner=${encodeURIComponent(ownerId)}`);
+                    const companies = await response.json();
+
+                    $companySelect.empty().append(new Option('Select a company', '', true, false));
+
+                    companies.forEach(company => {
+                        const option = new Option(company.label, company.id, false, false);
+                        $companySelect.append(option);
+                    });
+
+                    $companySelect.prop('disabled', false).trigger('change');
+                } catch (error) {
+                    console.error('Error loading companies:', error);
+                    $companySelect.empty().append(new Option('Error loading companies', '', false, false));
+                    $companySelect.prop('disabled', false);
+                }
+            });
+        });
+    </script>
+
+
 
 {% endblock %}
