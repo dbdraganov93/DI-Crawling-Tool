@@ -8,6 +8,7 @@
         "ext-ctype": "*",
         "ext-ftp": "*",
         "ext-iconv": "*",
+        "aws/aws-sdk-php": "^3.343",
         "doctrine/dbal": "^3",
         "doctrine/doctrine-bundle": "^2.13",
         "doctrine/doctrine-migrations-bundle": "^3.3",

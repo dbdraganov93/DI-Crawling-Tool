@@ -18,7 +18,10 @@ services:
             $ftpPassword: '%env(FTP_PASSWORD)%'  # Bind the FTP password environment variable
             $ftpPort: '%env(int:FTP_PORT)%'      # Bind the FTP port as an integer
             $csvDir: '%kernel.project_dir%/public/csv' # Bind the CSV directory for CsvService
-
+            $awsKey: '%env(AWS_ACCESS_KEY_ID)%'
+            $awsSecret: '%env(AWS_SECRET_ACCESS_KEY)%'
+            $region: '%env(AWS_REGION)%'
+            $bucket: '%env(AWS_BUCKET)%'
     # Makes classes in src/ available to be used as services
     App\:
         resource: '../src/'

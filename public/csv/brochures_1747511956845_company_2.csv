@@ -1,0 +1,3 @@
+brochure_number,type,url,title,tags,start,end,visible_start,store_number,distribution,variety,national,gender,age_range,tracking_bug,options,lang_code,zipcode,layout
+BR-0001,push,https://example.com/brochure1.pdf,"Spring Sale",,2025-05-01,2025-05-31,2025-04-28,IT01,,fashion,,female,18-35,https://track.me/123,"{""split"":true}",,,grid
+BR-0002,pull,https://example.com/brochure2.pdf,"Tech Deals",,2025-06-01,2025-06-15,2025-05-30,DE02,,electronics,,male,25-45,https://track.me/abc,"{""optimize"":true}",,,single

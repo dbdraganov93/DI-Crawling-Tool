@@ -9,6 +9,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 
 class ShopfullyForm extends AbstractType
 {
@@ -29,9 +30,27 @@ class ShopfullyForm extends AbstractType
                 'required' => true,
                 'attr' => ['class' => 'form-control'],
             ])
+            ->add('company', ChoiceType::class, [
+                'label' => 'Select Company',
+                'choices' => [],
+                'placeholder' => 'Select a company',
+                'required' => true,
+                'attr' => ['class' => 'form-control'],
+            ])
             ->add('locale', TextType::class, [
                 'required' => true,
             ])
+            ->add('prefix', TextType::class, [
+                'required' => false,
+                'label' => 'Prefix',
+                'attr' => ['class' => 'form-control'],
+            ])
+            ->add('suffix', TextType::class, [
+                'required' => false,
+                'label' => 'Suffix',
+                'attr' => ['class' => 'form-control'],
+            ])
+
             ->add('numbers', CollectionType::class, [
                 'entry_type' => NumberWithTrackingType::class,
                 'allow_add' => true,

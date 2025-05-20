@@ -7,6 +7,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class IprotoService
 {
+    //stage: https://iproto.public-elb.di-stage.offerista.com/api
     private const BASE_URL = 'https://iproto.offerista.com';
     private const MAX_ATTEMPTS = 5;
 
@@ -19,6 +20,13 @@ class IprotoService
     public function getAllCompanies(string $owner, int $itemsPerPage = 1000)
     {
         $response = $this->sendRequest('GET', '/api/integrations', ['itemsPerPage' => $itemsPerPage, 'owner' => $owner]);
+
+        return $response['body'];
+    }
+
+    public function createBrochure(array $brochureData)
+    {
+        $response = $this->sendRequest('POST', '/api/brochure_from_pdf', $brochureData);
 
         return $response['body'];
     }
