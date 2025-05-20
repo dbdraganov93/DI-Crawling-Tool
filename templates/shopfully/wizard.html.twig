@@ -129,6 +129,10 @@
                                 </div>
                             {% endfor %}
                         </div>
+                        <div class="mb-2">
+                            <label for="bulkNumbers" class="form-label">Enter brochure numbers separated by commas</label>
+                            <input type="text" id="bulkNumbers" class="form-control" placeholder="e.g. 123,456,789">
+                        </div>
 
                         <button type="button" class="btn btn-outline-primary mt-2" onclick="addNumberField()">Add Brochure</button>
                     </div>
@@ -228,14 +232,41 @@
         function addNumberField() {
             const wrapper = document.getElementById('numbers-wrapper');
             const prototype = wrapper.dataset.prototype;
-            const index = wrapper.querySelectorAll('.number-entry[data-real="true"]').length;
-            const newForm = prototype.replace(/__name__/g, index);
-            const div = document.createElement('div');
-            div.classList.add('number-entry', 'mb-2');
-            div.setAttribute('data-real', 'true');
-            div.innerHTML = newForm;
-            wrapper.appendChild(div);
+            const indexStart = wrapper.querySelectorAll('.number-entry[data-real="true"]').length;
+
+            const bulkInput = document.getElementById('bulkNumbers');
+            let inputValue = bulkInput?.value || '';
+            const numbers = inputValue.split(',').map(s => s.trim()).filter(Boolean);
+
+            if (numbers.length === 0) {
+                const newForm = prototype.replace(/__name__/g, indexStart);
+                const div = document.createElement('div');
+                div.classList.add('number-entry', 'mb-2');
+                div.setAttribute('data-real', 'true');
+                div.innerHTML = newForm;
+                wrapper.appendChild(div);
+                return;
+            }
+
+            numbers.forEach((number, i) => {
+                const index = indexStart + i;
+                const newForm = prototype.replace(/__name__/g, index);
+                const div = document.createElement('div');
+                div.classList.add('number-entry', 'mb-2');
+                div.setAttribute('data-real', 'true');
+                div.innerHTML = newForm;
+
+                const numberInput = div.querySelector('input[name$="[number]"]');
+                if (numberInput) {
+                    numberInput.value = number;
+                }
+
+                wrapper.appendChild(div);
+            });
+
+            if (bulkInput) bulkInput.value = '';
         }
+
 
         function fillPreview() {
             const companySelect = document.querySelector('[name$="[company]"]');
