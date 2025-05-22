@@ -105,4 +105,21 @@ final class CompanyController extends AbstractController
 
         return new JsonResponse($result);
     }
+
+    #[Route('/api/timezone', name: 'api_get_timezone')]
+    public function getTimezone(Request $request, IprotoService $iprotoService, CountryTimezoneResolver $tzResolver): JsonResponse
+    {
+        $ownerId = $request->query->get('owner');
+        if (!$ownerId) {
+            return new JsonResponse(['timezone' => null], 400);
+        }
+
+        $owners = $iprotoService->getAllOwners();
+        $owner = array_filter($owners, fn($o) => $o['id'] == $ownerId);
+        $owner = reset($owner);
+
+        $timezone = $tzResolver->resolveFromApiPath($owner['country'] ?? null);
+
+        return new JsonResponse(['timezone' => $timezone]);
+    }
 }

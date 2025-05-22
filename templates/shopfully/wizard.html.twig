@@ -152,6 +152,8 @@
                             'data-error-message': 'Please select an owner'
                         }}) }}
                         {{ form_errors(form.owner) }}
+                        {{ form_row(form.timezone) }}
+
                     </div>
                     <button type="button" class="btn btn-primary" onclick="nextStep(1)">Next</button>
                 </div>
@@ -521,6 +523,16 @@
                 } catch (e) {
                     companySelect.innerHTML = '<option value="">Error loading companies</option>';
                     console.error('Error fetching companies:', e);
+                }
+                const timezoneInput = document.querySelector('[name$="[timezone]"]');
+
+                try {
+                    const response = await fetch(`/api/timezone?owner=${encodeURIComponent(ownerId)}`);
+                    const data = await response.json();
+
+                    timezoneInput.value = data.timezone || '';
+                } catch (e) {
+                    console.error('Failed to fetch timezone:', e);
                 }
             });
         });

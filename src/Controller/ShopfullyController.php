@@ -29,7 +29,9 @@ class ShopfullyController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
-            $this->crawler->crawl($form->getData());
+            $data = $form->getData();
+            $data['timezone'] = $form->get('timezone')->getData();
+            $this->crawler->crawl($data);
             $this->addFlash('success', 'Form submitted successfully!');
         }
 
