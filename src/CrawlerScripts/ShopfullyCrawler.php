@@ -45,24 +45,25 @@ class ShopfullyCrawler
                 ->setValidFrom($brochureData['brochureData']['data'][0]['Flyer']['start_date'])
                 ->setValidTo($brochureData['brochureData']['data'][0]['Flyer']['end_date'])
                 ->setVisibleFrom($brochureData['brochureData']['data'][0]['Flyer']['start_date'])
-                //->setPdfProcessingOptions($brochureData['brochureData']['data'][0]['Flyer']['end_date'])
                 ->addCurrentBrochure();
         }
-        var_dump($this->iprotoService->createBrochures($brochureService->getBrochures()));
-        dd($brochureService->getBrochures());
-      //  $tz = new \DateTimeZone('Europe/Rome');
-     //   $integrationUrl = 'https://iproto.offerista.com/api/integrations/81824';
 
-      //  $csvService = new CsvService();
-       // $csvResult = $csvService->createCsvFromBrochure($brochureService);
-
+        $result = $this->iprotoService->createBrochures($brochureService->getBrochures());
+        $status = null;
+        if (!empty($result) && is_array($result)) {
+            $firstEntry = reset($result);
+            if (is_array($firstEntry) && isset($firstEntry['status'])) {
+                $status = $firstEntry['status']; // e.g., "submitted"
+            }
+        }
         // Logging
         $log = new ShopfullyLog();
-        $log->setCompanyName('4');
-        $log->setIprotoId(123);
+        $log->setCompanyName($company);
+        $log->setIprotoId($company);
         $log->setLocale($locale);
         $log->setData($brochures);
         $log->setCreatedAt(new \DateTime());
+        $log->setStatus($status);
 
         $this->em->persist($log);
         $this->em->flush();

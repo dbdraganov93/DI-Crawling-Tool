@@ -151,7 +151,7 @@ class BrochureService
             'pdfUrl' => $this->pdfUrl,
             'integration' => $this->integration,
             'sales_region' => $this->salesRegion,
-            'brochureNumber' => 't'.$this->brochureNumber,
+            'brochureNumber' => $this->brochureNumber,
             'title' => $this->title,
             'variety' => $this->variety ?? self::DEFAULT_VARIETY,
             'validFrom' => $this->validFrom,
