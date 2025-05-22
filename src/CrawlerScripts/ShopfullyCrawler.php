@@ -26,13 +26,13 @@ class ShopfullyCrawler
 
     public function crawl(array $brochure): void
     {
-        dd($brochure);
-        /** @var Company $company */
+
         $company = $brochure['company'];
         $locale = $brochure['locale'];
         $brochures = $brochure['numbers'];
+        $timeZone = $brochure['timezone'];
 
-        $brochureService = new BrochureService(2);
+        $brochureService = new BrochureService($company, $timeZone);
 
         foreach ($brochures as $brochure) {
             $brochureData = $this->shopfullyService->getBrochure($brochure['number'], $locale);
@@ -48,13 +48,11 @@ class ShopfullyCrawler
                 //->setPdfProcessingOptions($brochureData['brochureData']['data'][0]['Flyer']['end_date'])
                 ->addCurrentBrochure();
         }
-        $tz = new \DateTimeZone('Europe/Rome');
-        $integrationUrl = 'https://iproto.offerista.com/api/integrations/81824';
+        var_dump($this->iprotoService->createBrochures($brochureService->getBrochures()));
+        dd($brochureService->getBrochures());
+      //  $tz = new \DateTimeZone('Europe/Rome');
+     //   $integrationUrl = 'https://iproto.offerista.com/api/integrations/81824';
 
-        foreach ($brochureService->buildIprotoPayloads($tz, $integrationUrl) as $payload) {
-            $result = $this->iprotoService->createBrochure($payload);
-            $created[] = $result;
-        }
       //  $csvService = new CsvService();
        // $csvResult = $csvService->createCsvFromBrochure($brochureService);
 

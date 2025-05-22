@@ -24,7 +24,7 @@ class IprotoService
         return $response['body'];
     }
 
-    public function createBrochure(array $brochureData)
+    public function importBrochureInIproto(array $brochureData)
     {
         $response = $this->sendRequest(
             'POST',
@@ -33,10 +33,17 @@ class IprotoService
             body: $brochureData,            // proper JSON body
             bodyMediaType: 'application/json' // correct content-type
         );
-        var_dump($response);
-        dd($brochureData);
 
         return $response['body'];
+    }
+
+    public function createBrochures(array $brochuresData)
+    {
+        foreach ($brochuresData as $brochureData) {
+            $response[$brochureData['brochureNumber']] = $this->importBrochureInIproto($brochureData);
+        }
+
+        return $response;
     }
 
 
