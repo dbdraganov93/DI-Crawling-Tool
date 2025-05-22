@@ -26,13 +26,13 @@ class ShopfullyCrawler
 
     public function crawl(array $brochure): void
     {
-        dd($brochure);
-        /** @var Company $company */
+
         $company = $brochure['company'];
         $locale = $brochure['locale'];
         $brochures = $brochure['numbers'];
+        $timeZone = $brochure['timezone'];
 
-        $brochureService = new BrochureService(2);
+        $brochureService = new BrochureService($company, $timeZone);
 
         foreach ($brochures as $brochure) {
             $brochureData = $this->shopfullyService->getBrochure($brochure['number'], $locale);
@@ -45,26 +45,25 @@ class ShopfullyCrawler
                 ->setValidFrom($brochureData['brochureData']['data'][0]['Flyer']['start_date'])
                 ->setValidTo($brochureData['brochureData']['data'][0]['Flyer']['end_date'])
                 ->setVisibleFrom($brochureData['brochureData']['data'][0]['Flyer']['start_date'])
-                //->setPdfProcessingOptions($brochureData['brochureData']['data'][0]['Flyer']['end_date'])
                 ->addCurrentBrochure();
         }
-        $tz = new \DateTimeZone('Europe/Rome');
-        $integrationUrl = 'https://iproto.offerista.com/api/integrations/81824';
 
-        foreach ($brochureService->buildIprotoPayloads($tz, $integrationUrl) as $payload) {
-            $result = $this->iprotoService->createBrochure($payload);
-            $created[] = $result;
+        $result = $this->iprotoService->createBrochures($brochureService->getBrochures());
+        $status = null;
+        if (!empty($result) && is_array($result)) {
+            $firstEntry = reset($result);
+            if (is_array($firstEntry) && isset($firstEntry['status'])) {
+                $status = $firstEntry['status']; // e.g., "submitted"
+            }
         }
-      //  $csvService = new CsvService();
-       // $csvResult = $csvService->createCsvFromBrochure($brochureService);
-
         // Logging
         $log = new ShopfullyLog();
-        $log->setCompanyName('4');
-        $log->setIprotoId(123);
+        $log->setCompanyName($company);
+        $log->setIprotoId($company);
         $log->setLocale($locale);
         $log->setData($brochures);
         $log->setCreatedAt(new \DateTime());
+        $log->setStatus($status);
 
         $this->em->persist($log);
         $this->em->flush();

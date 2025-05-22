@@ -263,6 +263,7 @@
                         <th>Company</th>
                         <th>Iproto ID</th>
                         <th>Locale</th>
+                        <th>Status</th>
                         <th>Data (JSON)</th>
                     </tr>
                     </thead>
@@ -274,6 +275,13 @@
                             <td>{{ log.companyName }}</td>
                             <td>{{ log.iprotoId }}</td>
                             <td>{{ log.locale }}</td>
+                            <td>
+                                {% if log.status %}
+                                    <span class="badge bg-info text-dark">{{ log.status }}</span>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
                             <td>
                                 {% set collapseId = 'collapse-log-' ~ log.id %}
                                 <a class="btn btn-sm btn-outline-secondary"
