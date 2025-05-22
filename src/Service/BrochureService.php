@@ -125,6 +125,35 @@ class BrochureService
         return $this;
     }
 
+    public function buildIprotoPayloads(\DateTimeZone $tz, string $integrationUrl): array
+    {
+        $payloads = [];
+
+        foreach ($this->getBrochures() as $brochureData) {
+            $payloads[] = [
+                'pdfUrl' => $brochureData['pdf_url'],
+                'integration' => $integrationUrl,
+                'brochureNumber' => 'test_' . $brochureData['brochure_number'],
+                'title' => $brochureData['title'],
+                'variety' => $brochureData['variety'],
+                'validFrom' => (new \DateTimeImmutable($brochureData['valid_from'], $tz))->format('Y-m-d\TH:i:s e'),
+                'validTo' => (new \DateTimeImmutable($brochureData['valid_to'], $tz))->format('Y-m-d\TH:i:s e'),
+                'visibleFrom' => (new \DateTimeImmutable($brochureData['visible_from'], $tz))->format('Y-m-d\TH:i:s e'),
+                'pdfProcessingOptions' => $brochureData['pdf_processing_options'] ?: [
+                    'version' => '2021-04-19',
+                    'cutPages' => true,
+                    'dpi' => 250,
+                    'maxImageSize' => 6250000,
+                    'allowFontSubstitution' => true,
+                ],
+                'trackingPixels' => $brochureData['tracking_pixels'] ?? [],
+            ];
+        }
+
+        return $payloads;
+    }
+
+
     public function getBrochures(): array
     {
         return $this->brochures;
