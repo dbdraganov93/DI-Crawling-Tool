@@ -9,19 +9,21 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
-
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use App\Service\CountryTimezoneResolver;
 class ShopfullyForm extends AbstractType
 {
+
+    private CountryTimezoneResolver $timezoneResolver;
     private IprotoService $iprotoService;
-    public function __construct(IprotoService $iprotoService)
+    public function __construct(IprotoService $iprotoService, CountryTimezoneResolver $timezoneResolver)
     {
         $this->iprotoService = $iprotoService;
+        $this->timezoneResolver = $timezoneResolver;
     }
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $owners = $this->normalizeOwners($this->iprotoService->getAllOwners());
-
         $builder
             ->add('owner', ChoiceType::class, [
                 'label' => 'Select Owner',
@@ -57,6 +59,10 @@ class ShopfullyForm extends AbstractType
                 'allow_delete' => true,
                 'prototype' => true,
                 'by_reference' => false,
+            ])
+            ->add('timezone', HiddenType::class, [
+                'mapped' => false,
+                'required' => false,
             ]);
 
         $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) {
@@ -81,6 +87,27 @@ class ShopfullyForm extends AbstractType
                 'required' => true,
                 'attr' => ['class' => 'form-control'],
             ]);
+
+            $owner = array_filter($this->iprotoService->getAllOwners(), fn($o) => $o['id'] == $data['owner']);
+            $owner = reset($owner);
+            $timezone = $this->timezoneResolver->resolveFromApiPath($owner['country'] ?? '');
+            $data['timezone'] = $timezone;
+
+// array:7 [▼
+//  "owner" => "231"
+//  "timezone" => "Europe/Rome"
+//  "company" => "81664"
+//  "locale" => "it_it"
+//  "prefix" => ""
+//  "suffix" => ""
+//  "numbers" => array:1 [▼
+//    0 => array:2 [▼
+//      "number" => "123"
+//      "tracking_pixel" => ""
+//    ]
+//  ]
+//]
+            $event->setData($data);
         });
     }
 
