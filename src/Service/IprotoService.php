@@ -26,10 +26,19 @@ class IprotoService
 
     public function createBrochure(array $brochureData)
     {
-        $response = $this->sendRequest('POST', '/api/brochure_from_pdf', $brochureData);
+        $response = $this->sendRequest(
+            'POST',
+            '/api/brochure_from_pdf',
+            params: [],                      // no query params
+            body: $brochureData,            // proper JSON body
+            bodyMediaType: 'application/json' // correct content-type
+        );
+        var_dump($response);
+        dd($brochureData);
 
         return $response['body'];
     }
+
 
     public function getAllOwners()
     {
@@ -139,7 +148,7 @@ class IprotoService
 
             sleep(pow($attempt++, 2));
         } while ($attempt < self::MAX_ATTEMPTS);
-
+        dd( $json,$body);
         throw new \RuntimeException("iProto API request failed after " . self::MAX_ATTEMPTS . " attempts: $method $url");
     }
 
