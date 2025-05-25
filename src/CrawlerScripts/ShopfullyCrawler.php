@@ -5,6 +5,7 @@ use App\Entity\Company;
 use App\Entity\ShopfullyLog;
 use App\Service\IprotoService;
 use App\Service\S3Service;
+use App\Service\StoreService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\ShopfullyService;
 use Symfony\Component\HttpFoundation\Response;
@@ -33,9 +34,26 @@ class ShopfullyCrawler
         $timeZone = $brochure['timezone'];
 
         $brochureService = new BrochureService($company, $timeZone);
-
+        $storeService = new StoreService($company);
         foreach ($brochures as $brochure) {
+
             $brochureData = $this->shopfullyService->getBrochure($brochure['number'], $locale);
+            $stores = $this->shopfullyService->fetchStoresByBrochureId($brochure['number'], $locale);
+
+            foreach ($stores as $store) {
+                $storeService
+                    ->setStoreNumber($store['Store']['id'])
+                    ->setCity($store['Store']['city'])
+                    ->setZipcode($store['Store']['zip'])
+                    ->setStreet($store['Store']['address'])
+                    ->setLatitude($store['Store']['lat'])
+                    ->setLongitude($store['Store']['lng'])
+                    ->setTitle($store['Store']['more_info'])
+                    ->setText($store['Store']['description'])
+                    ->setPhone($store['Store']['phone'])
+                    ->setFax($store['Store']['fax'])
+                    ->addCurrentStore();
+            }
 
             $brochureService
                 ->setPdfUrl($brochureData['publicationData']['data'][0]['Publication']['pdf_url'])
@@ -47,6 +65,15 @@ class ShopfullyCrawler
                 ->setVisibleFrom($brochureData['brochureData']['data'][0]['Flyer']['start_date'])
                 ->addCurrentBrochure();
         }
+
+        foreach ($storeService->getStores() as $store) {
+          //  $store['integration'] = ['phone'=>'', 'fax' => ''];
+            //$store['owner'] = 231;
+            $storeResult = $this->iprotoService->importStoresInIproto($store);
+            var_dump($store);
+            dd($storeResult);
+        }
+
 
         $result = $this->iprotoService->createBrochures($brochureService->getBrochures());
         $status = null;

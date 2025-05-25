@@ -20,6 +20,23 @@ class ShopfullyService
         return $response;
     }
 
+    public function fetchStoresByBrochureId(string $brochureId, string $locale): array
+    {
+        $url = 'https://d1h08qwp2t1dnu.cloudfront.net/v1/'.$locale.'/stores/'. $brochureId .'.json';
+        $response = $this->httpClient->request('GET', $url, [
+            'headers' => [
+                'x-api-key' => self::API_KEY,
+            ],
+        ]);
+
+        if ($response->getStatusCode() !== 200) {
+            throw new \RuntimeException('Failed to fetch store data fore brochure: ' . $brochureId . ', status code: ' . $response->getStatusCode());
+        }
+        $response = $response->toArray();
+
+        return $response['data'];
+    }
+
     public function fetchBrochureData(string $brochureId, string $locale): array
     {
         $url = 'https://d1h08qwp2t1dnu.cloudfront.net/v1/'. $locale .'/flyers/'. $brochureId .'.json';
