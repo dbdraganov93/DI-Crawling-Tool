@@ -37,6 +37,20 @@ class IprotoService
         return $response['body'];
     }
 
+    public function importStoresInIproto(array $store)
+    {
+
+        $response = $this->sendRequest(
+            'POST',
+            '/api/stores',
+            params: [],                      // no query params
+            body: $store,            // proper JSON body
+            bodyMediaType: 'application/json' // correct content-type
+        );
+
+        return $response['body'];
+    }
+
     public function createBrochures(array $brochuresData)
     {
         foreach ($brochuresData as $brochureData) {
@@ -99,6 +113,7 @@ class IprotoService
 
     private function sendRequest(string $method, string $uri, array $params = [], $body = null, string $bodyMediaType = 'application/ld+json'): array
     {
+
         $token = $this->tokenService->getValidToken();
         if (!$token) {
             throw new \RuntimeException('No valid token found');

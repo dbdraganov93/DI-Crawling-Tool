@@ -199,35 +199,38 @@ class StoreService
     public function addCurrentStore(): self
     {
         $this->stores[] = [
-            'store_number' => $this->storeNumber,
-            'city' => $this->city,
-            'zipcode' => $this->zipcode,
-            'street' => $this->street,
-            'street_number' => $this->streetNumber,
-            'latitude' => $this->latitude,
-            'longitude' => $this->longitude,
+            'integration' => $this->companyId,
+            'storeNumber' => $this->storeNumber,
             'title' => $this->title,
             'subtitle' => $this->subtitle,
-            'text' => $this->text,
+            'description' => $this->text,
+            'postalCode' => $this->zipcode,
+            'city' => $this->city,
+            'street' => $this->street,
+            'streetNumber' => $this->streetNumber,
+            'addressExtra' => '',
+            'latitude' => (float) $this->latitude,
+            'longitude' => (float) $this->longitude,
+            'email' => $this->email,
+            'url' => $this->website,
+            'openingHoursNotes' => $this->storeHoursNotes,
+            'paymentOptions' => $this->payment,
+            'parkingOptions' => $this->parking,
+            'barrierFree' => strtolower($this->barrierFree) === 'yes',
+            'bonusCards' => $this->bonusCard,
+            'sections' => $this->section,
+            'services' => $this->service,
+            'customerToilet' => strtolower($this->toilet) === 'yes',
+            'visibilityRadius' => (int) filter_var($this->defaultRadius, FILTER_SANITIZE_NUMBER_INT),
+            'placeId' => '',
             'phone' => $this->phone,
             'fax' => $this->fax,
-            'email' => $this->email,
-            'store_hours' => $this->storeHours,
-            'store_hours_notes' => $this->storeHoursNotes,
-            'payment' => $this->payment,
-            'website' => $this->website,
-            'distribution' => $this->distribution,
-            'parking' => $this->parking,
-            'barrier_free' => $this->barrierFree,
-            'bonus_card' => $this->bonusCard,
-            'section' => $this->section,
-            'service' => $this->service,
-            'toilet' => $this->toilet,
-            'default_radius' => $this->defaultRadius,
+            'openingHours' => [$this->storeHours],
         ];
 
         return $this;
     }
+
 
     public function getStores(): array
     {
