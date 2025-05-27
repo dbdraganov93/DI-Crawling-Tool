@@ -225,7 +225,7 @@ class StoreService
             'placeId' => '',
             'phone' => $this->phone,
             'fax' => $this->fax,
-            'openingHours' => [$this->storeHours],
+            'openingHours' => [],
         ];
 
         return $this;

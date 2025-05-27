@@ -67,7 +67,7 @@ class ShopfullyCrawler
         }
 
         foreach ($storeService->getStores() as $store) {
-          //  $store['integration'] = ['phone'=>'', 'fax' => ''];
+            $store['integration'] = '/api/integrations/'.'90458';
             //$store['owner'] = 231;
             $storeResult = $this->iprotoService->importStoresInIproto($store);
             var_dump($store);
