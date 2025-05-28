@@ -34,8 +34,37 @@ class CsvService
         $csv->insertOne($headers);
 
         foreach ($stores as $store) {
-            $csv->insertOne(array_values($store));
+            $row = [
+                $store['storeNumber'] ?? '',
+                $store['city'] ?? '',
+                $store['postalCode'] ?? '',
+                $store['street'] ?? '',
+                $store['street_number'] ?? '',
+                $store['latitude'] ?? '',
+                $store['longitude'] ?? '',
+                $store['title'] ?? '',
+                $store['subtitle'] ?? '',
+                $store['text'] ?? '',
+                $store['phone'] ?? '',
+                $store['fax'] ?? '',
+                $store['email'] ?? '',
+                $store['store_hours'] ?? '',
+                $store['store_hours_notes'] ?? '',
+                $store['payment'] ?? '',
+                $store['website'] ?? '',
+                $store['distribution'] ?? '',
+                $store['parking'] ?? '',
+                $store['barrier_free'] ?? '',
+                $store['bonus_card'] ?? '',
+                $store['section'] ?? '',
+                $store['service'] ?? '',
+                $store['toilet'] ?? '',
+                $store['default_radius'] ?? '',
+            ];
+
+            $csv->insertOne($row);
         }
+
 
         $timestamp = round(microtime(true) * 1000);
         $fileName = sprintf('stores_%d_company_%d.csv', $timestamp, $storeService->getCompanyId());
