@@ -1,99 +1,108 @@
 <?php
 namespace App\CrawlerScripts;
 
-use App\Entity\Company;
 use App\Entity\ShopfullyLog;
 use App\Service\IprotoService;
+use App\Service\PdfDownloaderService;
 use App\Service\S3Service;
 use App\Service\StoreService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\ShopfullyService;
-use Symfony\Component\HttpFoundation\Response;
 use App\Service\CsvService;
 use App\Service\BrochureService;
+use App\Service\PdfLinkAnnotationService;
+
 class ShopfullyCrawler
 {
     private EntityManagerInterface $em;
-    private IprotoService $iprotoService;
     private ShopfullyService $shopfullyService;
+    private IprotoService $iprotoService;
     private S3Service $s3Service;
-    public function __construct(EntityManagerInterface $em, ShopfullyService $shopfullyService, IprotoService $iprotoService, S3Service $s3Service)
-    {
+    private string $company;
+    private  PdfLinkAnnotationService $pdfLinkAnnotationService;
+
+    public function __construct(
+        EntityManagerInterface $em,
+        ShopfullyService $shopfullyService,
+        IprotoService $iprotoService,
+        S3Service $s3Service,
+        PdfDownloaderService $pdfDownloaderService,
+        PdfLinkAnnotationService $pdfLinkAnnotationService
+    ) {
         $this->em = $em;
         $this->shopfullyService = $shopfullyService;
         $this->iprotoService = $iprotoService;
         $this->s3Service = $s3Service;
+        $this->pdfDownloaderService = $pdfDownloaderService;
+        $this->pdfLinkAnnotationService = $pdfLinkAnnotationService;
     }
 
     public function crawl(array $brochure): void
     {
-
-        $company = $brochure['company'];
+        $this->company = $brochure['company'];
         $locale = $brochure['locale'];
         $brochures = $brochure['numbers'];
         $timeZone = $brochure['timezone'];
 
-        $brochureService = new BrochureService($company, $timeZone);
-        $storeService = new StoreService($company);
+        $brochureService = new BrochureService($this->company, $timeZone);
+        $storeService = new StoreService($this->company);
+
         foreach ($brochures as $brochure) {
-
             $brochureData = $this->shopfullyService->getBrochure($brochure['number'], $locale);
-            $stores = $this->shopfullyService->fetchStoresByBrochureId($brochure['number'], $locale);
+            $pdfUrl = $brochureData['publicationData']['data'][0]['Publication']['pdf_url'];
 
-            foreach ($stores as $store) {
-                $storeService
-                    ->setStoreNumber($store['Store']['id'])
-                    ->setCity($store['Store']['city'])
-                    ->setZipcode($store['Store']['zip'])
-                    ->setStreet($store['Store']['address'])
-                    ->setLatitude($store['Store']['lat'])
-                    ->setLongitude($store['Store']['lng'])
-                    ->setTitle($store['Store']['more_info'])
-                    ->setText($store['Store']['description'])
-                    ->setPhone($store['Store']['phone'])
-                    ->setFax($store['Store']['fax'])
-                    ->addCurrentStore();
+            try {
+                $downloadedPath = $this->pdfDownloaderService->download($pdfUrl);
+                echo "PDF saved to: $downloadedPath\n";
+            } catch (\Exception $e) {
+                echo "Download failed: " . $e->getMessage() . "\n";
             }
+// Assume $brochureData and $downloadedPath are available
+            $clickouts = $brochureData['brochureClickouts'];
+            $annotatedPath = str_replace('.pdf', '_annotated.pdf', $downloadedPath);
 
-            $brochureService
-                ->setPdfUrl($brochureData['publicationData']['data'][0]['Publication']['pdf_url'])
-                ->setBrochureNumber($brochureData['brochureData']['data'][0]['Flyer']['id'])
-                ->setTitle($brochureData['brochureData']['data'][0]['Flyer']['title'])
-                ->setVariety('leaflet')
-                ->setValidFrom($brochureData['brochureData']['data'][0]['Flyer']['start_date'])
-                ->setValidTo($brochureData['brochureData']['data'][0]['Flyer']['end_date'])
-                ->setVisibleFrom($brochureData['brochureData']['data'][0]['Flyer']['start_date'])
-                ->addCurrentBrochure();
+            $this->pdfLinkAnnotationService->annotatePdf($downloadedPath, $clickouts, $annotatedPath);
+
+
+            echo "Annotated PDF saved to: $annotatedPath\n";
+dd($brochureData);
+            $this->createStores($brochureData, $storeService);
+            $this->createBrochure($brochureData, $brochureService);
         }
 
-        foreach ($storeService->getStores() as $store) {
-          //  $store['integration'] = ['phone'=>'', 'fax' => ''];
-            //$store['owner'] = 231;
-            $storeResult = $this->iprotoService->importStoresInIproto($store);
-            var_dump($store);
-            dd($storeResult);
-        }
-
-
-        $result = $this->iprotoService->createBrochures($brochureService->getBrochures());
-        $status = null;
-        if (!empty($result) && is_array($result)) {
-            $firstEntry = reset($result);
-            if (is_array($firstEntry) && isset($firstEntry['status'])) {
-                $status = $firstEntry['status']; // e.g., "submitted"
-            }
-        }
-        // Logging
-        $log = new ShopfullyLog();
-        $log->setCompanyName($company);
-        $log->setIprotoId($company);
-        $log->setLocale($locale);
-        $log->setData($brochures);
-        $log->setCreatedAt(new \DateTime());
-        $log->setStatus($status);
-
-        $this->em->persist($log);
-        $this->em->flush();
+        $csvService = new CsvService();
+       // dd();
+        $brochureCsv = $csvService->createCsvFromBrochure($brochureService);
     }
 
+    private function createStores(array $stores, StoreService $storeService): void
+    {
+        foreach ($stores['brochureStores'] as $store) {
+            $storeService
+                ->setStoreNumber($store['Store']['id'])
+                ->setCity($store['Store']['city'])
+                ->setZipcode($store['Store']['zip'])
+                ->setStreet($store['Store']['address'])
+                ->setLatitude($store['Store']['lat'])
+                ->setLongitude($store['Store']['lng'])
+                ->setTitle($store['Store']['more_info'])
+                ->setText($store['Store']['description'])
+                ->setPhone($store['Store']['phone'])
+                ->setFax($store['Store']['fax'])
+                ->addCurrentStore();
+        }
+    }
+
+    private function createBrochure(array $brochureData, BrochureService $brochureService): void
+    {
+        $brochureService
+            ->setPdfUrl($brochureData['publicationData']['data'][0]['Publication']['pdf_url'])
+            ->setBrochureNumber($brochureData['brochureData']['data'][0]['Flyer']['id'])
+            ->setTitle($brochureData['brochureData']['data'][0]['Flyer']['title'])
+            ->setVariety('leaflet')
+            ->setValidFrom($brochureData['brochureData']['data'][0]['Flyer']['start_date'])
+            ->setValidTo($brochureData['brochureData']['data'][0]['Flyer']['end_date'])
+            ->setVisibleFrom($brochureData['brochureData']['data'][0]['Flyer']['start_date'])
+            ->addCurrentBrochure();
+    }
 }

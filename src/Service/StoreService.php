@@ -199,7 +199,7 @@ class StoreService
     public function addCurrentStore(): self
     {
         $this->stores[] = [
-            'integration' => $this->companyId,
+            'integration' => '/api/integrations/'. $this->companyId,
             'storeNumber' => $this->storeNumber,
             'title' => $this->title,
             'subtitle' => $this->subtitle,
@@ -225,7 +225,7 @@ class StoreService
             'placeId' => '',
             'phone' => $this->phone,
             'fax' => $this->fax,
-            'openingHours' => [$this->storeHours],
+            'openingHours' => [],
         ];
 
         return $this;

@@ -7,7 +7,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class IprotoService
 {
-    //stage: https://iproto.public-elb.di-stage.offerista.com/api
+    //stage: https://iproto.public-elb.di-stage.offerista.com
     private const BASE_URL = 'https://iproto.offerista.com';
     private const MAX_ATTEMPTS = 5;
 
@@ -24,41 +24,6 @@ class IprotoService
         return $response['body'];
     }
 
-    public function importBrochureInIproto(array $brochureData)
-    {
-        $response = $this->sendRequest(
-            'POST',
-            '/api/brochure_from_pdf',
-            params: [],                      // no query params
-            body: $brochureData,            // proper JSON body
-            bodyMediaType: 'application/json' // correct content-type
-        );
-
-        return $response['body'];
-    }
-
-    public function importStoresInIproto(array $store)
-    {
-
-        $response = $this->sendRequest(
-            'POST',
-            '/api/stores',
-            params: [],                      // no query params
-            body: $store,            // proper JSON body
-            bodyMediaType: 'application/json' // correct content-type
-        );
-
-        return $response['body'];
-    }
-
-    public function createBrochures(array $brochuresData)
-    {
-        foreach ($brochuresData as $brochureData) {
-            $response[$brochureData['brochureNumber']] = $this->importBrochureInIproto($brochureData);
-        }
-
-        return $response;
-    }
 
 
     public function getAllOwners()
@@ -68,47 +33,6 @@ class IprotoService
         return $response['body'];
     }
 
-    public function findStoresByCompany(int $companyId, bool $visibleOnly = true): array
-    {
-        $stores = [];
-        $pageSize = 100;
-        $page = 1;
-        $hasMore = true;
-
-        while ($hasMore) {
-            $params = $this->buildStoreQueryParams($companyId, $visibleOnly, $page, $pageSize);
-
-            $response = $this->sendRequest('GET', '/api/stores', $params);
-
-            $items = $response['body'] ?? null;
-
-            if (!is_array($items)) {
-                throw new \RuntimeException('Invalid response from iProto');
-            }
-
-            $stores = array_merge($stores, $items);
-
-            $hasMore = count($items) === $pageSize;
-            $page++;
-        }
-
-        return $stores;
-    }
-
-    private function buildStoreQueryParams(int $companyId, bool $visibleOnly, int $page, int $pageSize): array
-    {
-        $params = [
-            'integration' => '/api/integrations/' . $companyId,
-             'page' => $page,
-             'itemsPerPage' => $pageSize,
-        ];
-
-        if ($visibleOnly) {
-            $params['exists'] = ['deletedAt' => false];
-        }
-
-        return $params;
-    }
 
 
     private function sendRequest(string $method, string $uri, array $params = [], $body = null, string $bodyMediaType = 'application/ld+json'): array
@@ -190,4 +114,24 @@ class IprotoService
             return $value === true ? 'true' : ($value === false ? 'false' : $value);
         }, $params);
     }
+
+    public function importData(array $data): array
+    {
+        // Auto-detect if $data is in CSV result format
+        if (isset($data['base64']) && isset($data['filePath']) && isset($data['downloadLink'])) {
+            $data = [
+                'integration' => 'api/integrations/' . $data['companyId'],
+                'type' => $data['type'] . ':api3',
+                'integrationOptions' => ['appendOnly' => true],
+                'content' => $data['base64'],
+            ];
+        }
+
+        // Now $data is in the expected format
+        $response = $this->sendRequest('POST', '/api/imports', [], $data, 'application/json');
+
+        return $response['body'];
+    }
+
+
 }
