@@ -5,12 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="848e6fc2-58ef-4c68-9708-c4d917c1830c" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/annotate_pdf_links.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CrawlerScripts/ShopfullyCrawler.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/CrawlerScripts/ShopfullyCrawler.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Service/PdfLinkAnnotationService.php" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Service/ShopfullyService.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Service/ShopfullyService.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,24 +31,24 @@
               <option name="branches">
                 <list>
                   <RecentBranch>
+                    <option name="branchName" value="LoggingShopfullyImports" />
+                    <option name="lastUsedInstant" value="1748519182" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="master" />
+                    <option name="lastUsedInstant" value="1748518704" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="Clickouts2" />
+                    <option name="lastUsedInstant" value="1748518660" />
+                  </RecentBranch>
+                  <RecentBranch>
                     <option name="branchName" value="BrochureStatus" />
                     <option name="lastUsedInstant" value="1747999583" />
                   </RecentBranch>
                   <RecentBranch>
-                    <option name="branchName" value="master" />
-                    <option name="lastUsedInstant" value="1747999447" />
-                  </RecentBranch>
-                  <RecentBranch>
                     <option name="branchName" value="TrackingPixelValidation" />
                     <option name="lastUsedInstant" value="1747997385" />
-                  </RecentBranch>
-                  <RecentBranch>
-                    <option name="branchName" value="ClearingImportProcess" />
-                    <option name="lastUsedInstant" value="1747914233" />
-                  </RecentBranch>
-                  <RecentBranch>
-                    <option name="branchName" value="IprotoCreateBrochure" />
-                    <option name="lastUsedInstant" value="1747896104" />
                   </RecentBranch>
                 </list>
               </option>
@@ -292,7 +288,7 @@
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "LoggingShopfullyImports",
     "last_opened_file_path": "/var/www/html/diCrawler/public/images",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -372,7 +368,7 @@
       <workItem from="1747378405343" duration="12707000" />
       <workItem from="1747637937686" duration="9772000" />
       <workItem from="1748413841626" duration="4402000" />
-      <workItem from="1748512939768" duration="4904000" />
+      <workItem from="1748512939768" duration="5774000" />
     </task>
     <servers />
   </component>
