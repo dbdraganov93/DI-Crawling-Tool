@@ -55,15 +55,14 @@ class ShopfullyCrawler
                 $brochureData['brochureClickouts']
             );
 
-            dd($brochureData);
 
             $this->createStores($brochureData, $storeService);
             $this->createBrochure($brochureData, $brochureService);
         }
 
         $csvService = new CsvService();
-       // dd();
         $brochureCsv = $csvService->createCsvFromBrochure($brochureService);
+        $storeCsv = $csvService->createCsvFromStores($storeService);
     }
 
     private function createStores(array $stores, StoreService $storeService): void

@@ -59,3 +59,79 @@ Run the server
 ```
 symfony serve -d
 ```
+
+# MySQL Setup on Ubuntu
+
+This guide provides steps to install, secure, and configure a MySQL database on Ubuntu, including creating a UTF8 `diCrawlers` database and a dedicated user.
+
+## Step 1: Install MySQL
+
+```bash
+sudo apt update
+sudo apt install mysql-server -y
+```
+
+## Step 2: Secure MySQL Installation
+
+Run the following script to set root password and apply basic security measures:
+
+```bash
+sudo mysql_secure_installation
+```
+
+Recommended responses:
+- Validate password plugin: `Y` or `N` (your choice)
+- Set root password: `Y`
+- Remove anonymous users: `Y`
+- Disallow root login remotely: `Y`
+- Remove test database: `Y`
+- Reload privilege tables: `Y`
+
+## Step 3: Start and Enable MySQL
+
+```bash
+sudo systemctl start mysql
+sudo systemctl enable mysql
+```
+
+## Step 4: Log into MySQL
+
+```bash
+sudo mysql
+```
+
+## Step 5: Create Database, User and Set UTF8
+
+```sql
+-- Create the database with UTF8 General CI collation
+CREATE DATABASE diCrawlers CHARACTER SET utf8 COLLATE utf8_general_ci;
+
+-- Create a user with a strong password
+CREATE USER 'diUser'@'localhost' IDENTIFIED BY 'StrongPassword123!';
+
+-- Grant privileges on the new database
+GRANT ALL PRIVILEGES ON diCrawlers.* TO 'diUser'@'localhost';
+
+-- Apply changes
+FLUSH PRIVILEGES;
+```
+
+To exit MySQL CLI:
+
+```sql
+EXIT;
+```
+
+## Step 6: Test Connection
+
+Login as the new user:
+
+```bash
+mysql -u diUser -p diCrawlers
+```
+
+## Useful Commands
+
+- Check MySQL status: `sudo systemctl status mysql`
+- Restart MySQL: `sudo systemctl restart mysql`
+- Stop MySQL: `sudo systemctl stop mysql`
