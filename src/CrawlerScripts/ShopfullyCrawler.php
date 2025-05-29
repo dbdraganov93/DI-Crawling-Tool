@@ -3,12 +3,14 @@ namespace App\CrawlerScripts;
 
 use App\Entity\ShopfullyLog;
 use App\Service\IprotoService;
+use App\Service\PdfDownloaderService;
 use App\Service\S3Service;
 use App\Service\StoreService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\ShopfullyService;
 use App\Service\CsvService;
 use App\Service\BrochureService;
+use App\Service\PdfLinkAnnotationService;
 
 class ShopfullyCrawler
 {
@@ -16,19 +18,23 @@ class ShopfullyCrawler
     private ShopfullyService $shopfullyService;
     private IprotoService $iprotoService;
     private S3Service $s3Service;
-
     private string $company;
+    private  PdfLinkAnnotationService $pdfLinkAnnotationService;
 
     public function __construct(
         EntityManagerInterface $em,
         ShopfullyService $shopfullyService,
         IprotoService $iprotoService,
-        S3Service $s3Service
+        S3Service $s3Service,
+        PdfDownloaderService $pdfDownloaderService,
+        PdfLinkAnnotationService $pdfLinkAnnotationService
     ) {
         $this->em = $em;
         $this->shopfullyService = $shopfullyService;
         $this->iprotoService = $iprotoService;
         $this->s3Service = $s3Service;
+        $this->pdfDownloaderService = $pdfDownloaderService;
+        $this->pdfLinkAnnotationService = $pdfLinkAnnotationService;
     }
 
     public function crawl(array $brochure): void
@@ -43,20 +49,35 @@ class ShopfullyCrawler
 
         foreach ($brochures as $brochure) {
             $brochureData = $this->shopfullyService->getBrochure($brochure['number'], $locale);
-            $stores = $this->shopfullyService->fetchStoresByBrochureId($brochure['number'], $locale);
+            $pdfUrl = $brochureData['publicationData']['data'][0]['Publication']['pdf_url'];
 
-            $this->createStores($stores, $storeService);
+            try {
+                $downloadedPath = $this->pdfDownloaderService->download($pdfUrl);
+                echo "PDF saved to: $downloadedPath\n";
+            } catch (\Exception $e) {
+                echo "Download failed: " . $e->getMessage() . "\n";
+            }
+// Assume $brochureData and $downloadedPath are available
+            $clickouts = $brochureData['brochureClickouts'];
+            $annotatedPath = str_replace('.pdf', '_annotated.pdf', $downloadedPath);
+
+            $this->pdfLinkAnnotationService->annotatePdf($downloadedPath, $clickouts, $annotatedPath);
+
+
+            echo "Annotated PDF saved to: $annotatedPath\n";
+dd($brochureData);
+            $this->createStores($brochureData, $storeService);
             $this->createBrochure($brochureData, $brochureService);
         }
 
         $csvService = new CsvService();
-        //dd($csvService->createCsvFromStores($storeService));
-        dd($this->iprotoService->importData($csvService->createCsvFromStores($storeService)));
+       // dd();
+        $brochureCsv = $csvService->createCsvFromBrochure($brochureService);
     }
 
     private function createStores(array $stores, StoreService $storeService): void
     {
-        foreach ($stores as $store) {
+        foreach ($stores['brochureStores'] as $store) {
             $storeService
                 ->setStoreNumber($store['Store']['id'])
                 ->setCity($store['Store']['city'])

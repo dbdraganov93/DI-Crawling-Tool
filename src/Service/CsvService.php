@@ -87,6 +87,8 @@ class CsvService
         $domain = getenv('APP_DOMAIN');
 
         return [
+            'companyId' => $storeService->getCompanyId(),
+            'type' => 'stores',
             'filePath' => $filePath,
             'message' => "CSV created successfully: {$fileName}. \n Download at http://127.0.0.1:8000/csv/{$fileName}",
             'downloadLink' => $domain . "http://127.0.0.1:8000/csv/{$fileName}",
@@ -174,6 +176,8 @@ class CsvService
         $domain = getenv('APP_DOMAIN');
 
         return [
+            'companyId' => $companyId,
+            'type' => 'brochures',
             'filePath' => $filePath,
             'message' => "CSV created successfully: {$fileName}. \n Download at http://127.0.0.1:8000/csv/{$fileName}",
             'downloadLink' => $domain . "http://127.0.0.1:8000/csv/{$fileName}",

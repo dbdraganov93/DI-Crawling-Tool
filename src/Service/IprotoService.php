@@ -7,7 +7,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class IprotoService
 {
-    //stage: https://iproto.public-elb.di-stage.offerista.com/api
+    //stage: https://iproto.public-elb.di-stage.offerista.com
     private const BASE_URL = 'https://iproto.offerista.com';
     private const MAX_ATTEMPTS = 5;
 
@@ -119,19 +119,9 @@ class IprotoService
     {
         // Auto-detect if $data is in CSV result format
         if (isset($data['base64']) && isset($data['filePath']) && isset($data['downloadLink'])) {
-            // Extract integration ID from the filename or path
-            // Example: stores_1748434159601_company_81664.csv → 81664
-            preg_match('/company_(\d+)\.csv$/', $data['filePath'], $matches);
-            if (!isset($matches[1])) {
-                throw new \InvalidArgumentException('Cannot detect integration ID from CSV filename.');
-            }
-
-            $integrationId = $matches[1];
-
-            // Transform to iProto expected payload
             $data = [
-                'integration' => 'api/integrations/' . $integrationId,
-                'type' => 'stores:api3',
+                'integration' => 'api/integrations/' . $data['companyId'],
+                'type' => $data['type'] . ':api3',
                 'integrationOptions' => ['appendOnly' => true],
                 'content' => $data['base64'],
             ];
