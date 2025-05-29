@@ -3,14 +3,14 @@ namespace App\CrawlerScripts;
 
 use App\Entity\ShopfullyLog;
 use App\Service\IprotoService;
-use App\Service\PdfDownloaderService;
 use App\Service\S3Service;
 use App\Service\StoreService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\ShopfullyService;
 use App\Service\CsvService;
 use App\Service\BrochureService;
-use App\Service\PdfLinkAnnotationService;
+use App\Service\PdfLinkAnnotatorService;
+ini_set('memory_limit', '512M'); // or '1G' if needed
 
 class ShopfullyCrawler
 {
@@ -19,22 +19,20 @@ class ShopfullyCrawler
     private IprotoService $iprotoService;
     private S3Service $s3Service;
     private string $company;
-    private  PdfLinkAnnotationService $pdfLinkAnnotationService;
+    private PdfLinkAnnotatorService $pdfLinkAnnotatorService;
 
     public function __construct(
         EntityManagerInterface $em,
         ShopfullyService $shopfullyService,
         IprotoService $iprotoService,
         S3Service $s3Service,
-        PdfDownloaderService $pdfDownloaderService,
-        PdfLinkAnnotationService $pdfLinkAnnotationService
+        PdfLinkAnnotatorService $pdfLinkAnnotatorService
     ) {
         $this->em = $em;
         $this->shopfullyService = $shopfullyService;
         $this->iprotoService = $iprotoService;
         $this->s3Service = $s3Service;
-        $this->pdfDownloaderService = $pdfDownloaderService;
-        $this->pdfLinkAnnotationService = $pdfLinkAnnotationService;
+        $this->pdfLinkAnnotatorService = $pdfLinkAnnotatorService;
     }
 
     public function crawl(array $brochure): void
@@ -51,21 +49,14 @@ class ShopfullyCrawler
             $brochureData = $this->shopfullyService->getBrochure($brochure['number'], $locale);
             $pdfUrl = $brochureData['publicationData']['data'][0]['Publication']['pdf_url'];
 
-            try {
-                $downloadedPath = $this->pdfDownloaderService->download($pdfUrl);
-                echo "PDF saved to: $downloadedPath\n";
-            } catch (\Exception $e) {
-                echo "Download failed: " . $e->getMessage() . "\n";
-            }
-// Assume $brochureData and $downloadedPath are available
-            $clickouts = $brochureData['brochureClickouts'];
-            $annotatedPath = str_replace('.pdf', '_annotated.pdf', $downloadedPath);
+            $this->pdfLinkAnnotatorService->addLinksToPdf(
+                $brochureData['brochureData']['data'][0]['Publication']['pdf_local'],
+                $brochureData['brochureData']['data'][0]['Publication']['pdf_local'], // Overwrite original or provide different output path
+                $brochureData['brochureClickouts']
+            );
 
-            $this->pdfLinkAnnotationService->annotatePdf($downloadedPath, $clickouts, $annotatedPath);
+            dd($brochureData);
 
-
-            echo "Annotated PDF saved to: $annotatedPath\n";
-dd($brochureData);
             $this->createStores($brochureData, $storeService);
             $this->createBrochure($brochureData, $brochureService);
         }
