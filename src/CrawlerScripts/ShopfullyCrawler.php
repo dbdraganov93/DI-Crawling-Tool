@@ -47,11 +47,10 @@ class ShopfullyCrawler
 
         foreach ($brochures as $brochure) {
             $brochureData = $this->shopfullyService->getBrochure($brochure['number'], $locale);
-            $pdfUrl = $brochureData['publicationData']['data'][0]['Publication']['pdf_url'];
 
             $this->pdfLinkAnnotatorService->addLinksToPdf(
                 $brochureData['brochureData']['data'][0]['Publication']['pdf_local'],
-                $brochureData['brochureData']['data'][0]['Publication']['pdf_local'], // Overwrite original or provide different output path
+                $brochureData['brochureData']['data'][0]['Publication']['pdf_local'],
                 $brochureData['brochureClickouts']
             );
 
@@ -63,6 +62,30 @@ class ShopfullyCrawler
         $csvService = new CsvService();
         $brochureCsv = $csvService->createCsvFromBrochure($brochureService);
         $storeCsv = $csvService->createCsvFromStores($storeService);
+
+        $storeImport = $this->iprotoService->importData($storeCsv);
+        dd($storeImport);
+        $this->log($locale, $brochures, $storeImport, 'stores');
+
+
+    }
+
+    private function log($locale, $brochures, $storeImport, $type): void
+    {
+        $log = new ShopfullyLog();
+        $log->setCompanyName($this->company);
+        $log->setIprotoId($this->company);
+        $log->setLocale($locale);
+        $log->setData($brochures);
+        $log->setImportType($type);
+        $log->setStatus($storeImport['status']);
+        $log->setNoticesCount($storeImport['noticesCount'] ?? 0);
+        $log->setWarningsCount($storeImport['warningsCount'] ?? 0);
+        $log->setErrorsCount($storeImport['errorsCount'] ?? 0);
+        $log->setCreatedAt(new \DateTime());
+
+        $this->em->persist($log);
+        $this->em->flush();
     }
 
     private function createStores(array $stores, StoreService $storeService): void

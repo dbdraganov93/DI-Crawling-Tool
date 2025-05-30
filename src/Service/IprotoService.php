@@ -35,7 +35,7 @@ class IprotoService
 
 
 
-    private function sendRequest(string $method, string $uri, array $params = [], $body = null, string $bodyMediaType = 'application/ld+json'): array
+    private function sendRequest(string $method, string $uri, array $params = [], $body = null, string $bodyMediaType = 'application/ld+json', string $acceptType = 'application/json'): array
     {
 
         $token = $this->tokenService->getValidToken();
@@ -47,7 +47,7 @@ class IprotoService
 
         $headers = [
             'Authorization' => 'Bearer ' . $token,
-            'Accept' => 'application/json',
+            'Accept' => $acceptType,
         ];
 
         if ($body) {
@@ -78,6 +78,7 @@ class IprotoService
                 $this->logger->info("Response: \"$statusCode $url\"");
 
                 $content = $response->getContent(false); // do not throw
+
                 $json = json_decode($content, true);
 
                 if ($statusCode >= 200 && $statusCode < 300) {
@@ -94,7 +95,6 @@ class IprotoService
 
             sleep(pow($attempt++, 2));
         } while ($attempt < self::MAX_ATTEMPTS);
-        dd( $json,$body);
         throw new \RuntimeException("iProto API request failed after " . self::MAX_ATTEMPTS . " attempts: $method $url");
     }
 
@@ -128,9 +128,14 @@ class IprotoService
         }
 
         // Now $data is in the expected format
-        $response = $this->sendRequest('POST', '/api/imports', [], $data, 'application/json');
+        $response = $this->sendRequest('POST', '/api/imports', [], $data, 'application/ld+json', 'application/ld+json');
 
         return $response['body'];
+    }
+
+    public function importStatus($importId): array
+    {
+
     }
 
 
