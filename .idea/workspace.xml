@@ -6,7 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="848e6fc2-58ef-4c68-9708-c4d917c1830c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/pdf/179716_68356c02-7a80-43ad-8c56-016b43be90da_2025-05-27-09-38-42.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/public/pdf/179716_68356c02-7a80-43ad-8c56-016b43be90da_2025-05-27-09-38-42.pdf" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CrawlerScripts/ShopfullyCrawler.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/CrawlerScripts/ShopfullyCrawler.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Entity/ShopfullyLog.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Entity/ShopfullyLog.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Service/IprotoService.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Service/IprotoService.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/shopfully/wizard.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/shopfully/wizard.html.twig" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -368,7 +372,7 @@
       <workItem from="1747378405343" duration="12707000" />
       <workItem from="1747637937686" duration="9772000" />
       <workItem from="1748413841626" duration="4402000" />
-      <workItem from="1748512939768" duration="5774000" />
+      <workItem from="1748512939768" duration="13261000" />
     </task>
     <servers />
   </component>

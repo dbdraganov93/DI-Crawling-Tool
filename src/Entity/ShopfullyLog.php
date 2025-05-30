@@ -32,6 +32,20 @@ class ShopfullyLog
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $status = null;
 
+
+
+    #[ORM\Column]
+    private int $noticesCount = 0;
+
+    #[ORM\Column]
+    private int $warningsCount = 0;
+
+    #[ORM\Column]
+    private int $errorsCount = 0;
+
+    #[ORM\Column(length: 255)]
+    private string $importType;
+
     public function getStatus(): ?string
     {
         return $this->status;
@@ -106,6 +120,50 @@ class ShopfullyLog
     {
         $this->data = $data;
 
+        return $this;
+    }
+
+    public function getNoticesCount(): int
+    {
+        return $this->noticesCount;
+    }
+
+    public function setNoticesCount(int $noticesCount): static
+    {
+        $this->noticesCount = $noticesCount;
+        return $this;
+    }
+
+    public function getWarningsCount(): int
+    {
+        return $this->warningsCount;
+    }
+
+    public function setWarningsCount(int $warningsCount): static
+    {
+        $this->warningsCount = $warningsCount;
+        return $this;
+    }
+
+    public function getErrorsCount(): int
+    {
+        return $this->errorsCount;
+    }
+
+    public function setErrorsCount(int $errorsCount): static
+    {
+        $this->errorsCount = $errorsCount;
+        return $this;
+    }
+
+    public function getImportType(): string
+    {
+        return $this->importType;
+    }
+
+    public function setImportType(string $importType): static
+    {
+        $this->importType = $importType;
         return $this;
     }
 }
