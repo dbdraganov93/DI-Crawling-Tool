@@ -6,41 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="848e6fc2-58ef-4c68-9708-c4d917c1830c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/brochures_90250_company_1748519775103.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/brochures_90533_company_1748520605957.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/brochures_90533_company_1748520768735.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/brochures_90533_company_1748521196823.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/brochures_90533_company_1748521233005.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/brochures_90533_company_1748522800754.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/brochures_90533_company_1748523626275.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/brochures_90533_company_1748523699477.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/brochures_90533_company_1748523746027.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/brochures_90533_company_1748523961881.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/brochures_90533_company_1748524007628.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/brochures_90533_company_1748524086241.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/brochures_90533_company_1748524213508.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/brochures_90533_company_1748524367031.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/brochures_90533_company_1748524484381.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/brochures_90533_company_1748524579876.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/stores_1748519775104_company_90250.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/stores_1748520605958_company_90533.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/stores_1748520768736_company_90533.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/stores_1748521196823_company_90533.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/stores_1748521233005_company_90533.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/stores_1748522800754_company_90533.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/stores_1748523626276_company_90533.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/stores_1748523699477_company_90533.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/stores_1748523746027_company_90533.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/stores_1748523961881_company_90533.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/stores_1748524007629_company_90533.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/stores_1748524086241_company_90533.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/stores_1748524213508_company_90533.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/stores_1748524367031_company_90533.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/stores_1748524484382_company_90533.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/csv/stores_1748524579876_company_90533.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/pdf/179716_68356c02-7a80-43ad-8c56-016b43be90da_2025-05-27-09-38-42.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/public/pdf/179716_68356c02-7a80-43ad-8c56-016b43be90da_2025-05-27-09-38-42.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/pdf/1333492_68383198-d84c-44bb-93e2-007543be90da_2025-05-29-12-06-16.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/pdf/179716_68356c02-7a80-43ad-8c56-016b43be90da_2025-05-27-09-38-42.pdf" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/CrawlerScripts/ShopfullyCrawler.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/CrawlerScripts/ShopfullyCrawler.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Service/ShopfullyService.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Service/ShopfullyService.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Service/PdfLinkAnnotatorService.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Service/PdfLinkAnnotatorService.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -404,7 +373,7 @@
       <workItem from="1748413841626" duration="4402000" />
       <workItem from="1748512939768" duration="19440000" />
       <workItem from="1748625311070" duration="2271000" />
-      <workItem from="1748844494444" duration="1866000" />
+      <workItem from="1748844494444" duration="6132000" />
     </task>
     <servers />
   </component>
