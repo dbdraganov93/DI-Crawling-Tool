@@ -28,7 +28,7 @@ class BrochureService
     private string $visibleFrom = '';
     private array $pdfProcessingOptions = [];
     private string $layout = '';
-    private array $trackingPixels = [];
+    private string $trackingPixels = '';
     private int $companyId;
     private string $timeZone;
 
@@ -118,7 +118,7 @@ class BrochureService
         return $this;
     }
 
-    public function setTrackingPixels(array $trackingPixels): self
+    public function setTrackingPixels(string $trackingPixels): self
     {
         $this->trackingPixels = $trackingPixels;
         return $this;
