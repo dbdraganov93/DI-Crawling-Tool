@@ -1,35 +1,42 @@
 <?php
 namespace App\Service;
 
-use setasign\Fpdi\Fpdi;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class PdfLinkAnnotatorService
 {
-    public function addLinksToPdf(string $pdfPath, string $outputPath, array $clickouts): void
+    private string $pythonScript;
+
+    public function __construct()
     {
-        $pdf = new Fpdi();
+        $this->pythonScript = __DIR__ . '/../../scripts/add_links.py';
+    }
+    public function annotate(string $pdfPath, string $outputPath, array $clickouts): void
+    {
+        $clickoutsJsonPath = tempnam(sys_get_temp_dir(), 'clickouts_') . '.json';
+        file_put_contents($clickoutsJsonPath, json_encode($clickouts));
 
-        $pageCount = $pdf->setSourceFile($pdfPath);
+        $tempOutput = tempnam(sys_get_temp_dir(), 'pdf_output_') . '.pdf';
 
-        for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-            $templateId = $pdf->importPage($pageNo);
-            $size = $pdf->getTemplateSize($templateId);
+        $process = new Process([
+            'python3',
+            $this->pythonScript,
+            $pdfPath,
+            $clickoutsJsonPath,
+            $tempOutput
+        ]);
 
-            $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
-            $pdf->useTemplate($templateId);
+        $process->run();
 
-            foreach ($clickouts as $clickout) {
-                if ((int)$clickout['pageNumber'] === $pageNo) {
-                    $x = $clickout['x'] * $size['width'];
-                    $y = $clickout['y'] * $size['height'];
-                    $w = $clickout['width'] * $size['width'];
-                    $h = $clickout['height'] * $size['height'];
-
-                    $pdf->Link($x, $y, $w, $h, $clickout['url']);
-                }
-            }
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
         }
 
-        $pdf->Output($outputPath, 'F');
+        // Overwrite the original with the modified version
+        copy($tempOutput, $outputPath);
+        @unlink($clickoutsJsonPath);
+        @unlink($tempOutput);
     }
+
 }

@@ -48,11 +48,8 @@ class ShopfullyCrawler
         foreach ($brochures as $brochure) {
             $brochureData = $this->shopfullyService->getBrochure($brochure['number'], $locale);
 
-            $this->pdfLinkAnnotatorService->addLinksToPdf(
-                $brochureData['brochureData']['data'][0]['Publication']['pdf_local'],
-                $brochureData['brochureData']['data'][0]['Publication']['pdf_local'],
-                $brochureData['brochureClickouts']
-            );
+            $this->pdfLinkAnnotatorService->annotate($brochureData['brochureData']['data'][0]['Publication']['pdf_local'],
+                $brochureData['brochureData']['data'][0]['Publication']['pdf_local'],$brochureData['brochureClickouts']);
 
 
             $this->createStores($brochureData, $storeService);
