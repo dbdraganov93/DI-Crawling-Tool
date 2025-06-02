@@ -55,6 +55,10 @@ Migrate
 ```
 php bin/console doctrine:migrations:migrate
 ```
+Install PyMuPDF
+```
+pip install PyMuPDF
+```
 Run the server
 ```
 symfony serve -d
