@@ -47,7 +47,7 @@ class ShopfullyCrawler
 
         foreach ($brochures as $brochure) {
             $brochureData = $this->shopfullyService->getBrochure($brochure['number'], $locale);
-
+            $brochureData['trackingPixel'] = $brochure['tracking_pixel'];
             $this->pdfLinkAnnotatorService->annotate($brochureData['brochureData']['data'][0]['Publication']['pdf_local'],
                 $brochureData['brochureData']['data'][0]['Publication']['pdf_local'],$brochureData['brochureClickouts']);
 
@@ -113,6 +113,7 @@ dd($brochureCsv, $storeCsv);
             ->setValidFrom($brochureData['brochureData']['data'][0]['Flyer']['start_date'])
             ->setValidTo($brochureData['brochureData']['data'][0]['Flyer']['end_date'])
             ->setVisibleFrom($brochureData['brochureData']['data'][0]['Flyer']['start_date'])
+            ->setTrackingPixels($brochureData['trackingPixel'])
             ->addCurrentBrochure();
     }
 }

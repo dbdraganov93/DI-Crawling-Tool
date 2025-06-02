@@ -67,7 +67,7 @@ class CsvService
 
 
         $timestamp = round(microtime(true) * 1000);
-        $fileName = sprintf('stores_%d_company_%d.csv', $timestamp, $storeService->getCompanyId());
+        $fileName = sprintf('stores_%d_%d.csv', $timestamp, $storeService->getCompanyId());
         $filePath = $this->csvDir . './public/csv/' . $fileName;
 
         // Ensure the directory exists
@@ -146,7 +146,7 @@ class CsvService
                 $brochure['national'] ?? '', // national
                 $brochure['gender'] ?? '',
                 $brochure['ageRange'] ?? '',
-                isset($brochure['tracking_pixels']) ? implode(',', $brochure['tracking_pixels']) : '',
+                $brochure['trackingPixels'] ?? '',
                 isset($brochure['pdf_processing_options']) ? json_encode($brochure['pdf_processing_options']) : '',
                 '', // lang_code
                 '', // zipcode
@@ -155,7 +155,7 @@ class CsvService
         }
 
         $timestamp = round(microtime(true) * 1000);
-        $fileName = sprintf('brochures_%d_company_%d.csv', $companyId, $timestamp);
+        $fileName = sprintf('brochures_%d_%d.csv', $companyId, $timestamp);
         $filePath = $this->csvDir . './public/csv/' . $fileName;
 
         // Ensure directory exists
