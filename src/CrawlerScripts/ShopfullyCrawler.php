@@ -62,9 +62,9 @@ class ShopfullyCrawler
         $csvService = new CsvService();
         $brochureCsv = $csvService->createCsvFromBrochure($brochureService);
         $storeCsv = $csvService->createCsvFromStores($storeService);
-
+dd($brochureCsv, $storeCsv);
         $storeImport = $this->iprotoService->importData($storeCsv);
-        dd($storeImport);
+
         $this->log($locale, $brochures, $storeImport, 'stores');
 
 

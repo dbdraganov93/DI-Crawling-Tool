@@ -2,6 +2,7 @@
 
 namespace App\Service;
 use App\Service\ClickoutsMapperService;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 use App\Service\PdfDownloaderService;
@@ -14,11 +15,21 @@ class ShopfullyService
 
     private PdfDownloaderService $pdfDownloaderService;
 
-    public function __construct(HttpClientInterface $httpClient, ClickoutsMapperService $clickoutsMapperService, PdfDownloaderService $pdfDownloaderService,)
+    public function __construct(HttpClientInterface $httpClient, ClickoutsMapperService $clickoutsMapperService, PdfDownloaderService $pdfDownloaderService)
     {
         $this->httpClient = $httpClient;
         $this->clickoutsMapperService = $clickoutsMapperService;
         $this->pdfDownloaderService = $pdfDownloaderService;
+    }
+
+    private function getBrochureStoresAsString(array $stores): string
+    {
+        $storesString = '';
+        foreach ($stores as $store) {
+            $storesString .= $store['Store']['id'] . ',';
+        }
+
+        return rtrim($storesString, ',');
     }
 
     public function getBrochure(string $brochureId, string $locale): array
@@ -26,6 +37,8 @@ class ShopfullyService
         $response['brochureData'] = $this->fetchBrochureData($brochureId, $locale);
         $response['publicationData'] = $this->fetchPublicationData($response['brochureData']['publication_id'], $locale);
         $response['brochureStores'] = $this->fetchStoresByBrochureId($brochureId, $locale);
+        $response['brochureData']['data'][0]['Flyer']['stores'] = $this->getBrochureStoresAsString($response['brochureStores']);
+
         $response['brochureClickouts'] = $this->fetchBrochureClickouts($brochureId, $locale);
 
         try {
@@ -39,21 +52,40 @@ class ShopfullyService
 
     public function fetchStoresByBrochureId(string $brochureId, string $locale): array
     {
-        $url = self::SHOPFULLY_HOST . $locale . '/flyers/'.$brochureId.'/stores.json?page=1';
+        $allStores = [];
+        $page = 1;
 
-        $response = $this->httpClient->request('GET', $url, [
-            'headers' => [
-                'x-api-key' => self::API_KEY,
-            ],
-        ]);
+        while (true) {
+            $url = self::SHOPFULLY_HOST . $locale . '/flyers/' . $brochureId . '/stores.json?page=' . $page;
 
-        if ($response->getStatusCode() !== 200) {
-            throw new \RuntimeException('Failed to fetch store data fore brochure: ' . $brochureId . ', status code: ' . $response->getStatusCode());
+            try {
+                $response = $this->httpClient->request('GET', $url, [
+                    'headers' => [
+                        'x-api-key' => self::API_KEY,
+                    ],
+                ]);
+
+                $data = $response->toArray();
+                $stores = $data['data'] ?? [];
+
+                if (empty($stores)) {
+                    break;
+                }
+
+                $allStores = array_merge($allStores, $stores);
+                $page++;
+            } catch (ClientExceptionInterface $e) {
+                if (method_exists($e, 'getResponse') && $e->getResponse()->getStatusCode() === 404) {
+                    break; // end of pages
+                }
+                throw $e;
+            }
         }
-        $response = $response->toArray();
 
-        return $response['data'];
+        return $allStores;
     }
+
+
 
     public function fetchBrochureClickouts(string $brochureId, string $locale): array
     {
