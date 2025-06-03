@@ -31,6 +31,7 @@ class BrochureService
     private string $trackingPixels = '';
     private int $companyId;
     private string $timeZone;
+    private string $storeNumber = '';
 
     public function __construct(int $companyId, string $timeZone)
     {
@@ -55,6 +56,13 @@ class BrochureService
         $this->pdfUrl = $pdfUrl;
         return $this;
     }
+
+    public function setStoreNumber(string $storeNumber): self
+    {
+        $this->storeNumber = $storeNumber;
+        return $this;
+    }
+
 
 
     public function setIntegration(string $integration): self
@@ -156,6 +164,7 @@ class BrochureService
             'variety' => $this->variety ?? self::DEFAULT_VARIETY,
             'validFrom' => $this->validFrom,
             'validTo' => $this->validTo,
+            'storeNumber' => $this->storeNumber,
             'visibleFrom' => $this->visibleFrom,
             'pdfProcessingOptions' => $this->pdfProcessingOptions ?? self::DEFAULT_PROCESSING_OPTIONS,
             'trackingPixels' => $this->trackingPixels ?? '',
