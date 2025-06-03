@@ -148,19 +148,14 @@ Paste this inside (replace with your real AWS keys from the root account):
 [default]
 aws_access_key_id = YOUR_LONG_TERM_KEY
 aws_secret_access_key = YOUR_SECRET_KEY
-```
 
-```bash
-nano ~/.aws/config
-```
-
-```bash
-[profile di-crawler]
-source_profile = default
+[di-crawler]
 role_arn = arn:aws:iam::385750204895:role/delegated-developer-crawler.di
+source_profile = default
 region = eu-west-1
-output = json
 ```
+
+
 
 Test Role Assumption
 

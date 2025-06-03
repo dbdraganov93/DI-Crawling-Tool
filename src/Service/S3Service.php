@@ -18,6 +18,7 @@ class S3Service {
             'region' => $this->region,
             'version' => 'latest',
             'profile' => $profile,
+            'use_aws_shared_config_files' => true,
         ]);
     }
 
@@ -31,11 +32,10 @@ class S3Service {
                 'Bucket' => $this->bucket,
                 'Key' => $s3Path,
                 'SourceFile' => $localPath,
-                'ACL' => 'public-read', // Make file publicly accessible
+                //'ACL' => 'public-read',
             ]);
 
             return "https://{$this->bucket}.s3.{$this->region}.amazonaws.com/{$s3Path}";
-
         } catch (AwsException $e) {
             throw new \RuntimeException("Upload failed: " . $e->getMessage());
         }
