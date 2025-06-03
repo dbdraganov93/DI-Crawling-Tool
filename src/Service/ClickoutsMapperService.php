@@ -5,15 +5,30 @@ class ClickoutsMapperService {
     public function formatClickoutsForShopfully(array $data): array
     {
         $clickouts = [];
-        foreach ($data['data'] as $k => $clickout) {
-            $clickouts[$k]['url'] = $clickout['FlyerGib']['external_url'] ?? $clickout['FlyerGib']['settings']['layout']['button'][0]['attributes']['href'] ?? $clickout['FlyerGib']['settings']['layout']['buttons'][0]['attributes']['href'];
-            $clickouts[$k]['pageNumber'] = $clickout['FlyerGib']['settings']['flyer_page'];
-            $clickouts[$k]['width'] = $clickout['FlyerGib']['settings']['pin']['shape']['width'];
-            $clickouts[$k]['height'] = $clickout['FlyerGib']['settings']['pin']['shape']['height'];
-            $clickouts[$k]['x'] = $clickout['FlyerGib']['settings']['pin']['shape']['x'];
-            $clickouts[$k]['y'] = $clickout['FlyerGib']['settings']['pin']['shape']['y'];
+
+        foreach ($data['data'] as $clickout) {
+            $flyer = $clickout['FlyerGib'] ?? [];
+
+            $url = $flyer['external_url']
+                ?? ($flyer['settings']['layout']['button'][0]['attributes']['href'] ?? null)
+                ?? ($flyer['settings']['layout']['buttons'][0]['attributes']['href'] ?? null);
+
+            if (!$url) {
+                continue;
+            }
+
+            $clickouts[] = [
+                'url' => $url,
+                'pageNumber' => $flyer['settings']['flyer_page'] ?? null,
+                'width' => $flyer['settings']['pin']['shape']['width'] ?? null,
+                'height' => $flyer['settings']['pin']['shape']['height'] ?? null,
+                'x' => $flyer['settings']['pin']['shape']['x'] ?? null,
+                'y' => $flyer['settings']['pin']['shape']['y'] ?? null,
+            ];
         }
 
-        return $clickouts;
+        return $clickouts; // вече са с правилна структура за Python
     }
+
+
 }

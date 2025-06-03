@@ -61,8 +61,10 @@ class ShopfullyCrawler
         $storeCsv = $csvService->createCsvFromStores($storeService);
 dd($brochureCsv, $storeCsv);
         $storeImport = $this->iprotoService->importData($storeCsv);
+        $brochureImport = $this->iprotoService->importData($brochureCsv);
 
         $this->log($locale, $brochures, $storeImport, 'stores');
+        $this->log($locale, $brochures, $brochureImport, 'brochures');
 
 
     }
@@ -113,7 +115,8 @@ dd($brochureCsv, $storeCsv);
             ->setValidFrom($brochureData['brochureData']['data'][0]['Flyer']['start_date'])
             ->setValidTo($brochureData['brochureData']['data'][0]['Flyer']['end_date'])
             ->setVisibleFrom($brochureData['brochureData']['data'][0]['Flyer']['start_date'])
-            ->setTrackingPixels($brochureData['trackingPixel'])
+            ->setTrackingPixels($brochureData['trackingPixel'] ?? '')
+            ->setStoreNumber($brochureData['brochureData']['data'][0]['Flyer']['stores'])
             ->addCurrentBrochure();
     }
 }
