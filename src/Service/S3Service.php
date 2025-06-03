@@ -25,17 +25,17 @@ class S3Service {
     /**
      * Upload file to S3 and return public URL
      */
-    public function upload(string $localPath, string $s3Path): string
+    public function upload(string $localPath): string
     {
         try {
             $this->s3Client->putObject([
                 'Bucket' => $this->bucket,
-                'Key' => $s3Path,
+                'Key' => $localPath,
                 'SourceFile' => $localPath,
                 //'ACL' => 'public-read',
             ]);
 
-            return "https://{$this->bucket}.s3.{$this->region}.amazonaws.com/{$s3Path}";
+            return "https://{$this->bucket}.s3.{$this->region}.amazonaws.com/{$localPath}";
         } catch (AwsException $e) {
             throw new \RuntimeException("Upload failed: " . $e->getMessage());
         }
