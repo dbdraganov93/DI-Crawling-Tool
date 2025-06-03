@@ -2,10 +2,12 @@
 
 namespace App\Service;
 use App\Service\ClickoutsMapperService;
+use App\Service\PdfLinkAnnotatorService;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-
 use App\Service\PdfDownloaderService;
+use App\Service\S3Service;
+
 class ShopfullyService
 {
     private const SHOPFULLY_HOST = 'https://d1h08qwp2t1dnu.cloudfront.net/v1/';
@@ -14,12 +16,17 @@ class ShopfullyService
     private ClickoutsMapperService  $clickoutsMapperService;
 
     private PdfDownloaderService $pdfDownloaderService;
+    private S3Service $s3Service;
+    private PdfLinkAnnotatorService $pdfLinkAnnotatorService;
 
-    public function __construct(HttpClientInterface $httpClient, ClickoutsMapperService $clickoutsMapperService, PdfDownloaderService $pdfDownloaderService)
+    public function __construct(HttpClientInterface $httpClient, ClickoutsMapperService $clickoutsMapperService, PdfDownloaderService $pdfDownloaderService, PdfLinkAnnotatorService $pdfLinkAnnotatorService,
+                                S3Service $s3Service,)
     {
         $this->httpClient = $httpClient;
         $this->clickoutsMapperService = $clickoutsMapperService;
         $this->pdfDownloaderService = $pdfDownloaderService;
+        $this->pdfLinkAnnotatorService = $pdfLinkAnnotatorService;
+        $this->s3Service = $s3Service;
     }
 
     private function getBrochureStoresAsString(array $stores): string
@@ -38,14 +45,21 @@ class ShopfullyService
         $response['publicationData'] = $this->fetchPublicationData($response['brochureData']['publication_id'], $locale);
         $response['brochureStores'] = $this->fetchStoresByBrochureId($brochureId, $locale);
         $response['brochureData']['data'][0]['Flyer']['stores'] = $this->getBrochureStoresAsString($response['brochureStores']);
-
         $response['brochureClickouts'] = $this->fetchBrochureClickouts($brochureId, $locale);
+
+
 
         try {
             $response['brochureData']['data'][0]['Publication']['pdf_local'] = $this->pdfDownloaderService->download($response['publicationData']['data'][0]['Publication']['pdf_url']);
         } catch (\Exception $e) {
             echo "Download failed: " . $e->getMessage() . "\n";
         }
+
+
+        $this->pdfLinkAnnotatorService->annotate($response['brochureData']['data'][0]['Publication']['pdf_local'],
+            $response['brochureData']['data'][0]['Publication']['pdf_local'],$response['brochureClickouts']);
+
+        $response['publicationData']['data'][0]['Publication']['pdf_url'] = $this->s3Service->upload($response['brochureData']['data'][0]['Publication']['pdf_local']);
 
         return $response;
     }

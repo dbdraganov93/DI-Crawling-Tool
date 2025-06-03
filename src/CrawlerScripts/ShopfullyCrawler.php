@@ -48,9 +48,6 @@ class ShopfullyCrawler
         foreach ($brochures as $brochure) {
             $brochureData = $this->shopfullyService->getBrochure($brochure['number'], $locale);
             $brochureData['trackingPixel'] = $brochure['tracking_pixel'];
-            $this->pdfLinkAnnotatorService->annotate($brochureData['brochureData']['data'][0]['Publication']['pdf_local'],
-                $brochureData['brochureData']['data'][0]['Publication']['pdf_local'],$brochureData['brochureClickouts']);
-            dd($this->s3Service->upload($brochureData['brochureData']['data'][0]['Publication']['pdf_local'], '/pdf/test'));
 
             $this->createStores($brochureData, $storeService);
             $this->createBrochure($brochureData, $brochureService);
@@ -59,7 +56,7 @@ class ShopfullyCrawler
         $csvService = new CsvService();
         $brochureCsv = $csvService->createCsvFromBrochure($brochureService);
         $storeCsv = $csvService->createCsvFromStores($storeService);
-
+dd($brochureCsv, $storeCsv);
         $storeImport = $this->iprotoService->importData($storeCsv);
         $brochureImport = $this->iprotoService->importData($brochureCsv);
 
