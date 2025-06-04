@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="848e6fc2-58ef-4c68-9708-c4d917c1830c" name="Changes" comment="" />
+    <list default="true" id="848e6fc2-58ef-4c68-9708-c4d917c1830c" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/shopfully/wizard.html.twig" beforeDir="false" afterPath="$PROJECT_DIR$/templates/shopfully/wizard.html.twig" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -28,6 +31,10 @@
               <option name="branches">
                 <list>
                   <RecentBranch>
+                    <option name="branchName" value="Fixs3" />
+                    <option name="lastUsedInstant" value="1749030108" />
+                  </RecentBranch>
+                  <RecentBranch>
                     <option name="branchName" value="WrongA" />
                     <option name="lastUsedInstant" value="1749018674" />
                   </RecentBranch>
@@ -42,10 +49,6 @@
                   <RecentBranch>
                     <option name="branchName" value="GitIgnoreUpdate" />
                     <option name="lastUsedInstant" value="1748948863" />
-                  </RecentBranch>
-                  <RecentBranch>
-                    <option name="branchName" value="RemoveMigrations" />
-                    <option name="lastUsedInstant" value="1748948694" />
                   </RecentBranch>
                 </list>
               </option>
@@ -285,7 +288,7 @@
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "Fixs3",
     "last_opened_file_path": "/home/dragan/Desktop/Files",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",

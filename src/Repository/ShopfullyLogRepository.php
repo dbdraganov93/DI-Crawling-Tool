@@ -16,6 +16,19 @@ class ShopfullyLogRepository extends ServiceEntityRepository
         parent::__construct($registry, ShopfullyLog::class);
     }
 
+    public function findOneByImportId(int $importId): ?ShopfullyLog
+    {
+        return $this->createQueryBuilder('l')
+            ->andWhere('l.importId = :id')
+            ->setParameter('id', $importId)
+            ->orderBy('l.createdAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+
+
     //    /**
     //     * @return ShopfullyLog[] Returns an array of ShopfullyLog objects
     //     */
