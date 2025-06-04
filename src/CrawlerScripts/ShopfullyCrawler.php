@@ -39,6 +39,7 @@ class ShopfullyCrawler
 
     public function crawl(array $brochure): void
     {
+        //dd($this->iprotoService->getImportStatus('132866'));
         $this->company = $brochure['company'];
         $locale = $brochure['locale'];
         $brochures = $brochure['numbers'];
