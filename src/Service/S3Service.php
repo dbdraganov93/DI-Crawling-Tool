@@ -46,5 +46,4 @@ class S3Service
             throw new \RuntimeException("Upload failed: " . $e->getMessage());
         }
     }
-
 }
