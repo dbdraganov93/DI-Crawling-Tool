@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
+        .badge.bg-success {
+            color: #fff !important;
+        }
+
         .stepper {
             display: flex;
             justify-content: space-between;
@@ -703,7 +707,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.refresh-status-btn').forEach(button => {
                 button.addEventListener('click', async function () {
-                    const logId = this.dataset.id;
+                    const logId = this.dataset.importId;
                     const importId = this.dataset.importId;
 
                     this.disabled = true;
