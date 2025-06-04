@@ -46,6 +46,20 @@ class ShopfullyLog
     #[ORM\Column(length: 255)]
     private string $importType;
 
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $importId = null;
+
+    public function getImportId(): ?int
+    {
+        return $this->importId;
+    }
+
+    public function setImportId(?int $importId): static
+    {
+        $this->importId = $importId;
+        return $this;
+    }
+
     public function getStatus(): ?string
     {
         return $this->status;

@@ -271,15 +271,12 @@
                         <tr>
                             <th>ID</th>
                             <th>Created At</th>
-                            <th>Company</th>
                             <th>Iproto ID</th>
                             <th>Locale</th>
                             <th>Status</th>
-                            <th>Notices</th>
-                            <th>Warnings</th>
-                            <th>Errors</th>
                             <th>Import Type</th>
                             <th>Data (JSON)</th>
+                            <th>Refresh</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -287,7 +284,6 @@
                         <tr>
                             <td>{{ log.id }}</td>
                             <td>{{ log.createdAt ? log.createdAt|date('Y-m-d H:i:s') : '' }}</td>
-                            <td>{{ log.companyName }}</td>
                             <td>{{ log.iprotoId }}</td>
                             <td>{{ log.locale }}</td>
                             <td>
@@ -297,9 +293,6 @@
                                     <span class="text-muted">N/A</span>
                                 {% endif %}
                             </td>
-                            <td><span class="badge bg-secondary" style="color:white">{{ log.noticesCount }}</span></td>
-                            <td><span class="badge bg-warning text-dark">{{ log.warningsCount }}</span></td>
-                            <td><span class="badge bg-danger" style="color: white">{{ log.errorsCount }}</span></td>
                             <td><span class="text-muted">{{ log.importType }}</span></td>
                             <td>
                                 {% set collapseId = 'collapse-log-' ~ log.id %}
@@ -322,6 +315,14 @@
                                     </ul>
                                 </div>
                             </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary refresh-status-btn"
+                                        data-id="{{ log.id }}"
+                                        data-import-id="{{ log.importId }}">
+                                    🔄
+                                </button>
+                            </td>
+
                         </tr>
                     {% endfor %}
 
@@ -698,6 +699,80 @@
         });
     </script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.refresh-status-btn').forEach(button => {
+                button.addEventListener('click', async function () {
+                    const logId = this.dataset.id;
+                    const importId = this.dataset.importId;
+
+                    this.disabled = true;
+                    this.innerHTML = '⏳';
+                    function getBadgeClass(status) {
+                        const normalized = (status || '').toLowerCase();
+
+                        const successStatuses = ['done', 'success', 'completed'];
+                        const warningStatuses = ['skipped', 'partial', 'warning'];
+                        const dangerStatuses = ['failed', 'error', 'aborted'];
+                        const infoStatuses = ['running', 'processing', 'pending', 'queued', 'retrying'];
+
+                        if (successStatuses.includes(normalized)) return 'bg-success';
+                        if (warningStatuses.includes(normalized)) return 'bg-warning text-dark';
+                        if (dangerStatuses.includes(normalized)) return 'bg-danger';
+                        if (infoStatuses.includes(normalized)) return 'bg-info text-dark';
+
+                        return 'bg-secondary'; // default fallback
+                    }
+
+                    try {
+                        const response = await fetch(`/api/logs/${logId}/refresh`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            body: JSON.stringify({ importId: importId })
+                        });
+
+                        const data = await response.json();
+//tukaaaaa
+                        if (data.success) {
+                            const row = this.closest('tr');
+
+                            const badgeClass = getBadgeClass(data.status);
+                            const statusText = data.status ?? 'unknown';
+
+                            const statusCell = row.querySelector('td:nth-child(5)');
+                            if (statusCell) {
+                                statusCell.innerHTML = `<span class="badge ${badgeClass}">${statusText}</span>`;
+                            }
+
+                            const jsonCell = row.querySelector('td:nth-child(7)');
+                            if (jsonCell) {
+                                jsonCell.innerHTML = `
+            <span class="text-muted">
+                Notices: ${data.noticesCount},
+                Warnings: ${data.warningsCount},
+                Errors: ${data.errorsCount}
+            </span>
+        `;
+                            }
+                        } else {
+                            alert('Failed to refresh status.');
+                        }
+
+                        //do tukaaa
+                    } catch (err) {
+                        console.error(err);
+                        alert('Error fetching import status.');
+                    } finally {
+                        this.disabled = false;
+                        this.innerHTML = '🔄';
+                    }
+                });
+            });
+        });
+    </script>
 
 
 

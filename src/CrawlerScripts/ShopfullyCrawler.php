@@ -39,7 +39,6 @@ class ShopfullyCrawler
 
     public function crawl(array $brochure): void
     {
-        //dd($this->iprotoService->getImportStatus('132866'));
         $this->company = $brochure['company'];
         $locale = $brochure['locale'];
         $brochures = $brochure['numbers'];
@@ -67,18 +66,21 @@ class ShopfullyCrawler
         $this->log($locale, $brochures, $brochureImport, 'brochures');
     }
 
-    private function log($locale, $brochures, $storeImport, $type): void
+    private function log($locale, $brochures, $import, $type): void
     {
+        $import['id'] = explode('/', $import['@id']);
+        $import['id'] = end($import['id']);
         $log = new ShopfullyLog();
         $log->setCompanyName($this->company);
         $log->setIprotoId($this->company);
         $log->setLocale($locale);
         $log->setData($brochures);
         $log->setImportType($type);
-        $log->setStatus($storeImport['status']);
-        $log->setNoticesCount($storeImport['noticesCount'] ?? 0);
-        $log->setWarningsCount($storeImport['warningsCount'] ?? 0);
-        $log->setErrorsCount($storeImport['errorsCount'] ?? 0);
+        $log->setStatus($import['status']);
+        $log->setNoticesCount($import['noticesCount'] ?? 0);
+        $log->setWarningsCount($import['warningsCount'] ?? 0);
+        $log->setErrorsCount($import['errorsCount'] ?? 0);
+        $log->setImportId($import['id']);
         $log->setCreatedAt(new \DateTime());
 
         $this->em->persist($log);
