@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Form;
 
 use App\Service\IprotoService;
@@ -11,9 +12,9 @@ use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use App\Service\CountryTimezoneResolver;
+
 class ShopfullyForm extends AbstractType
 {
-
     private CountryTimezoneResolver $timezoneResolver;
     private IprotoService $iprotoService;
     public function __construct(IprotoService $iprotoService, CountryTimezoneResolver $timezoneResolver)

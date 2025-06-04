@@ -1,4 +1,5 @@
 <?php
+
 // src/Controller/CrawlerController.php
 
 namespace App\Controller;
@@ -12,9 +13,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
+
 #[Route('/crawler')]
 final class CrawlerController extends AbstractController
 {
@@ -96,7 +97,7 @@ final class CrawlerController extends AbstractController
     #[Route('/{id}', name: 'app_crawler_delete', methods: ['POST'])]
     public function delete(Request $request, Crawler $crawler, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$crawler->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $crawler->getId(), $request->getPayload()->getString('_token'))) {
             // Remove the associated cron job
             $this->removeCronJob($crawler);
 
@@ -233,5 +234,4 @@ final class CrawlerController extends AbstractController
             'downloadUrl' => $csvUrl,
         ]);
     }
-
 }

@@ -1,7 +1,9 @@
 <?php
+
 namespace App\Service;
 
-class ClickoutsMapperService {
+class ClickoutsMapperService
+{
     public function formatClickoutsForShopfully(array $data): array
     {
         $clickouts = [];
@@ -29,6 +31,4 @@ class ClickoutsMapperService {
 
         return $clickouts; // вече са с правилна структура за Python
     }
-
-
 }

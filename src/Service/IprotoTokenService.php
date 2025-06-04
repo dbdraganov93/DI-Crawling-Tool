@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Service;
+
 use App\Entity\IprotoToken;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpClient\HttpClient;
@@ -13,7 +14,8 @@ class IprotoTokenService
 
     public function __construct(
         private EntityManagerInterface $em
-    ) {}
+    ) {
+    }
 
     public function createToken(): void
     {
@@ -78,6 +80,4 @@ class IprotoTokenService
 
         return $createdAt->getTimestamp() + $expiresInSeconds <= time();
     }
-
-
 }

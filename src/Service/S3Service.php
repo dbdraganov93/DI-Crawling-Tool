@@ -1,10 +1,12 @@
 <?php
+
 namespace App\Service;
 
 use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
 
-class S3Service {
+class S3Service
+{
     private S3Client $s3Client;
     private string $bucket;
     private string $region;
@@ -35,7 +37,7 @@ class S3Service {
                 //'ACL' => 'public-read',
             ]);
 
-            return "https://{$this->bucket}.s3.{$this->region}.amazonaws.com/{$localPath}";
+            return "https://s3.{$this->region}.amazonaws.com/{$this->bucket}/{$localPath}";
         } catch (AwsException $e) {
             throw new \RuntimeException("Upload failed: " . $e->getMessage());
         }

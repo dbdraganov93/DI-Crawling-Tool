@@ -1,4 +1,5 @@
 <?php
+
 namespace App\CrawlerScripts;
 
 use App\Entity\ShopfullyLog;
@@ -10,6 +11,7 @@ use App\Service\ShopfullyService;
 use App\Service\CsvService;
 use App\Service\BrochureService;
 use App\Service\PdfLinkAnnotatorService;
+
 ini_set('memory_limit', '512M'); // or '1G' if needed
 
 class ShopfullyCrawler
@@ -56,14 +58,12 @@ class ShopfullyCrawler
         $csvService = new CsvService();
         $brochureCsv = $csvService->createCsvFromBrochure($brochureService);
         $storeCsv = $csvService->createCsvFromStores($storeService);
-dd($brochureCsv, $storeCsv);
+
         $storeImport = $this->iprotoService->importData($storeCsv);
         $brochureImport = $this->iprotoService->importData($brochureCsv);
 
         $this->log($locale, $brochures, $storeImport, 'stores');
         $this->log($locale, $brochures, $brochureImport, 'brochures');
-
-
     }
 
     private function log($locale, $brochures, $storeImport, $type): void

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Service;
 
 use Symfony\Component\Process\Process;
@@ -38,5 +39,4 @@ class PdfLinkAnnotatorService
         @unlink($clickoutsJsonPath);
         @unlink($tempOutput);
     }
-
 }

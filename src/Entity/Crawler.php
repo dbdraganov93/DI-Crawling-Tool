@@ -4,7 +4,9 @@ namespace App\Entity;
 
 use App\Repository\CrawlerRepository;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\User; // Make sure to import the User entity
+use App\Entity\User;
+
+// Make sure to import the User entity
 
 #[ORM\Entity(repositoryClass: CrawlerRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -172,7 +174,6 @@ class Crawler
     {
         $this->created = new \DateTimeImmutable();
         $this->updated = new \DateTimeImmutable(); // Set updated as well on initial creation
-
     }
 
     public function getUpdated(): ?\DateTimeImmutable

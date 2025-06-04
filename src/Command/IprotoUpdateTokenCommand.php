@@ -7,6 +7,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+
 // We need to set cron job at each 29 days with this command: php bin/console iproto:update-token
 #[AsCommand(
     name: 'iproto:update-token',

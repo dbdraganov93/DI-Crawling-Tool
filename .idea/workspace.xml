@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="848e6fc2-58ef-4c68-9708-c4d917c1830c" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/CrawlerScripts/ShopfullyCrawler.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/CrawlerScripts/ShopfullyCrawler.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Service/S3Service.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Service/S3Service.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Service/ShopfullyService.php" beforeDir="false" afterPath="$PROJECT_DIR$/src/Service/ShopfullyService.php" afterDir="false" />
-    </list>
+    <list default="true" id="848e6fc2-58ef-4c68-9708-c4d917c1830c" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -33,6 +28,10 @@
               <option name="branches">
                 <list>
                   <RecentBranch>
+                    <option name="branchName" value="WrongA" />
+                    <option name="lastUsedInstant" value="1749018674" />
+                  </RecentBranch>
+                  <RecentBranch>
                     <option name="branchName" value="ReadmeUpdateAws" />
                     <option name="lastUsedInstant" value="1748950889" />
                   </RecentBranch>
@@ -47,10 +46,6 @@
                   <RecentBranch>
                     <option name="branchName" value="RemoveMigrations" />
                     <option name="lastUsedInstant" value="1748948694" />
-                  </RecentBranch>
-                  <RecentBranch>
-                    <option name="branchName" value="ReadmeUpdate" />
-                    <option name="lastUsedInstant" value="1748865014" />
                   </RecentBranch>
                 </list>
               </option>
@@ -290,7 +285,7 @@
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "ReadmeUpdateAws",
+    "git-widget-placeholder": "WrongA",
     "last_opened_file_path": "/home/dragan/Desktop/Files",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
