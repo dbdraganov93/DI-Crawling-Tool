@@ -1,0 +1,30 @@
+# Symfony standard ignored directories
+/var/
+/vendor/
+/public/bundles/
+/var/cache/
+/var/log/
+/var/sessions/
+/migrations/*.php
+
+# Local environment
+.env.local
+.env.*.local
+.env.test
+.env.test.local
+
+# IDE / OS junk
+*.log
+*.lock
+*.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Git stuff (if you're not using Git in container)
+.git/
+.gitignore
+
+# Docker build leftovers (if any)
+Dockerfile~
+docker-compose.override.yml
