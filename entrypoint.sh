@@ -14,7 +14,7 @@ php bin/console make:migration --no-interaction
 php bin/console doctrine:migrations:migrate --no-interaction
 
 echo "📥 Running custom SQL script..."
-mysql -h db -u root -p1203 dicrawler < /sql/post_migration.sql || echo "⚠️ Failed to run SQL script."
+mysql -h db -u root -p1203 dicrawler < /sql/post_migration.sql
 
 # Run the original Apache CMD
 exec apache2-foreground

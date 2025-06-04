@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     zip \
     curl \
+    default-mysql-client \
 #    python3-pip \
     libicu-dev \
     libzip-dev \
@@ -47,9 +48,9 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-av
 
 # RUN pip install PyMuPDF
 
-RUN rm -rf /var/www/html/migrations/
+RUN rm -f /var/www/html/migrations/*.php
 
-COPY post_migration.sql sql/post_migration.sql
+COPY post_migration.sql /sql/post_migration.sql
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 

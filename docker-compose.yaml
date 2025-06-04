@@ -5,7 +5,10 @@ services:
     ports:
       - "8081:80"
     volumes:
-      - .:/var/www/html
+      - ./src:/var/www/html/src
+      - ./templates:/var/www/html/templates
+      - ./public:/var/www/html/public
+      - ./config:/var/www/html/config
     environment:
       APACHE_DOCUMENT_ROOT: /var/www/html/public
     depends_on:
