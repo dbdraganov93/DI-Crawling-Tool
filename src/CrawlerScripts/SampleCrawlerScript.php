@@ -10,7 +10,7 @@ use App\Service\FtpService;
 
 class SampleCrawlerScript implements CrawlerScriptInterface
 {
-   private ShopfullyService $shopfullyService;
+    private ShopfullyService $shopfullyService;
     private IprotoService $iprotoService;
     public function __construct(
         ShopfullyService $shopfullyService,
@@ -18,7 +18,7 @@ class SampleCrawlerScript implements CrawlerScriptInterface
     ) {
         $this->iprotoService = $iprotoService;
 
-       $this->shopfullyService = $shopfullyService;
+        $this->shopfullyService = $shopfullyService;
     }
 
     public function crawl(int $companyId): ?array

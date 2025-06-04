@@ -15,7 +15,8 @@ class IprotoService
         private HttpClientInterface $httpClient,
         private LoggerInterface $logger,
         private IprotoTokenService $tokenService,
-    ) {}
+    ) {
+    }
 
     public function getAllCompanies(string $owner, int $itemsPerPage = 1000)
     {
@@ -135,8 +136,5 @@ class IprotoService
 
     public function importStatus($importId): array
     {
-
     }
-
-
 }

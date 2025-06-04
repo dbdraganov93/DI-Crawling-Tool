@@ -1,10 +1,12 @@
 <?php
+
 namespace App\Service;
 
 use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
 
-class S3Service {
+class S3Service
+{
     private S3Client $s3Client;
     private string $bucket;
     private string $region;

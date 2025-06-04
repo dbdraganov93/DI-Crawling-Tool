@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Service;
+
 use App\Service\ClickoutsMapperService;
 use App\Service\PdfLinkAnnotatorService;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
@@ -13,15 +14,19 @@ class ShopfullyService
     private const SHOPFULLY_HOST = 'https://d1h08qwp2t1dnu.cloudfront.net/v1/';
     private const API_KEY = 'e1515941-38d4-4ecf-b5fb-3970adbefb1d';
     private HttpClientInterface $httpClient;
-    private ClickoutsMapperService  $clickoutsMapperService;
+    private ClickoutsMapperService $clickoutsMapperService;
 
     private PdfDownloaderService $pdfDownloaderService;
     private S3Service $s3Service;
     private PdfLinkAnnotatorService $pdfLinkAnnotatorService;
 
-    public function __construct(HttpClientInterface $httpClient, ClickoutsMapperService $clickoutsMapperService, PdfDownloaderService $pdfDownloaderService, PdfLinkAnnotatorService $pdfLinkAnnotatorService,
-                                S3Service $s3Service,)
-    {
+    public function __construct(
+        HttpClientInterface $httpClient,
+        ClickoutsMapperService $clickoutsMapperService,
+        PdfDownloaderService $pdfDownloaderService,
+        PdfLinkAnnotatorService $pdfLinkAnnotatorService,
+        S3Service $s3Service,
+    ) {
         $this->httpClient = $httpClient;
         $this->clickoutsMapperService = $clickoutsMapperService;
         $this->pdfDownloaderService = $pdfDownloaderService;
@@ -56,8 +61,11 @@ class ShopfullyService
         }
 
 
-        $this->pdfLinkAnnotatorService->annotate($response['brochureData']['data'][0]['Publication']['pdf_local'],
-            $response['brochureData']['data'][0]['Publication']['pdf_local'],$response['brochureClickouts']);
+        $this->pdfLinkAnnotatorService->annotate(
+            $response['brochureData']['data'][0]['Publication']['pdf_local'],
+            $response['brochureData']['data'][0]['Publication']['pdf_local'],
+            $response['brochureClickouts']
+        );
 
         $response['publicationData']['data'][0]['Publication']['pdf_url'] = $this->s3Service->upload($response['brochureData']['data'][0]['Publication']['pdf_local']);
 
@@ -104,7 +112,7 @@ class ShopfullyService
     public function fetchBrochureClickouts(string $brochureId, string $locale): array
     {
 
-        $url = self::SHOPFULLY_HOST.$locale.'/flyers/'.$brochureId.'/flyer_gibs.json';
+        $url = self::SHOPFULLY_HOST . $locale . '/flyers/' . $brochureId . '/flyer_gibs.json';
 
         $response = $this->httpClient->request('GET', $url, [
             'headers' => [
@@ -122,7 +130,7 @@ class ShopfullyService
 
     public function fetchBrochureData(string $brochureId, string $locale): array
     {
-        $url = self::SHOPFULLY_HOST. $locale .'/flyers/'. $brochureId .'.json';
+        $url = self::SHOPFULLY_HOST . $locale . '/flyers/' . $brochureId . '.json';
 
         $response = $this->httpClient->request('GET', $url, [
             'headers' => [
@@ -141,7 +149,7 @@ class ShopfullyService
 
     public function fetchPublicationData(int $brochureId, string $locale = 'it_it'): array
     {
-        $url = self::SHOPFULLY_HOST.$locale.'/publications/'.$brochureId.'.json?modifiers=pdf_url';
+        $url = self::SHOPFULLY_HOST . $locale . '/publications/' . $brochureId . '.json?modifiers=pdf_url';
 
 
         $response = $this->httpClient->request('GET', $url, [

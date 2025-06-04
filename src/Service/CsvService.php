@@ -141,7 +141,7 @@ class CsvService
                 $brochure['validTo'] ?? '',
                 $brochure['visibleFrom'] ?? '',
                 $brochure['storeNumber'] ?? '',
-                $brochure['distribution'] ??'', // distribution
+                $brochure['distribution'] ?? '', // distribution
                 $brochure['variety'] ?? '',
                 $brochure['national'] ?? '', // national
                 $brochure['gender'] ?? '',
@@ -184,5 +184,4 @@ class CsvService
             'base64' => $base64Csv,
         ];
     }
-
 }

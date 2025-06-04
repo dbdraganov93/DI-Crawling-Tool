@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-
 class BrochureService
 {
     private const DEFAULT_VARIETY = 'leaflet';
@@ -38,7 +37,6 @@ class BrochureService
         $this->companyId = $companyId;
         $this->timeZone = $timeZone;
         $this->setIntegration($this->companyId);
-
     }
 
     public function getTimezone()
@@ -67,7 +65,7 @@ class BrochureService
 
     public function setIntegration(string $integration): self
     {
-        $this->integration = 'https://iproto.offerista.com/api/integrations/'.$integration;
+        $this->integration = 'https://iproto.offerista.com/api/integrations/' . $integration;
         return $this;
     }
 
