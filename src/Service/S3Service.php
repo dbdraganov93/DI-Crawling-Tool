@@ -35,7 +35,7 @@ class S3Service {
                 //'ACL' => 'public-read',
             ]);
 
-            return "https://{$this->bucket}.s3.{$this->region}.amazonaws.com/{$localPath}";
+            return "https://s3.{$this->region}.amazonaws.com/{$this->bucket}/{$localPath}";
         } catch (AwsException $e) {
             throw new \RuntimeException("Upload failed: " . $e->getMessage());
         }
