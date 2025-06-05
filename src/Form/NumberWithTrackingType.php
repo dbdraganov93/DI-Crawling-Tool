@@ -6,6 +6,7 @@ namespace App\Form;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 
 class NumberWithTrackingType extends AbstractType
 {
@@ -20,6 +21,18 @@ class NumberWithTrackingType extends AbstractType
                 'label' => 'Tracking Pixel',
                 'required' => false,
                 'attr' => ['class' => 'form-control'],
+            ])
+            ->add('validity_start', DateTimeType::class, [
+                'widget' => 'single_text',
+                'required' => false,
+            ])
+            ->add('validity_end', DateTimeType::class, [
+                'widget' => 'single_text',
+                'required' => false,
+            ])
+            ->add('visibility_start', DateTimeType::class, [
+                'widget' => 'single_text',
+                'required' => false,
             ]);
     }
 }

@@ -39,6 +39,7 @@ class ShopfullyCrawler
 
     public function crawl(array $brochure): void
     {
+        dd($brochure);
         $this->company = $brochure['company'];
         $locale = $brochure['locale'];
         $brochures = $brochure['numbers'];

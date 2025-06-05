@@ -136,8 +136,8 @@ class IprotoService
 
     public function getImportStatus($importId): array
     {
-        $response = $this->sendRequest('GET', '/api/imports/' . $importId);
+      //  $response = $this->sendRequest('GET', '/api/imports/' . $importId);
 
-        return $response['body'];
+      //  return $response['body'];
     }
 }

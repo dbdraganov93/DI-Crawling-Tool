@@ -217,6 +217,15 @@
                                     <div class="col">
                                         {{ form_widget(form.numbers.vars.prototype.tracking_pixel, {'attr': {'class': 'form-control', 'placeholder': 'Tracking Pixel'}}) }}
                                     </div>
+                                    <div class="col">Validity Start
+                                        {{ form_widget(form.numbers.vars.prototype.validity_start, {'attr': {'class': 'form-control', 'placeholder': 'Validity Start'}}) }}
+                                    </div>
+                                    <div class="col">Validity End
+                                        {{ form_widget(form.numbers.vars.prototype.validity_end, {'attr': {'class': 'form-control', 'placeholder': 'Validity End'}}) }}
+                                    </div>
+                                    <div class="col">Visibility Start
+                                        {{ form_widget(form.numbers.vars.prototype.visibility_start, {'attr': {'class': 'form-control', 'placeholder': 'Visibility Start'}}) }}
+                                    </div>
                                 </div>
                             </div>
                         {% endset %}
@@ -231,9 +240,19 @@
                                         <div class="col">
                                             {{ form_widget(entry.tracking_pixel, {'attr': {'class': 'form-control'}}) }}
                                         </div>
+                                        <div class="col">
+                                            {{ form_widget(entry.validity_start, {'attr': {'class': 'form-control'}}) }}
+                                        </div>
+                                        <div class="col">
+                                            {{ form_widget(entry.validity_end, {'attr': {'class': 'form-control'}}) }}
+                                        </div>
+                                        <div class="col">
+                                            {{ form_widget(entry.visibility_start, {'attr': {'class': 'form-control'}}) }}
+                                        </div>
                                     </div>
                                 </div>
                             {% endfor %}
+
                         </div>
                         <div class="mb-2">
                             <label for="bulkNumbers" class="form-label">Enter brochure numbers separated by commas</label>
@@ -436,6 +455,7 @@
         }
 
         function addNumberField() {
+
             const wrapper = document.getElementById('numbers-wrapper');
             const prototype = wrapper.dataset.prototype;
             const indexStart = wrapper.querySelectorAll('.number-entry[data-real="true"]').length;
@@ -465,12 +485,52 @@
                 const numberInput = div.querySelector('input[name$="[number]"]');
                 if (numberInput) {
                     numberInput.value = number;
+                    fetchAndSetDates(numberInput, div); // <-- добави този ред
                 }
+
 
                 wrapper.appendChild(div);
             });
 
             if (bulkInput) bulkInput.value = '';
+        }
+        function formatDateForDatetimeLocal(dateString) {
+            // Пример: "2025-06-18" -> "2025-06-18T00:00"
+            return `${dateString}T00:00`;
+        }
+
+        async function fetchAndSetDates(numberInput, block) {
+            const number = numberInput.value.trim();
+            const localeInput = document.querySelector('[name$="[locale]"]');
+            const locale = localeInput?.value?.trim();
+
+            if (!number || !locale) return;
+
+            try {
+                const url = `/api/shopfully/brochure?brochure_number=${encodeURIComponent(number)}&locale=${encodeURIComponent(locale)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (Array.isArray(data) && data.length > 0) {
+                    const startDate = data[0].start_date;
+                    const endDate = data[0].end_date;
+                    const startInput = block.querySelector('input[name$="[validity_start]"]');
+                    const endInput = block.querySelector('input[name$="[validity_end]"]');
+                    const visibilityStartInput = block.querySelector('input[name$="[visibility_start]"]');
+
+                    if (startInput && startDate) startInput.value = formatDateForDatetimeLocal(startDate);
+                    if (endInput && endDate) endInput.value = formatDateForDatetimeLocal(endDate);
+                    if (visibilityStartInput && startDate) visibilityStartInput.value = formatDateForDatetimeLocal(startDate);
+
+
+                    if (startInput && startDate) startInput.value = formatDateForDatetimeLocal(startDate);
+                    if (endInput && endDate) endInput.value = formatDateForDatetimeLocal(endDate);
+
+
+                }
+            } catch (e) {
+                console.error('Failed to fetch brochure dates:', e);
+            }
         }
 
 

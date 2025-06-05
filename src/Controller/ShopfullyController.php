@@ -13,12 +13,20 @@ use App\Form\SimpleFormType;
 use App\CrawlerScripts\ShopfullyCrawler;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\ShopfullyLogRepository;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use App\Service\ShopfullyService;
 
 class ShopfullyController extends AbstractController
 {
+    private ShopfullyService $shopfullyService;
+
     private IprotoService $iprotoService;
-    public function __construct(ShopfullyCrawler $crawler, IprotoService $iprotoService)
+    public function __construct(ShopfullyCrawler $crawler, IprotoService $iprotoService, ShopfullyService $shopfullyService,
+    )
     {
+        $this->shopfullyService = $shopfullyService;
+
         $this->crawler = $crawler;
         $this->iprotoService = $iprotoService;
     }
@@ -43,4 +51,39 @@ class ShopfullyController extends AbstractController
             'logs' => $logs,
         ]);
     }
+
+    #[Route('/api/shopfully/brochure', name: 'api_shopfully_brochure_data', methods: ['GET'])]
+    public function getBrochureData(Request $request): JsonResponse
+    {
+        $brochureNumber = $request->query->get('brochure_number');
+        $locale = $request->query->get('locale');
+
+        if (!$brochureNumber || !$locale) {
+            throw new BadRequestHttpException('Missing brochure_number or locale');
+        }
+
+        try {
+            $data = $this->shopfullyService->fetchBrochureData($brochureNumber, $locale);
+
+            $flyers = $data['data'] ?? [];
+            $response = [];
+
+            foreach ($flyers as $entry) {
+                if (isset($entry['Flyer'])) {
+                    $response[] = [
+                        'start_date' => $entry['Flyer']['start_date'] ?? null,
+                        'end_date' => $entry['Flyer']['end_date'] ?? null,
+                    ];
+                }
+            }
+
+            return new JsonResponse($response);
+
+        } catch (\Throwable $e) {
+            return new JsonResponse([
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 }
