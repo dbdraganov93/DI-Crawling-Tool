@@ -26,7 +26,7 @@ class IprotoTokenService
                 'json' => [
                     'client_id' => $this->clientId,
                     'client_secret' => $this->clientSecret,
-                    'audience' => 'iproto-api',
+                    'audience' => 'backend',
                     'grant_type' => 'client_credentials',
                 ],
             ]);
@@ -43,7 +43,6 @@ class IprotoTokenService
                 $token = new IprotoToken();
                 $this->em->persist($token);
             }
-            $expiresIn = $data['expires_in'] ?? null;
             $token->setToken($data['access_token']);
             $token->setTokenType($data['token_type']);
             $token->setScope($data['scope']);
