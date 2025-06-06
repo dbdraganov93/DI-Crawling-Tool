@@ -26,7 +26,7 @@ class IprotoTokenService
                 'json' => [
                     'client_id' => $this->clientId,
                     'client_secret' => $this->clientSecret,
-                    'audience' => 'iproto-api',
+                    'audience' => 'backend',
                     'grant_type' => 'client_credentials',
                 ],
             ]);
