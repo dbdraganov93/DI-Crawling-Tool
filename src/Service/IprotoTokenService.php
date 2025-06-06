@@ -8,10 +8,6 @@ use Symfony\Component\HttpClient\HttpClient;
 
 class IprotoTokenService
 {
-    private string $host = 'https://og-prod.eu.auth0.com/oauth/token';
-    private string $clientId = 'tBGVOOfPO15oQ1b3fHyCL97fuE98koHm';
-    private string $clientSecret = 'gYtD81raVXBO9QgC95gfI3ZeAimloZt5HesjNa4r_JBcXixf1maZ4utONCr6ZPBD';
-
     public function __construct(
         private EntityManagerInterface $em
     ) {
@@ -22,10 +18,10 @@ class IprotoTokenService
         $client = HttpClient::create();
 
         try {
-            $response = $client->request('POST', $this->host, [
+            $response = $client->request('POST', $_ENV['IPROTO_AUTH_HOST'], [
                 'json' => [
-                    'client_id' => $this->clientId,
-                    'client_secret' => $this->clientSecret,
+                    'client_id' => $_ENV['IPROTO_CLIENT_ID'],
+                    'client_secret' => $_ENV['IPROTO_CLIENT_SECRET'],
                     'audience' => 'backend',
                     'grant_type' => 'client_credentials',
                 ],
