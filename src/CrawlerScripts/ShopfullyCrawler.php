@@ -4,13 +4,11 @@ namespace App\CrawlerScripts;
 
 use App\Entity\ShopfullyLog;
 use App\Service\IprotoService;
-use App\Service\S3Service;
 use App\Service\StoreService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\ShopfullyService;
 use App\Service\CsvService;
 use App\Service\BrochureService;
-use App\Service\PdfLinkAnnotatorService;
 
 ini_set('memory_limit', '512M'); // or '1G' if needed
 
@@ -19,27 +17,20 @@ class ShopfullyCrawler
     private EntityManagerInterface $em;
     private ShopfullyService $shopfullyService;
     private IprotoService $iprotoService;
-    private S3Service $s3Service;
     private string $company;
-    private PdfLinkAnnotatorService $pdfLinkAnnotatorService;
 
     public function __construct(
         EntityManagerInterface $em,
         ShopfullyService $shopfullyService,
-        IprotoService $iprotoService,
-        S3Service $s3Service,
-        PdfLinkAnnotatorService $pdfLinkAnnotatorService
+        IprotoService $iprotoService
     ) {
         $this->em = $em;
         $this->shopfullyService = $shopfullyService;
         $this->iprotoService = $iprotoService;
-        $this->s3Service = $s3Service;
-        $this->pdfLinkAnnotatorService = $pdfLinkAnnotatorService;
     }
 
     public function crawl(array $brochure): void
     {
-        dd($brochure);
         $this->company = $brochure['company'];
         $locale = $brochure['locale'];
         $brochures = $brochure['numbers'];
@@ -59,7 +50,6 @@ class ShopfullyCrawler
         $csvService = new CsvService();
         $brochureCsv = $csvService->createCsvFromBrochure($brochureService);
         $storeCsv = $csvService->createCsvFromStores($storeService);
-
         $storeImport = $this->iprotoService->importData($storeCsv);
         $brochureImport = $this->iprotoService->importData($brochureCsv);
 
