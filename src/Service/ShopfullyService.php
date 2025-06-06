@@ -60,15 +60,14 @@ class ShopfullyService
             echo "Download failed: " . $e->getMessage() . "\n";
         }
 
-if (array_key_exists('Publication', $response['brochureData']['data'][0])) {
-    $this->pdfLinkAnnotatorService->annotate(
-        $response['brochureData']['data'][0]['Publication']['pdf_local'],
-        $response['brochureData']['data'][0]['Publication']['pdf_local'],
-        $response['brochureClickouts']
-    );
-    $response['publicationData']['data'][0]['Publication']['pdf_url'] = $this->s3Service->upload($response['brochureData']['data'][0]['Publication']['pdf_local']);
-
-}
+        if (array_key_exists('Publication', $response['brochureData']['data'][0])) {
+            $this->pdfLinkAnnotatorService->annotate(
+                $response['brochureData']['data'][0]['Publication']['pdf_local'],
+                $response['brochureData']['data'][0]['Publication']['pdf_local'],
+                $response['brochureClickouts']
+            );
+            $response['publicationData']['data'][0]['Publication']['pdf_url'] = $this->s3Service->upload($response['brochureData']['data'][0]['Publication']['pdf_local']);
+        }
 
 
 

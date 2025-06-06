@@ -22,8 +22,7 @@ class ShopfullyController extends AbstractController
     private ShopfullyService $shopfullyService;
 
     private IprotoService $iprotoService;
-    public function __construct(ShopfullyCrawler $crawler, IprotoService $iprotoService, ShopfullyService $shopfullyService,
-    )
+    public function __construct(ShopfullyCrawler $crawler, IprotoService $iprotoService, ShopfullyService $shopfullyService,)
     {
         $this->shopfullyService = $shopfullyService;
 
@@ -78,12 +77,10 @@ class ShopfullyController extends AbstractController
             }
 
             return new JsonResponse($response);
-
         } catch (\Throwable $e) {
             return new JsonResponse([
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
-
 }
