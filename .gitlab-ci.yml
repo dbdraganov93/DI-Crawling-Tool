@@ -5,11 +5,15 @@ phpcs:
   stage: lint
   image: php:8.2
   before_script:
-    # Install necessary tools and dependencies
-    - apt-get update && apt-get install -y git unzip libzip-dev
-    - docker-php-ext-install zip
+    # Update & install system dependencies
+    - apt-get update && apt-get install -y git unzip libzip-dev libpng-dev libjpeg-dev libfreetype6-dev
+    # Install PHP extensions
+    - docker-php-ext-install zip ftp gd
+    # Download and install Composer
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-    - composer install --prefer-dist --no-scripts --no-progress --no-suggest
+    # Install PHP dependencies
+    - composer install --prefer-dist --no-scripts --no-progress
+
   script:
     - vendor/bin/phpcs --standard=PSR12 --report=diff src/
   artifacts:
