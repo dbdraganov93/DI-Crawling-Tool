@@ -45,6 +45,4 @@ class ShopfullyLogController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
         }
     }
-
-
 }
