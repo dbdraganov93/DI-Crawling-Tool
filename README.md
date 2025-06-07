@@ -188,6 +188,9 @@ This guide explains how to build and run the project using Docker on **Linux**, 
 
 ```bash
 make up       # for production (minimal)
+```
+
+```bash
 make up-local # for local tools like Portainer/Grafana
 ```
 
