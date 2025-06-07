@@ -27,9 +27,31 @@ services:
         php bin/console make:migration --no-interaction &&
         php bin/console doctrine:migrations:migrate --no-interaction &&
         php bin/console doctrine:fixtures:load --no-interaction &&
-        service cron start &&
-        symfony serve --no-tls --port=8000 --allow-http --allow-all-ip
-      '
+        service cron start &
+        symfony serve --no-tls --port=8000 --allow-http --allow-all-ip &
+        sleep 3
+        clear
+        echo ""
+        echo "🎉 diCrawler stack is fully running!"
+        echo "--------------------------------------------------"
+        echo "🌐 App:        http://localhost:8001"
+        echo "   👤 Login:   admin@admin.com"
+        echo "   🔒 Pass:    admin"
+        echo ""
+        echo "📊 Grafana:    http://localhost:3001"
+        echo "   👤 Login:   admin"
+        echo "   🔒 Pass:    admin"
+        echo ""
+        echo "🛠️  Portainer:   http://localhost:9000"
+        echo "   👤 Login:   admin"
+        echo "   🔒 Pass:    admin"
+        echo ""
+        echo "💾 MySQL:      localhost:3307"
+        echo "   👤 User:    root"
+        echo "   🔒 Pass:    1203"
+        echo "--------------------------------------------------"
+        tail -f /dev/null
+      '  
 
   mysql:
     image: mysql:8.0
