@@ -18,10 +18,18 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     default-mysql-client \
     netcat-openbsd \
+    cron \
+    python3 \
+    python3-pip \
     && docker-php-ext-install pdo pdo_mysql intl zip ftp gd
-RUN apt-get update && apt-get install -y cron
+
+# Install PyMuPDF
+RUN pip3 install PyMuPDF
+
+# Copy your cron job
 COPY docker/cron/iproto-cron /etc/cron.d/iproto-cron
 RUN chmod 0644 /etc/cron.d/iproto-cron && crontab /etc/cron.d/iproto-cron
+
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
