@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo pdo_mysql intl zip ftp gd
 
 # Install PyMuPDF
-RUN pip3 install PyMuPDF
+RUN pip3 install --break-system-packages PyMuPDF
 
 # Copy your cron job
 COPY docker/cron/iproto-cron /etc/cron.d/iproto-cron
