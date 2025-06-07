@@ -136,6 +136,7 @@ mysql -u diUser -p diCrawlers
 
 ## Step 6: Setup AWS
 
+Execute this command in your loocal terminal (IMPORTANT: SET THE CREDENTIALS IN YOUR LOCAL TERMINAL NOT IN THE CONTAINER)
 ```bash
 sudo apt update
 sudo apt install awscli
@@ -179,14 +180,15 @@ This guide explains how to build and run the project using Docker on **Linux**, 
 
 - [Docker](https://www.docker.com/get-started)
 - [Docker Compose](https://docs.docker.com/compose/install/)
-- Ports `8001`, `3307`, and `3000` (Grafana) must be free.
+- Ports `8001`, `3307`, and `3000` must be free.
 
 ---
 
 ## 🚀 Starting the App
 
 ```bash
-docker-compose up --build
+make up       # for production (minimal)
+make up-local # for local tools like Portainer/Grafana
 ```
 
 This command will:
@@ -231,7 +233,7 @@ docker/cron/iproto-cron         # optional cron job
 
 ---
 
-## 🐘 Database Admin User (pre-seeded via fixtures)
+## 🐘 App Admin User (pre-seeded via fixtures)
 
 - **Email:** `admin@admin.com`
 - **Password:** `admin`
