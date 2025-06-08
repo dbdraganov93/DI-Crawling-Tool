@@ -674,8 +674,49 @@
                 width: '100%'
             });
 
-            $ownerSelect.on('change', function () {
+            $ownerSelect.on('change', async function () {
+                const ownerId = $(this).val();
+
                 this.setCustomValidity('');
+
+                $companySelect.prop('disabled', true).empty().append(new Option('Loading companies...', '', false, false));
+
+                try {
+                    const response = await fetch(`/company/api/companies?owner=${encodeURIComponent(ownerId)}`);
+                    const companies = await response.json();
+
+                    $companySelect.empty().append(new Option('Select a company', '', true, false));
+                    companies.forEach(company => {
+                        const option = new Option(company.label, company.id, false, false);
+                        $companySelect.append(option);
+                    });
+
+                    $companySelect.prop('disabled', false).trigger('change');
+                } catch (error) {
+                    console.error('Error loading companies:', error);
+                    $companySelect.empty().append(new Option('Error loading companies', '', false, false));
+                    $companySelect.prop('disabled', false);
+                }
+
+                const timezoneInput = document.querySelector('[name$="[timezone]"]');
+                try {
+                    const response = await fetch(`/api/timezone?owner=${encodeURIComponent(ownerId)}`);
+                    const data = await response.json();
+                    timezoneInput.value = data.timezone || '';
+                } catch (e) {
+                    console.error('Failed to fetch timezone:', e);
+                }
+
+                const localeInput = document.querySelector('[name$="[locale]"]');
+                try {
+                    const response = await fetch(`/api/locale?ownerId=${encodeURIComponent(ownerId)}`);
+                    const data = await response.json();
+                    if (data.locale && localeInput) {
+                        localeInput.value = data.locale;
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch locale:', e);
+                }
             });
             $companySelect.on('change', function () {
                 this.setCustomValidity('');
