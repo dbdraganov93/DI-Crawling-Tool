@@ -103,6 +103,27 @@
                 max-width: 150%;
             }
         }
+        .validity-start-wrapper {
+            border-left: 5px solid #28a745; /* зелено */
+            background-color: #f0fff5;
+            padding-left: 8px;
+            border-radius: 4px;
+        }
+
+        .validity-end-wrapper {
+            border-left: 5px solid #dc3545; /* червено */
+            background-color: #fff5f5;
+            padding-left: 8px;
+            border-radius: 4px;
+        }
+
+        .visibility-start-wrapper {
+            border-left: 5px solid #6f42c1; /* лилаво */
+            background-color: #f9f5ff;
+            padding-left: 8px;
+            border-radius: 4px;
+        }
+
     </style>
 
 {% endblock %}
@@ -217,13 +238,16 @@
                                     <div class="col">
                                         {{ form_widget(form.numbers.vars.prototype.tracking_pixel, {'attr': {'class': 'form-control', 'placeholder': 'Tracking Pixel'}}) }}
                                     </div>
-                                    <div class="col">Validity Start
+                                    <div class="col validity-start-wrapper">
+                                        <label><i class="bi bi-calendar-check"></i> Validity Start</label>
                                         {{ form_widget(form.numbers.vars.prototype.validity_start, {'attr': {'class': 'form-control', 'placeholder': 'Validity Start'}}) }}
                                     </div>
-                                    <div class="col">Validity End
+                                    <div class="col validity-end-wrapper">
+                                        <label><i class="bi bi-calendar-x"></i> Validity End</label>
                                         {{ form_widget(form.numbers.vars.prototype.validity_end, {'attr': {'class': 'form-control', 'placeholder': 'Validity End'}}) }}
                                     </div>
-                                    <div class="col">Visibility Start
+                                    <div class="col visibility-start-wrapper">
+                                        <label><i class="bi bi-eye"></i> Visibility Start</label>
                                         {{ form_widget(form.numbers.vars.prototype.visibility_start, {'attr': {'class': 'form-control', 'placeholder': 'Visibility Start'}}) }}
                                     </div>
                                 </div>
