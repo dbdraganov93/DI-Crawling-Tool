@@ -29,19 +29,12 @@ class BrochureService
     private string $layout = '';
     private string $trackingPixels = '';
     private int $companyId;
-    private string $timeZone;
     private string $storeNumber = '';
 
-    public function __construct(int $companyId, string $timeZone)
+    public function __construct(int $companyId)
     {
         $this->companyId = $companyId;
-        $this->timeZone = $timeZone;
         $this->setIntegration($this->companyId);
-    }
-
-    public function getTimezone()
-    {
-        return new \DateTimeZone($this->timeZone);
     }
 
     public function getCompanyId(): int
@@ -96,19 +89,19 @@ class BrochureService
     public function setValidFrom(string $validFrom): self
     {
 
-        $this->validFrom = (new \DateTimeImmutable($validFrom, $this->getTimezone()))->format('Y-m-d\TH:i:s e');
+        $this->validFrom = $validFrom;
         return $this;
     }
 
     public function setValidTo(string $validTo): self
     {
-        $this->validTo = (new \DateTimeImmutable($validTo, $this->getTimezone()))->format('Y-m-d\TH:i:s e');
+        $this->validTo = $validTo;
         return $this;
     }
 
     public function setVisibleFrom(string $visibleFrom): self
     {
-        $this->visibleFrom = (new \DateTimeImmutable($visibleFrom, $this->getTimezone()))->format('Y-m-d\TH:i:s e');
+        $this->visibleFrom = $visibleFrom;
         return $this;
     }
 

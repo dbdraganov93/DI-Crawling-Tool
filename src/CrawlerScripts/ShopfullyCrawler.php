@@ -35,9 +35,8 @@ class ShopfullyCrawler
         $this->company = $brochure['company'];
         $locale = $brochure['locale'];
         $brochures = $brochure['numbers'];
-        $timeZone = $brochure['timezone'];
 
-        $brochureService = new BrochureService($this->company, $timeZone);
+        $brochureService = new BrochureService($this->company);
         $storeService = new StoreService($this->company);
 
         foreach ($brochures as $brochure) {
@@ -51,7 +50,7 @@ class ShopfullyCrawler
         $csvService = new CsvService();
         $brochureCsv = $csvService->createCsvFromBrochure($brochureService);
         $storeCsv = $csvService->createCsvFromStores($storeService);
-        dd($brochureCsv, $storeCsv);
+         //dd($brochureCsv, $storeCsv);
         $storeImport = $this->iprotoService->importData($storeCsv);
         $brochureImport = $this->iprotoService->importData($brochureCsv);
 
