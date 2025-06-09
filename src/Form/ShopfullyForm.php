@@ -40,7 +40,7 @@ class ShopfullyForm extends AbstractType
                 'required' => true,
                 'attr' => ['class' => 'form-control'],
             ])
-            ->add('locale', TextType::class, [
+            ->add('locale', HiddenType::class, [
                 'required' => true,
             ])
             ->add('prefix', TextType::class, [
