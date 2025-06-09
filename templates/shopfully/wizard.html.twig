@@ -103,6 +103,27 @@
                 max-width: 150%;
             }
         }
+        .validity-start-wrapper {
+            border-left: 5px solid #28a745; /* зелено */
+            background-color: #f0fff5;
+            padding-left: 8px;
+            border-radius: 4px;
+        }
+
+        .validity-end-wrapper {
+            border-left: 5px solid #dc3545; /* червено */
+            background-color: #fff5f5;
+            padding-left: 8px;
+            border-radius: 4px;
+        }
+
+        .visibility-start-wrapper {
+            border-left: 5px solid #6f42c1; /* лилаво */
+            background-color: #f9f5ff;
+            padding-left: 8px;
+            border-radius: 4px;
+        }
+
     </style>
 
 {% endblock %}
@@ -190,7 +211,6 @@
                     <h4>Step 3: Locale and Brochures</h4>
 
                     <div class="mb-3">
-                        {{ form_label(form.locale) }}
                         {{ form_widget(form.locale, {'attr': {'class': 'form-control'}}) }}
                         {{ form_errors(form.locale) }}
                     </div>
@@ -217,13 +237,16 @@
                                     <div class="col">
                                         {{ form_widget(form.numbers.vars.prototype.tracking_pixel, {'attr': {'class': 'form-control', 'placeholder': 'Tracking Pixel'}}) }}
                                     </div>
-                                    <div class="col">Validity Start
+                                    <div class="col validity-start-wrapper">
+                                        <label><i class="bi bi-calendar-check"></i> Validity Start</label>
                                         {{ form_widget(form.numbers.vars.prototype.validity_start, {'attr': {'class': 'form-control', 'placeholder': 'Validity Start'}}) }}
                                     </div>
-                                    <div class="col">Validity End
+                                    <div class="col validity-end-wrapper">
+                                        <label><i class="bi bi-calendar-x"></i> Validity End</label>
                                         {{ form_widget(form.numbers.vars.prototype.validity_end, {'attr': {'class': 'form-control', 'placeholder': 'Validity End'}}) }}
                                     </div>
-                                    <div class="col">Visibility Start
+                                    <div class="col visibility-start-wrapper">
+                                        <label><i class="bi bi-eye"></i> Visibility Start</label>
                                         {{ form_widget(form.numbers.vars.prototype.visibility_start, {'attr': {'class': 'form-control', 'placeholder': 'Visibility Start'}}) }}
                                     </div>
                                 </div>
@@ -650,8 +673,49 @@
                 width: '100%'
             });
 
-            $ownerSelect.on('change', function () {
+            $ownerSelect.on('change', async function () {
+                const ownerId = $(this).val();
+
                 this.setCustomValidity('');
+
+                $companySelect.prop('disabled', true).empty().append(new Option('Loading companies...', '', false, false));
+
+                try {
+                    const response = await fetch(`/company/api/companies?owner=${encodeURIComponent(ownerId)}`);
+                    const companies = await response.json();
+
+                    $companySelect.empty().append(new Option('Select a company', '', true, false));
+                    companies.forEach(company => {
+                        const option = new Option(company.label, company.id, false, false);
+                        $companySelect.append(option);
+                    });
+
+                    $companySelect.prop('disabled', false).trigger('change');
+                } catch (error) {
+                    console.error('Error loading companies:', error);
+                    $companySelect.empty().append(new Option('Error loading companies', '', false, false));
+                    $companySelect.prop('disabled', false);
+                }
+
+                const timezoneInput = document.querySelector('[name$="[timezone]"]');
+                try {
+                    const response = await fetch(`/api/timezone?owner=${encodeURIComponent(ownerId)}`);
+                    const data = await response.json();
+                    timezoneInput.value = data.timezone || '';
+                } catch (e) {
+                    console.error('Failed to fetch timezone:', e);
+                }
+
+                const localeInput = document.querySelector('[name$="[locale]"]');
+                try {
+                    const response = await fetch(`/api/locale?ownerId=${encodeURIComponent(ownerId)}`);
+                    const data = await response.json();
+                    if (data.locale && localeInput) {
+                        localeInput.value = data.locale;
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch locale:', e);
+                }
             });
             $companySelect.on('change', function () {
                 this.setCustomValidity('');

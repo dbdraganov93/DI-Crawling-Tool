@@ -5,6 +5,7 @@ namespace App\Controller;
 
 use App\Form\ShopfullyForm;
 use App\Service\IprotoService;
+use App\Service\LocaleService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,14 +21,14 @@ use App\Service\ShopfullyService;
 class ShopfullyController extends AbstractController
 {
     private ShopfullyService $shopfullyService;
-
+    private LocaleService $localeService;
     private IprotoService $iprotoService;
-    public function __construct(ShopfullyCrawler $crawler, IprotoService $iprotoService, ShopfullyService $shopfullyService,)
+    public function __construct(ShopfullyCrawler $crawler, IprotoService $iprotoService, ShopfullyService $shopfullyService, LocaleService $localeService)
     {
         $this->shopfullyService = $shopfullyService;
-
         $this->crawler = $crawler;
         $this->iprotoService = $iprotoService;
+        $this->localeService = $localeService;
     }
 
     #[Route('/shopfully-wizard', name: 'app_shopfully_wizard')]
@@ -83,4 +84,25 @@ class ShopfullyController extends AbstractController
             ], 500);
         }
     }
+
+    #[Route('/api/locale', name: 'api_shopfully_locale_by_owner', methods: ['GET'])]
+    public function getLocaleByOwner(Request $request): JsonResponse
+    {
+        $ownerId = (int) $request->query->get('ownerId');
+
+        if (!$ownerId) {
+            return new JsonResponse(['error' => 'Missing ownerId'], 400);
+        }
+
+        $locales = LocaleService::LOCALE;
+
+        $locale = $locales[$ownerId] ?? null;
+
+        if (!$locale) {
+            return new JsonResponse(['error' => 'Locale not found'], 404);
+        }
+
+        return new JsonResponse(['locale' => $locale]);
+    }
+
 }

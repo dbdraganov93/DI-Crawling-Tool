@@ -31,6 +31,7 @@ class ShopfullyCrawler
 
     public function crawl(array $brochure): void
     {
+
         $this->company = $brochure['company'];
         $locale = $brochure['locale'];
         $brochures = $brochure['numbers'];
@@ -50,6 +51,7 @@ class ShopfullyCrawler
         $csvService = new CsvService();
         $brochureCsv = $csvService->createCsvFromBrochure($brochureService);
         $storeCsv = $csvService->createCsvFromStores($storeService);
+        dd($brochureCsv, $storeCsv);
         $storeImport = $this->iprotoService->importData($storeCsv);
         $brochureImport = $this->iprotoService->importData($brochureCsv);
 
