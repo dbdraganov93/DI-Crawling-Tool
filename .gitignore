@@ -21,3 +21,6 @@
 /.phpcs-cache
 /phpcs.xml
 ###< squizlabs/php_codesniffer ###
+/vendor/
+/node_modules/
+/docker/mysql/db_data/

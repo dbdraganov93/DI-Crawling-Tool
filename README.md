@@ -136,6 +136,7 @@ mysql -u diUser -p diCrawlers
 
 ## Step 6: Setup AWS
 
+Execute this command in your loocal terminal (IMPORTANT: SET THE CREDENTIALS IN YOUR LOCAL TERMINAL NOT IN THE CONTAINER)
 ```bash
 sudo apt update
 sudo apt install awscli
@@ -168,3 +169,84 @@ aws sts get-caller-identity --profile di-crawler
 - Check MySQL status: `sudo systemctl status mysql`
 - Restart MySQL: `sudo systemctl restart mysql`
 - Stop MySQL: `sudo systemctl stop mysql`
+
+# 🐳 How to Run diCrawler with Docker
+
+This guide explains how to build and run the project using Docker on **Linux**, **macOS**, or **Windows**.
+
+---
+
+## 📦 Prerequisites
+
+- [Docker](https://www.docker.com/get-started)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+- Ports `8001`, `3307`, and `3000` must be free.
+
+---
+
+## 🚀 Starting the App
+
+```bash
+make up       # for production (minimal)
+```
+
+```bash
+make up-local # for local tools like Portainer/Grafana
+```
+
+This command will:
+
+- Build the PHP container from your custom `Dockerfile`
+- Wait for MySQL to be ready
+- Drop, recreate and migrate the database
+- Seed fixtures (e.g. admin user)
+- Start Symfony web server at [http://127.0.0.1:8001](http://127.0.0.1:8001)
+- Start Grafana at [http://127.0.0.1:3001](http://127.0.0.1:3001) (default login: `admin` / `admin`)
+
+---
+
+## 🛑 Stop and Clean Up
+
+```bash
+docker-compose down -v --remove-orphans
+```
+
+This stops and removes all containers, networks, and volumes.
+
+---
+
+## 📂 Directory Structure Summary
+
+Make sure you have:
+
+```
+docker-compose.yml
+docker/php/Dockerfile
+docker/mysql/custom.cnf         # optional MySQL config
+docker/cron/iproto-cron         # optional cron job
+```
+
+---
+
+## 🧪 Verify App is Running
+
+- Symfony App: [http://127.0.0.1:8001](http://127.0.0.1:8001)
+- Grafana: [http://127.0.0.1:3000](http://127.0.0.1:3000)
+- MySQL: connect via port `3307`, user `root`, pass `1203`, DB `dicrawler`
+
+---
+
+## 🐘 App Admin User (pre-seeded via fixtures)
+
+- **Email:** `admin@admin.com`
+- **Password:** `admin`
+
+---
+
+## 🐞 Troubleshooting
+
+- ❗ **Port Already in Use:** make sure ports `8001`, `3307`, and `3000` are free.
+- ❗ **MySQL Connection Refused:** double check `MYSQL_ROOT_PASSWORD` and wait-for-it logic.
+- ❗ **Symfony "Access Denied" on /api/** – make sure your user is logged in or endpoint is publicly accessible.
+
+---
