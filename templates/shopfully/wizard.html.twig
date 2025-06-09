@@ -264,13 +264,13 @@
                                             {{ form_widget(entry.tracking_pixel, {'attr': {'class': 'form-control'}}) }}
                                         </div>
                                         <div class="col">
-                                            {{ form_widget(entry.validity_start, {'attr': {'class': 'form-control'}}) }}
+                                            {{ form_widget(entry.validity_start, {'attr': {'class': 'form-control', 'step': '1'}}) }}
                                         </div>
                                         <div class="col">
-                                            {{ form_widget(entry.validity_end, {'attr': {'class': 'form-control'}}) }}
+                                            {{ form_widget(entry.validity_end, {'attr': {'class': 'form-control', 'step': '1'}}) }}
                                         </div>
                                         <div class="col">
-                                            {{ form_widget(entry.visibility_start, {'attr': {'class': 'form-control'}}) }}
+                                            {{ form_widget(entry.visibility_start, {'attr': {'class': 'form-control', 'step': '1'}}) }}
                                         </div>
                                     </div>
                                 </div>
@@ -517,10 +517,22 @@
 
             if (bulkInput) bulkInput.value = '';
         }
-        function formatDateForDatetimeLocal(dateString) {
-            // Пример: "2025-06-18" -> "2025-06-18T00:00"
-            return `${dateString}T00:00`;
+        function formatDateForDatetimeLocal(dateString, isEnd = false) {
+            const date = new Date(dateString);
+            if (isNaN(date)) return '';
+
+            // Принуждаваме го в локален формат
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = isEnd ? '23' : '00';
+            const minutes = isEnd ? '59' : '00';
+
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
         }
+
+
+
 
         async function fetchAndSetDates(numberInput, block) {
             const number = numberInput.value.trim();
@@ -542,19 +554,14 @@
                     const visibilityStartInput = block.querySelector('input[name$="[visibility_start]"]');
 
                     if (startInput && startDate) startInput.value = formatDateForDatetimeLocal(startDate);
-                    if (endInput && endDate) endInput.value = formatDateForDatetimeLocal(endDate);
+                    if (endInput && endDate) endInput.value = formatDateForDatetimeLocal(endDate, true); // <-- fix
                     if (visibilityStartInput && startDate) visibilityStartInput.value = formatDateForDatetimeLocal(startDate);
-
-
-                    if (startInput && startDate) startInput.value = formatDateForDatetimeLocal(startDate);
-                    if (endInput && endDate) endInput.value = formatDateForDatetimeLocal(endDate);
-
-
                 }
             } catch (e) {
                 console.error('Failed to fetch brochure dates:', e);
             }
         }
+
 
 
         function fillPreview() {
