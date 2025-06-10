@@ -42,6 +42,15 @@ class ShopfullyCrawler
         foreach ($brochures as $brochure) {
             $brochureData = $this->shopfullyService->getBrochure($brochure['number'], $locale);
             $brochureData['trackingPixel'] = $brochure['tracking_pixel'];
+            $validFrom = $brochure['validity_start'];
+
+            $validTo = (clone $brochure['validity_end'])->setTime(23, 59, 59);   // край на деня
+
+            $visibleFrom = $brochure['visibility_start'];
+
+            $brochureData['brochureData']['data'][0]['Flyer']['start_date']   = $validFrom->format('Y-m-d H:i:s');
+            $brochureData['brochureData']['data'][0]['Flyer']['end_date']     = $validTo->format('Y-m-d H:i:s');
+            $brochureData['brochureData']['data'][0]['Flyer']['visible_from'] = $visibleFrom->format('Y-m-d H:i:s');
 
             $this->createStores($brochureData, $storeService);
             $this->createBrochure($brochureData, $brochureService);
@@ -50,7 +59,7 @@ class ShopfullyCrawler
         $csvService = new CsvService();
         $brochureCsv = $csvService->createCsvFromBrochure($brochureService);
         $storeCsv = $csvService->createCsvFromStores($storeService);
-         //dd($brochureCsv, $storeCsv);
+        // dd($brochureCsv, $storeCsv);
         $storeImport = $this->iprotoService->importData($storeCsv);
         $brochureImport = $this->iprotoService->importData($brochureCsv);
 
