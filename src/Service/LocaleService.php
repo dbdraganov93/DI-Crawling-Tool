@@ -15,4 +15,9 @@ class LocaleService
     {
         return self::LOCALE[$ownerId] ?? '';
     }
+
+    public function getOwnerId(string $locale): ?int
+    {
+        return array_search($locale, self::LOCALE, true) ?: null;
+    }
 }

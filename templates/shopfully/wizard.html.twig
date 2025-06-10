@@ -10,7 +10,9 @@
         .badge.bg-success {
             color: #fff !important;
         }
-
+        .badge.bg-secondary {
+            color: #fff !important;
+        }
         .stepper {
             display: flex;
             justify-content: space-between;
@@ -204,7 +206,10 @@
                         }}) }}
                         {{ form_errors(form.company) }}
                     </div>
-                    <button type="button" class="btn btn-primary" onclick="nextStep(2)">Next</button>
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" onclick="prevStep()">Previous</button>
+                        <button type="button" class="btn btn-primary" onclick="nextStep(2)">Next</button>
+                    </div>
                 </div>
 
                 <div id="step-2" class="step" style="display: none;">
@@ -330,7 +335,15 @@
                         <tr>
                             <td>{{ log.id }}</td>
                             <td>{{ log.createdAt ? log.createdAt|date('Y-m-d H:i:s') : '' }}</td>
-                            <td>{{ log.iprotoId }}</td>
+                            <td>
+                                <a target="_blank" href="https://business-v2.offerista.com/redirect?owner_id={{ get_owner_id_by_locale(log.locale|default(''))|default('0') }}&path=/customers/{{ log.iprotoId }}/"
+                                   class="d-inline-flex align-items-center gap-1 text-decoration-none">
+                                    <img src="{{ asset('images/btlogo.png') }}" alt="BT Logo" style="height: 16px; width: auto;">
+                                    {{ log.iprotoId }}
+                                </a>
+
+                            </td>
+
                             <td>{{ log.locale }}</td>
                             <td>
                                 {% if log.status %}
@@ -681,6 +694,12 @@
             });
 
             $ownerSelect.on('change', async function () {
+                const selectedOwnerText = $(this).find('option:selected').text().trim();
+                const ownerLabel = document.querySelector('.stepper-step[data-step="0"] .stepper-label');
+                if (ownerLabel) {
+                    ownerLabel.textContent = selectedOwnerText || 'Owner';
+                }
+
                 const ownerId = $(this).val();
 
                 this.setCustomValidity('');
@@ -726,29 +745,10 @@
             });
             $companySelect.on('change', function () {
                 this.setCustomValidity('');
-            });
-
-
-            $ownerSelect.on('change', async function () {
-                const ownerId = $(this).val();
-                $companySelect.prop('disabled', true).empty().append(new Option('Loading companies...', '', false, false));
-
-                try {
-                    const response = await fetch(`/company/api/companies?owner=${encodeURIComponent(ownerId)}`);
-                    const companies = await response.json();
-
-                    $companySelect.empty().append(new Option('Select a company', '', true, false));
-
-                    companies.forEach(company => {
-                        const option = new Option(company.label, company.id, false, false);
-                        $companySelect.append(option);
-                    });
-
-                    $companySelect.prop('disabled', false).trigger('change');
-                } catch (error) {
-                    console.error('Error loading companies:', error);
-                    $companySelect.empty().append(new Option('Error loading companies', '', false, false));
-                    $companySelect.prop('disabled', false);
+                const selectedCompanyText = $(this).find('option:selected').text().trim();
+                const companyLabel = document.querySelector('.stepper-step[data-step="1"] .stepper-label');
+                if (companyLabel) {
+                    companyLabel.textContent = selectedCompanyText || 'Company';
                 }
             });
         });
@@ -856,7 +856,7 @@
                         if (dangerStatuses.includes(normalized)) return 'bg-danger';
                         if (infoStatuses.includes(normalized)) return 'bg-info text-dark';
 
-                        return 'bg-secondary'; // default fallback
+                        return 'bg-secondary';
                     }
 
                     try {
@@ -870,7 +870,6 @@
                         });
 
                         const data = await response.json();
-//tukaaaaa
                         if (data.success) {
                             const row = this.closest('tr');
 
@@ -895,8 +894,6 @@
                         } else {
                             alert('Failed to refresh status.');
                         }
-
-                        //do tukaaa
                     } catch (err) {
                         console.error(err);
                         alert('Error fetching import status.');
