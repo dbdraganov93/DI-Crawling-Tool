@@ -24,3 +24,4 @@
 /vendor/
 /node_modules/
 /docker/mysql/db_data/
+/aws-credentials
