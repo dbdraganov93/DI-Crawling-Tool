@@ -136,15 +136,7 @@ mysql -u diUser -p diCrawlers
 
 ## Step 6: Setup AWS
 
-Execute this command in your loocal terminal (IMPORTANT: SET THE CREDENTIALS IN YOUR LOCAL TERMINAL NOT IN THE CONTAINER)
-```bash
-sudo apt update
-sudo apt install awscli
-mkdir -p ~/.aws
-nano ~/.aws/credentials
-```
-
-Paste this inside (replace with your real AWS keys from the root account):
+Set your AWS access keys in the `aws-credentials` file. If it doesn't exist, create it in the base directory of your project.:
 ```bash
 [default]
 aws_access_key_id = YOUR_LONG_TERM_KEY
@@ -156,9 +148,8 @@ source_profile = default
 region = eu-west-1
 ```
 
-
-
-Test Role Assumption
+Test Role Assumption:
+Enter inside the app container and execute the following command (you may need to install the AWS CLI first):
 
 ```bash
 aws sts get-caller-identity --profile di-crawler
@@ -193,6 +184,7 @@ make up       # for production (minimal)
 ```bash
 make up-local # for local tools like Portainer/Grafana
 ```
+Note for Windows Users: the "make" command only works in Unix Shell like [WSL](https://docs.microsoft.com/en-us/windows/wsl/install) CLI or Git Bash
 
 This command will:
 
