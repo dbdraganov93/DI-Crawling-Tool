@@ -32,26 +32,27 @@
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ml-auto">
                 {% if app.user %}
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_company_index') }}">Companies</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_crawler_index') }}">Crawlers</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_shopfully_wizard') }}">Shopfully wizard</a>
-                        </li>
 
-                    {% endif %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="settingsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Settings
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="settingsDropdown">
-                            <li><a class="dropdown-item" href="{{ path('app_user_index') }}">Users</a></li>
-                        </ul>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_company_index') }}">Companies</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_crawler_index') }}">Crawlers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_shopfully_wizard') }}">Shopfully wizard</a>
+                    </li>
+                    {% if is_granted('ROLE_ADMIN') %}
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="settingsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Settings
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="settingsDropdown">
+                                <li><a class="dropdown-item" href="{{ path('app_user_index') }}">Users</a></li>
+                            </ul>
+                        </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('app_logout') }}">Logout</a>
                     </li>
