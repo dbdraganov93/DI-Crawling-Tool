@@ -663,7 +663,7 @@
                 const timezoneInput = document.querySelector('[name$="[timezone]"]');
 
                 try {
-                    const response = await fetch(`/api/timezone?owner=${encodeURIComponent(ownerId)}`);
+                    const response = await fetch(`/company/api/timezone?owner=${encodeURIComponent(ownerId)}`);
                     const data = await response.json();
 
                     timezoneInput.value = data.timezone || '';
@@ -725,7 +725,7 @@
 
                 const timezoneInput = document.querySelector('[name$="[timezone]"]');
                 try {
-                    const response = await fetch(`/api/timezone?owner=${encodeURIComponent(ownerId)}`);
+                    const response = await fetch(`/company/api/timezone?owner=${encodeURIComponent(ownerId)}`);
                     const data = await response.json();
                     timezoneInput.value = data.timezone || '';
                 } catch (e) {
@@ -734,7 +734,7 @@
 
                 const localeInput = document.querySelector('[name$="[locale]"]');
                 try {
-                    const response = await fetch(`/api/locale?ownerId=${encodeURIComponent(ownerId)}`);
+                    const response = await fetch(`/api/shopfully/locale?ownerId=${encodeURIComponent(ownerId)}`);
                     const data = await response.json();
                     if (data.locale && localeInput) {
                         localeInput.value = data.locale;

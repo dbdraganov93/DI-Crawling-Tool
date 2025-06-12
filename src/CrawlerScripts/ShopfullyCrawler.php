@@ -29,12 +29,11 @@ class ShopfullyCrawler
         $this->iprotoService = $iprotoService;
     }
 
-    public function crawl(array $brochure): void
+    public function crawl(array $brochuresData): void
     {
-
-        $this->company = $brochure['company'];
-        $locale = $brochure['locale'];
-        $brochures = $brochure['numbers'];
+        $this->company = $brochuresData['company'];
+        $locale = $brochuresData['locale'];
+        $brochures = $brochuresData['numbers'];
 
         $brochureService = new BrochureService($this->company);
         $storeService = new StoreService($this->company);
