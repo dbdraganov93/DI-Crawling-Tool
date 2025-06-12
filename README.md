@@ -45,6 +45,8 @@ Install dependencies:
 composer install
 ```
 
+Create .env file by copying .env.example to .env and filling in the necessary values
+
 Configure DB in .env
 
 Generate migration with command
@@ -176,6 +178,9 @@ This guide explains how to build and run the project using Docker on **Linux**, 
 ---
 
 ## 🚀 Starting the App
+
+First, create .env file by copying .env.example to .env and filling in the necessary values
+Then execute one of the following commands:
 
 ```bash
 make up       # for production (minimal)
