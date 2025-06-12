@@ -85,7 +85,7 @@ class ShopfullyController extends AbstractController
         }
     }
 
-    #[Route('/api/locale', name: 'api_shopfully_locale_by_owner', methods: ['GET'])]
+    #[Route('/api/shopfully/locale', name: 'api_shopfully_locale_by_owner', methods: ['GET'])]
     public function getLocaleByOwner(Request $request): JsonResponse
     {
         $ownerId = (int) $request->query->get('ownerId');
