@@ -21,4 +21,8 @@ up-local:
 	@echo "🧹 Cleaning migrations..."
 	rm -f migrations/*.php
 	@echo "🚀 Starting app for LOCAL ENVIORMENT (with override docker-compose)..."
+	@echo "🧼 Checking for lingering processes on port 9000..."
+	@pid=$$(lsof -ti :9000) && [ -n "$$pid" ] && echo "🛑 Killing process on port 9000 (PID: $$pid)" && kill -9 $$pid || echo "✅ No process on port 9000."
+	@echo "🧹 Removing portainer_data volume (optional)..."
+	-docker volume rm portainer_data >/dev/null 2>&1 || true
 	COMPOSE_IGNORE_ORPHANS=True docker-compose up --build
