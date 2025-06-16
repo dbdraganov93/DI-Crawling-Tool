@@ -7,6 +7,7 @@ use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
 use App\Service\LocaleService;
+
 class LocaleExtension extends AbstractExtension
 {
     private LocaleService $localeService;
@@ -32,5 +33,4 @@ class LocaleExtension extends AbstractExtension
             new TwigFilter('filter_name', [LocaleExtensionRuntime::class, 'doSomething']),
         ];
     }
-
 }
