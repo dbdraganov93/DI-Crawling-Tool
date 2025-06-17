@@ -75,7 +75,7 @@ push_image:
         - aws --region=eu-west-1 ecs register-task-definition --cli-input-json file://ecs/ecs-task-definition.json
         # Trigger "rolling update" deployment with new task definition version
         # The deployment is non-blocking (asynchronous), therefore we need to wait and see if it actually worked or not.
-        - aws --region=eu-west-1 ecs update-service --cluster dragclick-di-${ENVIRONMENT_NAME} --service dragclick-di-${ENVIRONMENT_NAME} --task-definition dragclick-di-${ENVIRONMENT_NAME} --force-new-deployment
+        - aws --region=eu-west-1 ecs update-service --cluster dicrawler-di-${ENVIRONMENT_NAME} --service dicrawler-di-${ENVIRONMENT_NAME} --task-definition dicrawler-di-${ENVIRONMENT_NAME} --force-new-deployment
         # Wait for deployment to finish and check if the deployment was successful
         - bin/ecs_deployment_check.sh
     artifacts:
