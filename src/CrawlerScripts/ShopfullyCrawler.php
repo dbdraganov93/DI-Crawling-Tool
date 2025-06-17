@@ -41,6 +41,8 @@ class ShopfullyCrawler
         foreach ($brochures as $brochure) {
             $brochureData = $this->shopfullyService->getBrochure($brochure['number'], $locale);
             $brochureData['trackingPixel'] = $brochure['tracking_pixel'];
+            $brochureData['prefix'] = $brochuresData['prefix'] ?? '';
+            $brochureData['suffix'] = $brochuresData['suffix'] ?? '';
             $validFrom = $brochure['validity_start'];
 
             $validTo = (clone $brochure['validity_end'])->setTime(23, 59, 59);   // край на деня
@@ -107,6 +109,7 @@ class ShopfullyCrawler
 
     private function createBrochure(array $brochureData, BrochureService $brochureService): void
     {
+        $brochureNumber = $brochureData['brochureData']['data'][0]['Flyer']['id'];
         $brochureService
             ->setPdfUrl($brochureData['publicationData']['data'][0]['Publication']['pdf_url'])
             ->setBrochureNumber($brochureData['brochureData']['data'][0]['Flyer']['id'])
@@ -118,5 +121,12 @@ class ShopfullyCrawler
             ->setTrackingPixels($brochureData['trackingPixel'] ?? '')
             ->setStoreNumber($brochureData['brochureData']['data'][0]['Flyer']['stores'])
             ->addCurrentBrochure();
+
+        if (!empty($brochureData['prefix']) || !empty($brochureData['suffix'])) {
+            // duplicate the brochure with prefix and/or suffix
+            $brochureService
+                ->setBrochureNumber($brochureData['prefix'] . $brochureNumber . $brochureData['suffix'])
+                ->addCurrentBrochure();
+        }
     }
 }
