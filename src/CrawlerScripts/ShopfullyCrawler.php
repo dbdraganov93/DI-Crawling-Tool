@@ -112,7 +112,7 @@ class ShopfullyCrawler
         $brochureNumber = $brochureData['brochureData']['data'][0]['Flyer']['id'];
         $brochureService
             ->setPdfUrl($brochureData['publicationData']['data'][0]['Publication']['pdf_url'])
-            ->setBrochureNumber($brochureData['brochureData']['data'][0]['Flyer']['id'])
+            ->setBrochureNumber($brochureNumber)
             ->setTitle($brochureData['brochureData']['data'][0]['Flyer']['title'])
             ->setVariety('leaflet')
             ->setValidFrom($brochureData['brochureData']['data'][0]['Flyer']['start_date'])
