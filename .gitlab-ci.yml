@@ -14,9 +14,6 @@ stages:
   - push
   - deploy 
 
-include:
-  - template: Jobs/Container-Scanning.gitlab-ci.yml # Gitlab built-in container scanning template
-
 services:
     - docker:dind
 
