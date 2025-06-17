@@ -23,4 +23,20 @@ RUN mkdir -p /var/www/html/public/csv \
  && chown -R www-data:www-data /var/www/html/public/csv \
  && chmod -R 775 /var/www/html/public/csv
 
+COPY . /var/www/html
+
+RUN git config --global --add safe.directory /var/www/html && \
+    composer install && \
+    mkdir -p /var/www/html/public/csv && \
+    chown -R www-data:www-data /var/www/html/public/csv && \
+    chmod -R 775 /var/www/html/public/csv && \
+    php bin/console doctrine:database:drop --if-exists --force && \
+    php bin/console doctrine:database:create && \
+    rm -f src/Migrations/*.php && \
+    php bin/console make:migration --no-interaction && \
+    php bin/console doctrine:migrations:migrate --no-interaction && \
+    php bin/console doctrine:fixtures:load --no-interaction
+
+CMD service cron start && apache2-foreground
+
 EXPOSE 80
