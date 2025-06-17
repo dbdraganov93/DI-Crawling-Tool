@@ -1,9 +1,9 @@
 up:
-	@echo "❗ Starting diCrawler for PRODUCTION environment (non-interactive, without override)"
+	@echo "❗ Starting diCrawler for PRODUCTION environment (non-interactive, detached)"
 	@echo "🧹 Cleaning migrations..."
 	rm -f migrations/*.php
-	@echo "🚀 Starting app for PRODUCTION (no override docker-compose)..."
-	COMPOSE_IGNORE_ORPHANS=True docker-compose -f docker-compose.yml up --build
+	@echo "🚀 Starting app in detached mode (docker-compose -d)..."
+	COMPOSE_IGNORE_ORPHANS=True docker-compose -f docker-compose.yml up --build -d
 
 up-local:
 	@echo "❗ This will start the diCrawler project for the LOCAL environment (with tools like Portainer)."
