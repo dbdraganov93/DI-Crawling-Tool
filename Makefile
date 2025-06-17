@@ -1,9 +1,8 @@
 up:
-	@echo "❗ This will start the diCrawler project for the PRODUCTION environment."
-	@read -p "⚠️  Are you sure you are on the correct environment? (y/N): " confirm && [ "$$confirm" = "y" ] || (echo "❌ Aborted." && exit 1)
+	@echo "❗ Starting diCrawler for PRODUCTION environment (non-interactive, without override)"
 	@echo "🧹 Cleaning migrations..."
 	rm -f migrations/*.php
-	@echo "🚀 Starting app  for PRODUCTION ENVIORMENT (without override)..."
+	@echo "🚀 Starting app for PRODUCTION (no override docker-compose)..."
 	COMPOSE_IGNORE_ORPHANS=True docker-compose -f docker-compose.yml up --build
 
 up-local:
@@ -20,9 +19,9 @@ up-local:
 	fi
 	@echo "🧹 Cleaning migrations..."
 	rm -f migrations/*.php
-	@echo "🚀 Starting app for LOCAL ENVIORMENT (with override docker-compose)..."
 	@echo "🧼 Checking for lingering processes on port 9000..."
 	@pid=$$(lsof -ti :9000) && [ -n "$$pid" ] && echo "🛑 Killing process on port 9000 (PID: $$pid)" && kill -9 $$pid || echo "✅ No process on port 9000."
 	@echo "🧹 Removing portainer_data volume (optional)..."
 	-docker volume rm portainer_data >/dev/null 2>&1 || true
+	@echo "🚀 Starting app for LOCAL (with override docker-compose)..."
 	COMPOSE_IGNORE_ORPHANS=True docker-compose up --build
