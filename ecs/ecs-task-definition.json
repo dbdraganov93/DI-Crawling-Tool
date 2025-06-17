@@ -5,7 +5,7 @@
     "networkMode": "awsvpc",
     "containerDefinitions": [
         {
-            "name": "DiCrawlerApi",
+            "name": "Crawler",
             "image": "${dicrawler_image}",
             "portMappings": [
                 {
