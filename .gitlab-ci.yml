@@ -17,7 +17,6 @@ stages:
 services:
     - docker:dind
 
-
 Codestyle:
   stage: Codestyle
   image: php:8.2
@@ -38,7 +37,7 @@ build_container:
     before_script:
         - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
     script:
-      - DOCKER_BUILDKIT=1 docker build -f docker/php-pull/Dockerfile -t $CI_REGISTRY_IMAGE:$IMAGE_BUILD_TAG -t $CI_REGISTRY_IMAGE:$IMAGE_CACHE_TAG .
+      - DOCKER_BUILDKIT=1 docker build -f docker/php/Dockerfile -t $CI_REGISTRY_IMAGE:$IMAGE_BUILD_TAG -t $CI_REGISTRY_IMAGE:$IMAGE_CACHE_TAG .
       - docker push $CI_REGISTRY_IMAGE:$IMAGE_BUILD_TAG
       - docker push $CI_REGISTRY_IMAGE:$IMAGE_CACHE_TAG
 
