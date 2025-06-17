@@ -11,7 +11,10 @@ RUN pip3 install --break-system-packages PyMuPDF
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-RUN a2enmod rewrite headers
+# Enable Apache modules and secure Apache signature
+RUN a2enmod rewrite headers \
+ && echo "ServerTokens Prod\nServerSignature Off" > /etc/apache2/conf-available/security.conf \
+ && a2enconf security
 
 COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
 
