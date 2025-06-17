@@ -92,5 +92,5 @@ deploy_prod:
         url: https://dicrawler.offerista.com
     when: manual
     only:
-        - feature/pipeline-setup
+        - feature/cicd-pipeline
   
