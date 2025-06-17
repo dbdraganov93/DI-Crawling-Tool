@@ -104,5 +104,4 @@ class ShopfullyController extends AbstractController
 
         return new JsonResponse(['locale' => $locale]);
     }
-
 }
