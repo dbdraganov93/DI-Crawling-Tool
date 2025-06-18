@@ -1,8 +1,10 @@
 <?php
+
 use Symfony\Component\Dotenv\Dotenv;
 
-$env = $_SERVER['APP_ENV'] ?? $_ENV['APP_ENV'] ?? 'dev';
-
-if ($env !== 'prod' && is_readable(dirname(__DIR__).'/.env')) {
-    (new Dotenv())->bootEnv(dirname(__DIR__).'/.env');
+if (!getenv('APP_ENV') && !isset($_ENV['APP_ENV']) && !isset($_SERVER['APP_ENV'])) {
+    $envFile = dirname(__DIR__).'/.env';
+    if (is_readable($envFile)) {
+        (new Dotenv())->bootEnv($envFile);
+    }
 }
