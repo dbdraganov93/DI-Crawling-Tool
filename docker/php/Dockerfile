@@ -36,9 +36,5 @@ RUN mkdir -p /var/www/html/public/csv \
  && chown -R www-data:www-data /var/www/html/public/csv \
  && chmod -R 775 /var/www/html/public/csv
 
-# Copy entrypoint script
-COPY docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
 EXPOSE 80
 CMD ["apache2-foreground"]
