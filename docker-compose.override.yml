@@ -1,4 +1,9 @@
 services:
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile.local
+
   portainer:
     image: portainer/portainer-ce:latest
     container_name: portainer

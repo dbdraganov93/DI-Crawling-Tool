@@ -24,4 +24,4 @@ up-local:
 	@echo "🧹 Removing portainer_data volume (optional)..."
 	-docker volume rm portainer_data >/dev/null 2>&1 || true
 	@echo "🚀 Starting app for LOCAL (with override docker-compose)..."
-	COMPOSE_IGNORE_ORPHANS=True docker-compose up --build
+	COMPOSE_IGNORE_ORPHANS=True docker-compose -f docker-compose.yml -f docker-compose.override.yml up --build
