@@ -25,6 +25,11 @@
                 {
                     "name": "WEBSERVER",
                     "value": "true"
+                },
+                {
+                    
+                   "name": "APP_DEBUG",
+                   "value": "0"
                 }
             ],
             "secrets": [                  
