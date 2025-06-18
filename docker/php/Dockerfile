@@ -14,8 +14,8 @@ RUN pip3 install --break-system-packages PyMuPDF
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 RUN a2enmod rewrite headers \
-&& echo "ServerTokens Prod\nServerSignature Off" > /etc/apache2/conf-available/security.conf \
-&& a2enconf security
+ && echo "ServerTokens Prod\nServerSignature Off" > /etc/apache2/conf-available/security.conf \
+ && a2enconf security
 
 # Apache config
 COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
@@ -25,10 +25,10 @@ WORKDIR /var/www/html
 # Copy app code
 COPY . /var/www/html
 
-# Temporary .env to avoid Symfony crashing at build time
+# Temporary .env to avoid Symfony crashing at build time, no DB connection needed 
 RUN echo "APP_ENV=prod" > .env \
- && echo "DATABASE_URL=mysql://user:pass@localhost:3306/test" >> .env \
- && composer install --no-dev --optimize-autoloader \
+ && echo "DATABASE_URL=null://" >> .env \
+ && composer install --no-dev --optimize-autoloader --no-scripts \
  && rm .env
 
 # Permissions for runtime directory
@@ -36,6 +36,9 @@ RUN mkdir -p /var/www/html/public/csv \
  && chown -R www-data:www-data /var/www/html/public/csv \
  && chmod -R 775 /var/www/html/public/csv
 
-# Expose port and start apache
+# Copy entrypoint script
+COPY docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 EXPOSE 80
 CMD ["apache2-foreground"]
