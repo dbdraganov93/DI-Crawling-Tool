@@ -21,6 +21,11 @@
                 {
                     "name": "APP_ENV",
                     "value": "${env}"
+                },
+                {
+                    
+                   "name": "APP_DEBUG",
+                   "value": "0"
                 }
             ],
             "secrets": [                  
