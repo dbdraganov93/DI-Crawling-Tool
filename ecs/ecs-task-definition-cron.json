@@ -1,5 +1,5 @@
 {
-"family": "dicrawler-di-${env}",
+"family": "dicrawler-di-token-updater-${env}",
     "taskRoleArn": "arn:aws:iam::385750204895:role/dicrawler.ecs-task.di-${env}",
     "executionRoleArn": "arn:aws:iam::385750204895:role/dicrawler.ecs-task.di-${env}",
     "networkMode": "awsvpc",

@@ -21,10 +21,25 @@ if [[ -z "$LATEST_ARN" ]]; then
   exit 1
 fi
 
-echo "Updating EventBridge rule target to use revision: $LATEST_ARN"
 aws events put-targets \
   --region eu-west-1 \
   --rule "$RULE_NAME" \
-  --targets "Id"="1","Arn"="arn:aws:ecs:eu-west-1:385750204895:cluster/$CLUSTER_NAME","RoleArn"="$ROLE_ARN","EcsParameters={\"TaskDefinitionArn\":\"$LATEST_ARN\",\"TaskCount\":1,\"LaunchType\":\"FARGATE\",\"NetworkConfiguration\":{\"awsvpcConfiguration\":{\"Subnets\":$SUBNET_IDS,\"SecurityGroups\":$SECURITY_GROUP_IDS,\"AssignPublicIp\":\"DISABLED\"}}}"
+  --targets "[{
+    \"Id\": \"1\",
+    \"Arn\": \"arn:aws:ecs:eu-west-1:385750204895:cluster/$CLUSTER_NAME\",
+    \"RoleArn\": \"$ROLE_ARN\",
+    \"EcsParameters\": {
+      \"TaskDefinitionArn\": \"$LATEST_ARN\",
+      \"TaskCount\": 1,
+      \"LaunchType\": \"FARGATE\",
+      \"NetworkConfiguration\": {
+        \"awsvpcConfiguration\": {
+          \"Subnets\": $SUBNET_IDS,
+          \"SecurityGroups\": $SECURITY_GROUP_IDS,
+          \"AssignPublicIp\": \"DISABLED\"
+        }
+      }
+    }
+  }]"
 
 echo "Cron ECS task definition updated and EventBridge rule re-targeted."
