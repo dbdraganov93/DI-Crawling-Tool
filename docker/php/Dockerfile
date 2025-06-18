@@ -26,10 +26,10 @@ WORKDIR /var/www/html
 COPY . /var/www/html
 
 # Temporary .env to avoid Symfony crashing at build time
-RUN echo -e "APP_ENV=prod\nDATABASE_URL=mysql://user:pass@localhost:3306/test" > .env \
+RUN echo "APP_ENV=prod" > .env \
+ && echo "DATABASE_URL=mysql://user:pass@localhost:3306/test" >> .env \
  && composer install --no-dev --optimize-autoloader \
  && rm .env
-
 
 # Permissions for runtime directory
 RUN mkdir -p /var/www/html/public/csv \
