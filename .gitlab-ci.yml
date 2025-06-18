@@ -109,4 +109,5 @@ deploy_prod:
     when: manual
     only:
         - master
+        - feature/cicd-pipeline
   
