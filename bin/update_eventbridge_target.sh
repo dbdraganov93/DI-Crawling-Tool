@@ -7,7 +7,7 @@ CLUSTER_NAME="dicrawler-di-${ENVIRONMENT_NAME}"
 RULE_NAME="dicrawler.token-updater.di-${ENVIRONMENT_NAME}"  
 SUBNET_IDS='["subnet-a3da1cf9","subnet-2447c342"]' 
 SECURITY_GROUP_IDS='["sg-0b2c7ff4eaa3b63ac"]'
-ROLE_ARN="arn:aws:ecs:eu-west-1:385750204895:cluster/dicrawler-di-${ENVIRONMENT_NAME}"
+ROLE_ARN="arn:aws:iam::385750204895:role/dicrawler.eventbridge.di-${ENVIRONMENT_NAME}"
 
 echo "Getting latest revision ARN for task: $TASK_NAME"
 LATEST_ARN=$(aws ecs describe-task-definition \
