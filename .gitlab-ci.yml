@@ -77,7 +77,7 @@ update-cron-task:
     when: always
     paths:
       - ecs/ecs-task-definition-cron.json
-    expire_in: 30 days
+    expire_in: 10 days
 .deploy:
     stage: deploy
     tags:
@@ -98,7 +98,7 @@ update-cron-task:
         paths:
             # For debugging save the filled task definition file
             - ecs/ecs-task-definition.json
-        expire_in: 30 days
+        expire_in: 10 days
 
 # Deploy to prod on master push (requires manual button-click when ready)
 deploy_prod:

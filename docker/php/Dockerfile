@@ -25,11 +25,13 @@ WORKDIR /var/www/html
 # Copy app code
 COPY . /var/www/html
 
-# Temporary .env to avoid Symfony crashing at build time, no DB connection needed 
+# Create a persistent .env 
 RUN echo "APP_ENV=prod" > .env \
- && echo "DATABASE_URL=null://" >> .env \
- && composer install --no-dev --optimize-autoloader --no-scripts \
- && rm .env
+ && echo "APP_DEBUG=0" >> .env \
+ && echo "DATABASE_URL=null://" >> .env
+
+# Run composer install after .env is present
+RUN composer install --no-dev --optimize-autoloader --no-scripts
 
 # Permissions for runtime directory
 RUN mkdir -p /var/www/html/public/csv \
