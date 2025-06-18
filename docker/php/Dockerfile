@@ -25,8 +25,10 @@ WORKDIR /var/www/html
 # Copy app code
 COPY . /var/www/html
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Temporary .env to avoid Symfony crashing at build time
+RUN echo "APP_ENV=prod" > .env \
+ && composer install --no-dev --optimize-autoloader \
+ && rm .env
 
 # Permissions for runtime directory
 RUN mkdir -p /var/www/html/public/csv \
