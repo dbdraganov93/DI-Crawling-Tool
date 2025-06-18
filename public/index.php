@@ -1,4 +1,6 @@
 <?php
+putenv('APP_RUNTIME=Symfony\\Component\\Runtime\\SymfonyRuntime');
+putenv('APP_BOOTSTRAP=config/bootstrap.php');
 
 use App\Kernel;
 
