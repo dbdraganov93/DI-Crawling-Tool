@@ -1,13 +1,6 @@
 #!/bin/bash
 set -e
 
-echo "Ensuring runtime directories exist and have correct permissions..."
-mkdir -p /var/www/html/var/cache /var/www/html/var/log /var/www/html/public/csv
-
-# Fix permissions
-chown -R www-data:www-data /var/www/html/var /var/www/html/public/csv
-chmod -R 775 /var/www/html/var /var/www/html/public/csv
-
 # Wait for database connection (with timeout)
 timeout=60
 while ! php bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do
