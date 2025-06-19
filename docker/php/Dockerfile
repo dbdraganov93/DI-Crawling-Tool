@@ -26,7 +26,7 @@ WORKDIR /var/www/html
 COPY . /var/www/html
 
 # Copy dummy .env file (for build/runtime fallback)
-COPY .env /var/www/html/.env
+COPY .env.prod /var/www/html/.env
 
 # Run composer install 
 RUN composer install --no-dev --optimize-autoloader --no-scripts
