@@ -12,22 +12,22 @@ class S3Service
     private string $region;
 
     public function __construct(string $bucket, string $region, ?string $profile = null)
-{
-    $this->bucket = $bucket;
-    $this->region = $region;
+    {
+        $this->bucket = $bucket;
+        $this->region = $region;
 
-    $options = [
-        'region' => $this->region,
-        'version' => 'latest',
-    ];
+        $options = [
+            'region' => $this->region,
+            'version' => 'latest',
+        ];
 
-    if ($profile) {
-        $options['profile'] = $profile;
-        $options['use_aws_shared_config_files'] = true;
+        if ($profile) {
+            $options['profile'] = $profile;
+            $options['use_aws_shared_config_files'] = true;
+        }
+
+        $this->s3Client = new S3Client($options);
     }
-
-    $this->s3Client = new S3Client($options);
-}
 
     /**
      * Upload file to S3 and return public URL
