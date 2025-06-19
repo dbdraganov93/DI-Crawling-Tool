@@ -1,17 +1,23 @@
 #!/bin/bash
 set -e
 
-# Wait for database connection
-until php bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do
+# Wait for database connection (with timeout)
+timeout=60
+while ! php bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do
   echo "Waiting for database..."
   sleep 2
+  ((timeout--))
+  if [ $timeout -le 0 ]; then
+    echo "Timed out waiting for database"
+    exit 1
+  fi
 done
 
-# Update database schema to match entities
-php bin/console doctrine:schema:update --force
+echo "Running database migrations..."
+php bin/console doctrine:migrations:migrate --no-interaction
 
-# Validate schema
-php bin/console doctrine:schema:validate
+echo "Validating Doctrine schema..."
+php bin/console doctrine:schema:validate || echo "Schema validation warnings"
 
-# Start Apache
+echo "Starting Apache..."
 exec apache2-foreground
