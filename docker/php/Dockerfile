@@ -29,14 +29,12 @@ COPY . /var/www/html
 COPY .env.prod /var/www/html/.env
 
 # Run composer install 
-RUN composer install --no-dev --optimize-autoloader --no-scripts \
- && mkdir -p /var/www/html/var/cache /var/www/html/var/log /var/www/html/public/csv \
- && chown -R www-data:www-data /var/www/html/var /var/www/html/public/csv \
- && chmod -R ug+rwX /var/www/html/var /var/www/html/public/csv
+RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-# Copy startup script
-COPY docker/php/start.sh /usr/local/bin/start.sh
-RUN chmod +x /usr/local/bin/start.sh
+# Permissions for runtime directory
+RUN mkdir -p /var/www/html/public/csv \
+ && chown -R www-data:www-data /var/www/html/public/csv \
+ && chmod -R 775 /var/www/html/public/csv
 
 EXPOSE 80
-ENTRYPOINT ["/usr/local/bin/start.sh"]
+CMD ["apache2-foreground"]
