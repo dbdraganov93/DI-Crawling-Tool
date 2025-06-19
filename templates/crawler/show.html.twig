@@ -4,93 +4,12 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    <style>
-        /* Parent container to align items side by side */
-        .nav-tabs .nav-link {
-            border: none;
-            border-radius: .5rem .5rem 0 0;
-            font-weight: bold;
-        }
-
-        .nav-tabs .nav-link.active {
-            background-color: #f8f9fa;
-            border-bottom: 2px solid #007bff;
-        }
-
-        /* Adjust terminal width */
-        .terminal-container {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            flex-basis: 45%; /* Terminal takes 45% of the width */
-            max-width: 100%;
-            background-color: #000;
-            color: #00ff00;
-            border-radius: 8px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-            font-family: 'Courier New', Courier, monospace;
-            overflow: hidden;
-        }
-
-        .terminal-header {
-            background-color: #222;
-            color: #fff;
-            padding: 10px;
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .terminal {
-            padding: 20px;
-            min-height: 300px;
-            max-height: 400px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            flex-grow: 1;
-        }
-
-        .terminal-footer {
-            text-align: center;
-            padding: 10px;
-            background-color: #222;
-            border-bottom-left-radius: 8px;
-            border-bottom-right-radius: 8px;
-        }
-
-
-        /* Run Button */
-        .btn-run-crawler {
-            background-color: #28a745;
-            color: #fff;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .btn-run-crawler:hover {
-            background-color: #218838;
-        }
-
-        /* Ensure responsive behavior */
-        @media (max-width: 768px) {
-            .crawler-container {
-                flex-direction: column;
-            }
-            .terminal-container, .crawler-card {
-                max-width: 100%;
-                flex-basis: 100%;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/crawler-show.css') }}">
+    
 {% endblock %}
 
 {% block body %}
-        <div class="container mt-5" style="width:100%">
+        <div class="container mt-5 w-100">
             <h1 class="text-center mb-4">Crawler Details</h1>
 
             <!-- Tab navigation -->
@@ -112,6 +31,7 @@
                             <h2 class="mb-0">{{ crawler.name }}</h2>
                         </div>
                         <div class="card-body">
+                            <div class="table-responsive">
                             <table class="table table-bordered">
                                 <tbody>
                                 <tr>
@@ -128,6 +48,7 @@
                                 </tr>
                                 </tbody>
                             </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -148,29 +69,8 @@
                 </div>
             </div>
         </div>
-{% endblock %}
-
 {% block javascripts %}
     {{ parent() }}
-    <script>
-        document.getElementById('run-crawler-btn').addEventListener('click', function () {
-            const terminalOutput = document.getElementById('command-output');
-            terminalOutput.textContent = 'Running command...\n';
-
-            fetch('{{ path('app_crawler_run', {'id': crawler.id}) }}', {
-                method: 'POST',
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        terminalOutput.textContent += data.output;
-                    } else {
-                        terminalOutput.textContent += 'Error: ' + data.error;
-                    }
-                })
-                .catch(error => {
-                    terminalOutput.textContent += 'An error occurred: ' + error.message;
-                });
-        });
-    </script>
+    <script>var crawlerRunUrl = "{{ path('app_crawler_run', {'id': crawler.id}) }}";</script>
+    <script src="{{ asset('js/crawler-show.js') }}"></script>
 {% endblock %}

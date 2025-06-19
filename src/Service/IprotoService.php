@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 use Psr\Log\LoggerInterface;
@@ -18,7 +20,7 @@ class IprotoService
     ) {
     }
 
-    public function getAllCompanies(string $owner, int $itemsPerPage = 1000)
+    public function getAllCompanies(string $owner, int $itemsPerPage = 1000): array
     {
         $response = $this->sendRequest('GET', '/api/integrations', ['itemsPerPage' => $itemsPerPage, 'owner' => $owner]);
 
@@ -27,7 +29,7 @@ class IprotoService
 
 
 
-    public function getAllOwners()
+    public function getAllOwners(): array
     {
         $response = $this->sendRequest('GET', '/api/owners');
 

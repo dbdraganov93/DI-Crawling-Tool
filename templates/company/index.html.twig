@@ -6,7 +6,8 @@
     <div class="container">
         <h1 class="center-align">Company Management</h1>
 
-        <table id="companyTable" class="striped highlight responsive-table">
+        <div class="table-responsive">
+        <table id="companyTable" class="striped highlight responsive-table table">
             <thead>
             <tr>
                 <th>Id</th>
@@ -34,6 +35,7 @@
             {% endfor %}
             </tbody>
         </table>
+        </div>
 
         <div class="right-align">
             <a href="{{ path('app_company_new') }}" class="btn waves-effect waves-light">Create New Company</a>
@@ -41,12 +43,5 @@
     </div>
 {% endblock %}
 {% block javascripts %}
-    <script>
-        $(document).ready(function() {
-            $('#companyTable').DataTable({
-                "pagingType": "full_numbers",
-                "responsive": true
-            });
-        });
-    </script>
+    <script src="{{ asset('js/company-index.js') }}"></script>
 {% endblock %}

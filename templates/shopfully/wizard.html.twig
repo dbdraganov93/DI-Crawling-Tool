@@ -4,129 +4,10 @@
 
 {% block stylesheets %}
     {{ parent() }}
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.material.min.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <style>
-        .badge.bg-success {
-            color: #fff !important;
-        }
-        .badge.bg-secondary {
-            color: #fff !important;
-        }
-        .stepper {
-            display: flex;
-            justify-content: space-between;
-            position: relative;
-            margin-bottom: 2rem;
-        }
-
-        .stepper::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background-color: #e0e0e0;
-            z-index: 0;
-        }
-
-        .stepper-step {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-            flex: 1;
-        }
-
-        .stepper-circle {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            margin: 0 auto 0.5rem;
-            background-color: #e0e0e0;
-            color: #fff;
-            line-height: 30px;
-            font-weight: bold;
-        }
-
-        .stepper-step.active .stepper-circle,
-        .stepper-step.completed .stepper-circle {
-            background-color: #007bff;
-        }
-
-        .stepper-step.completed .stepper-circle::after {
-            content: '✓';
-        }
-
-        .stepper-label {
-            font-size: 0.9rem;
-            color: #555;
-        }
-
-        .stepper-step.active .stepper-label {
-            font-weight: bold;
-            color: #007bff;
-        }
-
-        .btn-loading {
-            pointer-events: none;
-            opacity: 0.7;
-            position: relative;
-        }
-
-        .btn-loading::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 1.25rem;
-            height: 1.25rem;
-            border: 2px solid transparent;
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-            transform: translate(-50%, -50%);
-        }
-
-        @keyframes spin {
-            to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-        .select2-selection.is-invalid {
-            border-color: #dc3545 !important;
-            box-shadow: 0 0 0 0.25rem rgba(220,53,69,.25);
-        }
-
-        .logs-tab-scroll-wrapper {
-            max-width: 100%;
-            overflow-x: auto;
-        }
-        @media (min-width: 1200px) {
-            .container-fluid {
-                max-width: 150%;
-            }
-        }
-        .validity-start-wrapper {
-            border-left: 5px solid #28a745; /* зелено */
-            background-color: #f0fff5;
-            padding-left: 8px;
-            border-radius: 4px;
-        }
-
-        .validity-end-wrapper {
-            border-left: 5px solid #dc3545; /* червено */
-            background-color: #fff5f5;
-            padding-left: 8px;
-            border-radius: 4px;
-        }
-
-        .visibility-start-wrapper {
-            border-left: 5px solid #6f42c1; /* лилаво */
-            background-color: #f9f5ff;
-            padding-left: 8px;
-            border-radius: 4px;
-        }
-
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/shopfully-wizard.css') }}">
+    
 
 {% endblock %}
 
@@ -192,10 +73,10 @@
                         {{ form_row(form.timezone) }}
 
                     </div>
-                    <button type="button" class="btn btn-primary" onclick="nextStep(1)">Next</button>
+                    <button type="button" class="btn btn-primary waves-effect waves-light" onclick="nextStep(1)">Next</button>
                 </div>
 
-                <div id="step-1" class="step" style="display: none;">
+                <div id="step-1" class="step" >
                     <h4>Step 2: Select Company</h4>
                     <div class="mb-3">
                         {{ form_label(form.company) }}
@@ -207,12 +88,12 @@
                         {{ form_errors(form.company) }}
                     </div>
                     <div class="d-flex justify-content-between">
-                        <button type="button" class="btn btn-secondary" onclick="prevStep()">Previous</button>
-                        <button type="button" class="btn btn-primary" onclick="nextStep(2)">Next</button>
+                        <button type="button" class="btn btn-secondary waves-effect waves-light" onclick="prevStep()">Previous</button>
+                        <button type="button" class="btn btn-primary waves-effect waves-light" onclick="nextStep(2)">Next</button>
                     </div>
                 </div>
 
-                <div id="step-2" class="step" style="display: none;">
+                <div id="step-2" class="step" >
                     <h4>Step 3: Locale and Brochures</h4>
 
                     <div class="mb-3">
@@ -287,16 +168,16 @@
                             <input type="text" id="bulkNumbers" class="form-control" placeholder="e.g. 123,456,789">
                         </div>
 
-                        <button type="button" class="btn btn-outline-primary mt-2" onclick="addNumberField()">Add Brochure</button>
+                        <button type="button" class="btn btn-outline-primary waves-effect waves-light mt-2" onclick="addNumberField()">Add Brochure</button>
                     </div>
 
                     <div class="d-flex justify-content-between">
-                        <button type="button" class="btn btn-secondary" onclick="prevStep()">Previous</button>
-                        <button type="button" class="btn btn-primary" onclick="nextStep(3)">Next</button>
+                        <button type="button" class="btn btn-secondary waves-effect waves-light" onclick="prevStep()">Previous</button>
+                        <button type="button" class="btn btn-primary waves-effect waves-light" onclick="nextStep(3)">Next</button>
                     </div>
                 </div>
 
-                <div id="step-3" class="step" style="display: none;">
+                <div id="step-3" class="step" >
                     <h4>Step 4: Preview</h4>
                     <div class="mb-2"><strong>Company:</strong> <span id="preview-company"></span></div>
                     <div class="mb-2"><strong>Locale:</strong> <span id="preview-locale"></span></div>
@@ -305,8 +186,8 @@
                     <div class="mb-2"><strong>Brochures:</strong> <ul id="preview-numbers" class="list-group"></ul></div>
 
                     <div class="d-flex justify-content-between">
-                        <button type="button" class="btn btn-secondary" onclick="prevStep()">Previous</button>
-                        <button type="submit" class="btn btn-success" onclick="prepareAndSubmit(event)">Submit</button>
+                        <button type="button" class="btn btn-secondary waves-effect waves-light" onclick="prevStep()">Previous</button>
+                        <button type="submit" class="btn btn-success waves-effect waves-light" onclick="prepareAndSubmit(event)">Submit</button>
 
                     </div>
                 </div>
@@ -316,8 +197,11 @@
 
             <!-- Logs Tab -->
             <div class="tab-pane fade" id="logs-tab-pane" role="tabpanel">
-                <div class="logs-tab-scroll-wrapper" style="overflow-x: auto;">
-                    <table id="logsTable" class="table table-striped table-bordered table-hover w-100">
+                <div class="logs-tab-scroll-wrapper">
+                    <div class="card logs-table-card">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                            <table id="logsTable" class="table table-hover w-100 mb-0">
                         <thead class="table-dark">
                         <tr>
                             <th>ID</th>
@@ -327,7 +211,9 @@
                             <th>Status</th>
                             <th>Import Type</th>
                             <th>Data (JSON)</th>
+                            <th>Reimports</th>
                             <th>Refresh</th>
+                            <th>Reimport</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -347,7 +233,18 @@
                             <td>{{ log.locale }}</td>
                             <td>
                                 {% if log.status %}
-                                    <span class="badge bg-info text-dark">{{ log.status }}</span>
+                                    {% set status = log.status|default('')|lower %}
+                                    {% set badgeClass = 'bg-secondary' %}
+                                    {% if status in ['done', 'success', 'completed'] %}
+                                        {% set badgeClass = 'bg-success' %}
+                                    {% elseif status in ['skipped', 'partial', 'warning'] %}
+                                        {% set badgeClass = 'bg-warning text-dark' %}
+                                    {% elseif status in ['failed', 'error', 'aborted'] %}
+                                        {% set badgeClass = 'bg-danger' %}
+                                    {% elseif status in ['running', 'processing', 'pending', 'queued', 'retrying'] %}
+                                        {% set badgeClass = 'bg-info text-dark' %}
+                                    {% endif %}
+                                    <span class="badge {{ badgeClass }}">{{ log.status }}</span>
                                 {% else %}
                                     <span class="text-muted">N/A</span>
                                 {% endif %}
@@ -355,30 +252,42 @@
                             <td><span class="text-muted">{{ log.importType }}</span></td>
                             <td>
                                 {% set collapseId = 'collapse-log-' ~ log.id %}
-                                <a class="btn btn-sm btn-outline-secondary"
+                                {% set numbers = log.data.numbers is defined ? log.data.numbers : log.data %}
+                                <a class="btn btn-sm btn-outline-secondary waves-effect waves-light"
                                    data-bs-toggle="collapse"
                                    href="#{{ collapseId }}"
                                    role="button"
                                    aria-expanded="false"
                                    aria-controls="{{ collapseId }}">
-                                    📂 {{ log.data|length }} brochure{{ log.data|length > 1 ? 's' : '' }}
+                                    📂 {{ numbers|length }} brochure{{ numbers|length > 1 ? 's' : '' }}
                                 </a>
                                 <div class="collapse mt-2" id="{{ collapseId }}">
                                     <ul class="list-group list-group-flush small border rounded">
-                                        {% for brochure in log.data %}
+                                        {% for brochure in numbers %}
                                             <li class="list-group-item d-flex justify-content-between">
-                                                <span>#{{ loop.index }}: <strong>{{ brochure.number }}</strong></span>
-                                                <span class="text-muted">Pixel: {{ brochure.tracking_pixel }}</span>
+                                                {% if brochure.number is defined %}
+                                                    <span>#{{ loop.index }}: <strong>{{ brochure.number }}</strong></span>
+                                                    <span class="text-muted">Pixel: {{ brochure.tracking_pixel }}</span>
+                                                {% else %}
+                                                    <span>{{ brochure }}</span>
+                                                {% endif %}
                                             </li>
                                         {% endfor %}
                                     </ul>
                                 </div>
                             </td>
+                            <td class="reimport-count">{{ log.reimportCount }}</td>
                             <td>
-                                <button class="btn btn-sm btn-outline-primary refresh-status-btn"
+                                <button class="btn btn-sm btn-outline-primary waves-effect waves-light refresh-status-btn"
                                         data-id="{{ log.id }}"
-                                        data-import-id="{{ log.importId }}">
-                                    🔄
+                                        data-import-id="{{ log.importId }}"
+                                        title="Refresh status">
+                                    <i class="material-icons">refresh</i>
+                                </button>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-success waves-effect waves-light reimport-btn" data-id="{{ log.id }}" title="Reimport">
+                                    ⟳
                                 </button>
                             </td>
 
@@ -386,526 +295,55 @@
                     {% endfor %}
 
                     </tbody>
-                </table>
+                            </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    
+
+    
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+
+
+<div class="modal fade" id="reimportConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Reimport</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to rerun?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-no" data-bs-dismiss="modal">No</button>
+                <button type="button" class="btn btn-primary btn-yes">Yes</button>
             </div>
         </div>
     </div>
-
-    <script>
-        let currentStep = 0;
-
-        function showStep(step) {
-            for (let i = 0; i <= 3; i++) {
-                const el = document.getElementById(`step-${i}`);
-                el.style.display = (i === step ? 'block' : 'none');
-            }
-
-            document.querySelectorAll('#stepper .stepper-step').forEach((stepEl, index) => {
-                stepEl.classList.remove('active', 'completed');
-                if (index < step) {
-                    stepEl.classList.add('completed');
-                } else if (index === step) {
-                    stepEl.classList.add('active');
-                }
-            });
-
-            currentStep = step;
-        }
-
-        function prepareAndSubmit(e) {
-            e.preventDefault();
-
-            const form = document.querySelector('form');
-            const steps = document.querySelectorAll('.step');
-            const originalStep = currentStep;
-
-            steps.forEach(step => step.style.display = 'block');
-
-            const isValid = form.checkValidity();
-
-            if (!isValid) {
-                form.reportValidity();
-                steps.forEach((step, index) => {
-                    step.style.display = (index === originalStep ? 'block' : 'none');
-                });
-                return;
-            }
-
-            steps.forEach((step, index) => {
-                step.style.display = (index === originalStep ? 'block' : 'none');
-            });
-
-            const submitBtn = e.target;
-            submitBtn.classList.add('btn-loading');
-
-            setTimeout(() => {
-                form.submit();
-            }, 50);
-        }
-
-
-
-        function nextStep(step = currentStep + 1) {
-            const currentStepElement = document.getElementById(`step-${currentStep}`);
-            const inputs = currentStepElement.querySelectorAll('input, select, textarea');
-
-            let isValid = true;
-
-            inputs.forEach(input => {
-                const $input = $(input);
-                const isSelect2 = $input.hasClass('select2-hidden-accessible');
-
-                $input.next('.select2-container').find('.select2-selection').removeClass('is-invalid');
-                $input.next('.select2-container').next('.select2-error-message')?.remove();
-
-                if (isSelect2 && input.required && !input.value) {
-                    isValid = false;
-
-                    $input.next('.select2-container').find('.select2-selection')
-                        .addClass('is-invalid');
-
-                    const msg = document.createElement('div');
-                    msg.className = 'text-danger select2-error-message mt-1';
-                    msg.innerText = input.dataset.errorMessage || 'This field is required.';
-                    $input.next('.select2-container').after(msg);
-                }
-
-                if (!isSelect2 && !input.checkValidity()) {
-                    input.reportValidity();
-                    if (input.offsetParent !== null) input.focus();
-                    isValid = false;
-                }
-            });
-
-            if (!isValid) return;
-
-            if (step === 3) fillPreview();
-            showStep(step);
-        }
-
-
-
-
-        function prevStep() {
-            if (currentStep > 0) showStep(currentStep - 1);
-        }
-
-        function addNumberField() {
-
-            const wrapper = document.getElementById('numbers-wrapper');
-            const prototype = wrapper.dataset.prototype;
-            const indexStart = wrapper.querySelectorAll('.number-entry[data-real="true"]').length;
-
-            const bulkInput = document.getElementById('bulkNumbers');
-            let inputValue = bulkInput?.value || '';
-            const numbers = inputValue.split(',').map(s => s.trim()).filter(Boolean);
-
-            if (numbers.length === 0) {
-                const newForm = prototype.replace(/__name__/g, indexStart);
-                const div = document.createElement('div');
-                div.classList.add('number-entry', 'mb-2');
-                div.setAttribute('data-real', 'true');
-                div.innerHTML = newForm;
-                wrapper.appendChild(div);
-                return;
-            }
-
-            numbers.forEach((number, i) => {
-                const index = indexStart + i;
-                const newForm = prototype.replace(/__name__/g, index);
-                const div = document.createElement('div');
-                div.classList.add('number-entry', 'mb-2');
-                div.setAttribute('data-real', 'true');
-                div.innerHTML = newForm;
-
-                const numberInput = div.querySelector('input[name$="[number]"]');
-                if (numberInput) {
-                    numberInput.value = number;
-                    fetchAndSetDates(numberInput, div); // <-- добави този ред
-                }
-
-
-                wrapper.appendChild(div);
-            });
-
-            if (bulkInput) bulkInput.value = '';
-        }
-        function formatDateForDatetimeLocal(dateString, isEnd = false) {
-            const date = new Date(dateString);
-            if (isNaN(date)) return '';
-
-            // Принуждаваме го в локален формат
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const hours = isEnd ? '23' : '00';
-            const minutes = isEnd ? '59' : '00';
-
-            return `${year}-${month}-${day}T${hours}:${minutes}`;
-        }
-
-
-
-
-        async function fetchAndSetDates(numberInput, block) {
-            const number = numberInput.value.trim();
-            const localeInput = document.querySelector('[name$="[locale]"]');
-            const locale = localeInput?.value?.trim();
-
-            if (!number || !locale) return;
-
-            try {
-                const url = `/api/shopfully/brochure?brochure_number=${encodeURIComponent(number)}&locale=${encodeURIComponent(locale)}`;
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (Array.isArray(data) && data.length > 0) {
-                    const startDate = data[0].start_date;
-                    const endDate = data[0].end_date;
-                    const startInput = block.querySelector('input[name$="[validity_start]"]');
-                    const endInput = block.querySelector('input[name$="[validity_end]"]');
-                    const visibilityStartInput = block.querySelector('input[name$="[visibility_start]"]');
-
-                    if (startInput && startDate) startInput.value = formatDateForDatetimeLocal(startDate);
-                    if (endInput && endDate) endInput.value = formatDateForDatetimeLocal(endDate, true); // <-- fix
-                    if (visibilityStartInput && startDate) visibilityStartInput.value = formatDateForDatetimeLocal(startDate);
-                }
-            } catch (e) {
-                console.error('Failed to fetch brochure dates:', e);
-            }
-        }
-
-
-
-        function fillPreview() {
-            const companySelect = document.querySelector('[name$="[company]"]');
-            const companyText = companySelect.options[companySelect.selectedIndex]?.text || '';
-            document.getElementById('preview-company').textContent = companyText;
-
-            const locale = document.querySelector('[name$="[locale]"]').value;
-            document.getElementById('preview-locale').textContent = locale;
-
-            const prefixInput = document.querySelector('[name$="[prefix]"]');
-            const suffixInput = document.querySelector('[name$="[suffix]"]');
-
-            const prefix = prefixInput?.value || '';
-            const suffix = suffixInput?.value || '';
-
-            document.getElementById('preview-prefix').textContent = prefix;
-            document.getElementById('preview-suffix').textContent = suffix;
-
-            const previewList = document.getElementById('preview-numbers');
-            previewList.innerHTML = '';
-
-            const wrappers = document.querySelectorAll('#numbers-wrapper .number-entry[data-real="true"]');
-            let visibleIndex = 1;
-
-            wrappers.forEach(block => {
-                const numberInput = block.querySelector('input[name$="[number]"]');
-                const pixelInput = block.querySelector('input[name$="[tracking_pixel]"]');
-                if (!numberInput || !pixelInput) return;
-
-                const number = numberInput.value.trim();
-                const pixel = pixelInput.value.trim();
-
-                if (number === '' && pixel === '') return;
-
-                const item = document.createElement('li');
-                item.classList.add('list-group-item');
-                item.textContent = `#${visibleIndex++}: ${number} — Pixel: ${pixel}`;
-                previewList.appendChild(item);
-            });
-        }
-
-    </script>
-
+</div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            new DataTable('#logsTable', {
-                responsive: true,
-                pageLength: 10,
-                order: [[1, 'desc']],
-            });
-        });
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const ownerSelect = document.querySelector('[name$="[owner]"]');
-            const companySelect = document.querySelector('[name$="[company]"]');
-
-            ownerSelect.addEventListener('change', async function () {
-                const ownerId = this.value;
-                companySelect.innerHTML = '<option value="">Loading companies...</option>';
-                companySelect.disabled = true;
-
-                try {
-                    const response = await fetch(`/company/api/companies?owner=${encodeURIComponent(ownerId)}`);
-                    const companies = await response.json();
-
-                    companySelect.innerHTML = '<option value="">Select a company</option>';
-
-                    companies.forEach(company => {
-                        const option = document.createElement('option');
-                        option.value = company.id;
-                        option.textContent = company.label;
-                        companySelect.appendChild(option);
-                    });
-
-                    companySelect.disabled = false;
-                } catch (e) {
-                    companySelect.innerHTML = '<option value="">Error loading companies</option>';
-                    console.error('Error fetching companies:', e);
-                }
-                const timezoneInput = document.querySelector('[name$="[timezone]"]');
-
-                try {
-                    const response = await fetch(`/company/api/timezone?owner=${encodeURIComponent(ownerId)}`);
-                    const data = await response.json();
-
-                    timezoneInput.value = data.timezone || '';
-                } catch (e) {
-                    console.error('Failed to fetch timezone:', e);
-                }
-            });
-        });
-    </script>
-
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.material.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const $ownerSelect = $('[name$="[owner]"]');
-            const $companySelect = $('[name$="[company]"]');
-
-            $ownerSelect.select2({
-                placeholder: 'Select an owner',
-                allowClear: true,
-                width: '100%'
-            });
-
-            $companySelect.select2({
-                placeholder: 'Select a company',
-                allowClear: true,
-                width: '100%'
-            });
-
-            $ownerSelect.on('change', async function () {
-                const selectedOwnerText = $(this).find('option:selected').text().trim();
-                const ownerLabel = document.querySelector('.stepper-step[data-step="0"] .stepper-label');
-                if (ownerLabel) {
-                    ownerLabel.textContent = selectedOwnerText || 'Owner';
-                }
-
-                const ownerId = $(this).val();
-
-                this.setCustomValidity('');
-
-                $companySelect.prop('disabled', true).empty().append(new Option('Loading companies...', '', false, false));
-
-                try {
-                    const response = await fetch(`/company/api/companies?owner=${encodeURIComponent(ownerId)}`);
-                    const companies = await response.json();
-
-                    $companySelect.empty().append(new Option('Select a company', '', true, false));
-                    companies.forEach(company => {
-                        const option = new Option(company.label, company.id, false, false);
-                        $companySelect.append(option);
-                    });
-
-                    $companySelect.prop('disabled', false).trigger('change');
-                } catch (error) {
-                    console.error('Error loading companies:', error);
-                    $companySelect.empty().append(new Option('Error loading companies', '', false, false));
-                    $companySelect.prop('disabled', false);
-                }
-
-                const timezoneInput = document.querySelector('[name$="[timezone]"]');
-                try {
-                    const response = await fetch(`/company/api/timezone?owner=${encodeURIComponent(ownerId)}`);
-                    const data = await response.json();
-                    timezoneInput.value = data.timezone || '';
-                } catch (e) {
-                    console.error('Failed to fetch timezone:', e);
-                }
-
-                const localeInput = document.querySelector('[name$="[locale]"]');
-                try {
-                    const response = await fetch(`/api/shopfully/locale?ownerId=${encodeURIComponent(ownerId)}`);
-                    const data = await response.json();
-                    if (data.locale && localeInput) {
-                        localeInput.value = data.locale;
-                    }
-                } catch (e) {
-                    console.error('Failed to fetch locale:', e);
-                }
-            });
-            $companySelect.on('change', function () {
-                this.setCustomValidity('');
-                const selectedCompanyText = $(this).find('option:selected').text().trim();
-                const companyLabel = document.querySelector('.stepper-step[data-step="1"] .stepper-label');
-                if (companyLabel) {
-                    companyLabel.textContent = selectedCompanyText || 'Company';
-                }
-            });
-        });
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            function sanitizeTrackingPixel(input) {
-                let url = input.value.trim();
-
-                if (!url) return;
-
-                if (!url.startsWith('https://')) {
-                    if (url.startsWith('http://')) {
-                        url = 'https://' + url.slice(7);
-                    } else {
-                        url = 'https://' + url;
-                    }
-                }
-
-                if (url.includes('%%CACHEBUSTER%%')) {
-                    input.value = url;
-                    return;
-                }
-
-                const hasSemicolon = url.includes(';');
-                const hasQuestion = url.includes('?');
-                const hasAmp = url.includes('&');
-                const isDoubleClickStyle = hasSemicolon && !hasQuestion; // DCM pattern
-
-                let delimiter = '?';
-                if (isDoubleClickStyle) {
-                    delimiter = ';';
-                } else if (hasQuestion) {
-                    delimiter = hasAmp ? '&' : '?';
-                }
-
-                if (url.includes('[timestamp]')) {
-                    url = url.replace('[timestamp]', '%%CACHEBUSTER%%');
-                    input.value = url;
-                    return;
-                }
-
-                const ordRegex = /ord=([^;&?]*)/;
-                if (ordRegex.test(url)) {
-                    url = url.replace(ordRegex, 'ord=%%CACHEBUSTER%%');
-                    input.value = url;
-                    return;
-                }
-
-                if (isDoubleClickStyle) {
-                    if (url.endsWith(';')) {
-                        url += 'ord=%%CACHEBUSTER%%';
-                    } else {
-                        url += ';ord=%%CACHEBUSTER%%';
-                    }
-                } else {
-                    const sep = url.includes('?') ? (hasAmp ? '&' : '&') : '?';
-                    url += sep + 'ord=%%CACHEBUSTER%%';
-                }
-
-                input.value = url;
-            }
-
-            function attachListenersToTrackingPixels() {
-                document.querySelectorAll('input[name$="[tracking_pixel]"]').forEach(input => {
-                    input.removeEventListener('blur', onBlurHandler);
-                    input.addEventListener('blur', onBlurHandler);
-                });
-            }
-
-            function onBlurHandler(e) {
-                sanitizeTrackingPixel(e.target);
-            }
-
-            attachListenersToTrackingPixels();
-
-            const wrapper = document.getElementById('numbers-wrapper');
-            const observer = new MutationObserver(() => {
-                attachListenersToTrackingPixels();
-            });
-            observer.observe(wrapper, { childList: true, subtree: true });
-        });
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.refresh-status-btn').forEach(button => {
-                button.addEventListener('click', async function () {
-                    const logId = this.dataset.importId;
-                    const importId = this.dataset.importId;
-
-                    this.disabled = true;
-                    this.innerHTML = '⏳';
-                    function getBadgeClass(status) {
-                        const normalized = (status || '').toLowerCase();
-
-                        const successStatuses = ['done', 'success', 'completed'];
-                        const warningStatuses = ['skipped', 'partial', 'warning'];
-                        const dangerStatuses = ['failed', 'error', 'aborted'];
-                        const infoStatuses = ['running', 'processing', 'pending', 'queued', 'retrying'];
-
-                        if (successStatuses.includes(normalized)) return 'bg-success';
-                        if (warningStatuses.includes(normalized)) return 'bg-warning text-dark';
-                        if (dangerStatuses.includes(normalized)) return 'bg-danger';
-                        if (infoStatuses.includes(normalized)) return 'bg-info text-dark';
-
-                        return 'bg-secondary';
-                    }
-
-                    try {
-                        const response = await fetch(`/api/logs/${logId}/refresh`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest',
-                            },
-                            body: JSON.stringify({ importId: importId })
-                        });
-
-                        const data = await response.json();
-                        if (data.success) {
-                            const row = this.closest('tr');
-
-                            const badgeClass = getBadgeClass(data.status);
-                            const statusText = data.status ?? 'unknown';
-
-                            const statusCell = row.querySelector('td:nth-child(5)');
-                            if (statusCell) {
-                                statusCell.innerHTML = `<span class="badge ${badgeClass}">${statusText}</span>`;
-                            }
-
-                            const jsonCell = row.querySelector('td:nth-child(7)');
-                            if (jsonCell) {
-                                jsonCell.innerHTML = `
-            <span class="text-muted">
-                Notices: ${data.noticesCount},
-                Warnings: ${data.warningsCount},
-                Errors: ${data.errorsCount}
-            </span>
-        `;
-                            }
-                        } else {
-                            alert('Failed to refresh status.');
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        alert('Error fetching import status.');
-                    } finally {
-                        this.disabled = false;
-                        this.innerHTML = '🔄';
-                    }
-                });
-            });
-        });
-    </script>
-
-
-
+    <script src="{{ asset('js/shopfully-wizard.js') }}"></script>
 {% endblock %}
