@@ -32,6 +32,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
+    #[ORM\Column(length: 32, nullable: true)]
+    private ?string $twoFactorSecret = null;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $twoFactorEnabled = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -96,6 +102,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): static
     {
         $this->password = $password;
+
+        return $this;
+    }
+
+    public function getTwoFactorSecret(): ?string
+    {
+        return $this->twoFactorSecret;
+    }
+
+    public function setTwoFactorSecret(?string $twoFactorSecret): static
+    {
+        $this->twoFactorSecret = $twoFactorSecret;
+
+        return $this;
+    }
+
+    public function isTwoFactorEnabled(): bool
+    {
+        return $this->twoFactorEnabled;
+    }
+
+    public function setTwoFactorEnabled(bool $twoFactorEnabled): static
+    {
+        $this->twoFactorEnabled = $twoFactorEnabled;
 
         return $this;
     }

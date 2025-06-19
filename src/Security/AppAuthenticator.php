@@ -44,11 +44,26 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
-        if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
+        $session = $request->getSession();
+        $user = $token->getUser();
+
+        if ($user instanceof \App\Entity\User) {
+            if ($user->isTwoFactorEnabled()) {
+                $session->set('2fa_verified', false);
+                $session->set('2fa_user_id', $user->getId());
+
+                return new RedirectResponse($this->urlGenerator->generate('app_2fa_verify'));
+            }
+
+            if (!$user->getTwoFactorSecret()) {
+                $session->set('show_2fa_prompt', true);
+            }
+        }
+
+        if ($targetPath = $this->getTargetPath($session, $firewallName)) {
             return new RedirectResponse($targetPath);
         }
 
-        // Redirect to the homepage or another route after successful login
         return new RedirectResponse($this->urlGenerator->generate('app_home'));
     }
 
