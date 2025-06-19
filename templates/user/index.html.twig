@@ -25,6 +25,7 @@
                     <td>
                         <a href="{{ path('app_user_show', {'id': user.id}) }}" class="btn-small waves-effect waves-light">Show</a>
                         <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="btn-small orange waves-effect waves-light">Edit</a>
+                        <a href="{{ path('app_user_2fa', {'id': user.id}) }}" class="btn-small green waves-effect waves-light">Add 2FA</a>
                     </td>
                 </tr>
             {% else %}

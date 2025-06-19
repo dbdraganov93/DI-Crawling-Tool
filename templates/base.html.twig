@@ -82,5 +82,25 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
 {% block javascripts %}{% endblock %}
+
+{% if app.session and app.session.get('show_2fa_prompt') %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        Swal.fire({
+            title: 'Enable Two-Factor Authentication?',
+            text: 'Would you like to enable 2FA for additional security?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'Later'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '{{ path('app_user_2fa', {'id': app.user.id}) }}';
+            }
+        });
+    });
+</script>
+{% set _ = app.session.remove('show_2fa_prompt') %}
+{% endif %}
 </body>
 </html>
