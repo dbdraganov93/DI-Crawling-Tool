@@ -1,171 +1,119 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Entity\Brochure;
+
 class BrochureService
 {
-    private const DEFAULT_VARIETY = 'leaflet';
-
-    private const DEFAULT_PROCESSING_OPTIONS = [
-        'version' => '2021-04-19',
-        'cutPages' => true,
-        'dpi' => 250,
-        'maxImageSize' => 6250000,
-        'allowFontSubstitution' => true,
-    ];
-    private array $brochures = [];
-
-    // Declare all properties
-    private string $pdfUrl = '';
-    private string $integration = '';
-    private string $salesRegion = '';
-    private string $brochureNumber = '';
-    private string $title = '';
-    private string $variety = '';
-    private string $validFrom = '';
-    private string $validTo = '';
-    private string $visibleFrom = '';
-    private array $pdfProcessingOptions = [];
-    private string $layout = '';
-    private string $trackingPixels = '';
     private int $companyId;
-    private string $storeNumber = '';
+    private array $brochures = [];
+    private Brochure $currentBrochure;
 
     public function __construct(int $companyId)
     {
         $this->companyId = $companyId;
-        $this->setIntegration($this->companyId);
+        $this->currentBrochure = new Brochure();
+        $this->currentBrochure->setIntegration('https://iproto.offerista.com/api/integrations/' . $companyId);
     }
 
     public function getCompanyId(): int
     {
         return $this->companyId;
     }
-    // Setters
+
+    // Setters delegate to the current brochure instance
     public function setPdfUrl(string $pdfUrl): self
     {
-        $this->pdfUrl = $pdfUrl;
+        $this->currentBrochure->setPdfUrl($pdfUrl);
         return $this;
     }
 
     public function setStoreNumber(string $storeNumber): self
     {
-        $this->storeNumber = $storeNumber;
+        $this->currentBrochure->setStoreNumber($storeNumber);
         return $this;
     }
 
-
-
-    public function setIntegration(string $integration): self
+    public function setIntegration(int $integration): self
     {
-        $this->integration = 'https://iproto.offerista.com/api/integrations/' . $integration;
+        $this->currentBrochure->setIntegration('https://iproto.offerista.com/api/integrations/' . $integration);
         return $this;
     }
 
     public function setSalesRegion(string $salesRegion): self
     {
-        $this->salesRegion = $salesRegion;
+        $this->currentBrochure->setSalesRegion($salesRegion);
         return $this;
     }
 
     public function setBrochureNumber(string $brochureNumber): self
     {
-        $this->brochureNumber = $brochureNumber;
+        $this->currentBrochure->setBrochureNumber($brochureNumber);
         return $this;
     }
 
     public function setTitle(string $title): self
     {
-        $this->title = $title;
+        $this->currentBrochure->setTitle($title);
         return $this;
     }
 
     public function setVariety(string $variety): self
     {
-        $this->variety = $variety;
+        $this->currentBrochure->setVariety($variety);
         return $this;
     }
 
     public function setValidFrom(string $validFrom): self
     {
-
-        $this->validFrom = $validFrom;
+        $this->currentBrochure->setValidFrom($validFrom);
         return $this;
     }
 
     public function setValidTo(string $validTo): self
     {
-        $this->validTo = $validTo;
+        $this->currentBrochure->setValidTo($validTo);
         return $this;
     }
 
     public function setVisibleFrom(string $visibleFrom): self
     {
-        $this->visibleFrom = $visibleFrom;
+        $this->currentBrochure->setVisibleFrom($visibleFrom);
         return $this;
     }
 
     public function setPdfProcessingOptions(array $pdfProcessingOptions): self
     {
-        $this->pdfProcessingOptions = $pdfProcessingOptions;
+        $this->currentBrochure->setPdfProcessingOptions($pdfProcessingOptions);
         return $this;
     }
 
     public function setLayout(string $layout): self
     {
-        $this->layout = $layout;
+        $this->currentBrochure->setLayout($layout);
         return $this;
     }
 
     public function setTrackingPixels(string $trackingPixels): self
     {
-        $this->trackingPixels = $trackingPixels;
+        $this->currentBrochure->setTrackingPixels($trackingPixels);
         return $this;
     }
 
     // Add current brochure to list
     public function addCurrentBrochure(): self
     {
-//        [
-//                'pdfUrl' => $brochureData['pdf_url'],
-//                'integration' => $integrationUrl,
-//                'brochureNumber' => 'test_' . $brochureData['brochure_number'],
-//                'title' => $brochureData['title'],
-//                'variety' => $brochureData['variety'],
-//                'validFrom' => (new \DateTimeImmutable($brochureData['valid_from'], $tz))->format('Y-m-d\TH:i:s e'),
-//                'validTo' => (new \DateTimeImmutable($brochureData['valid_to'], $tz))->format('Y-m-d\TH:i:s e'),
-//                'visibleFrom' => (new \DateTimeImmutable($brochureData['visible_from'], $tz))->format('Y-m-d\TH:i:s e'),
-//                'pdfProcessingOptions' => $brochureData['pdf_processing_options'] ?: [
-//                    'version' => '2021-04-19',
-//                    'cutPages' => true,
-//                    'dpi' => 250,
-//                    'maxImageSize' => 6250000,
-//                    'allowFontSubstitution' => true,
-//                ],
-//                'trackingPixels' => $brochureData['tracking_pixels'] ?? [],
-//            ];
-
-
-        $this->brochures[] = [
-            'pdfUrl' => $this->pdfUrl,
-            'integration' => $this->integration,
-            'sales_region' => $this->salesRegion,
-            'brochureNumber' => $this->brochureNumber,
-            'title' => $this->title,
-            'variety' => $this->variety ?? self::DEFAULT_VARIETY,
-            'validFrom' => $this->validFrom,
-            'validTo' => $this->validTo,
-            'storeNumber' => $this->storeNumber,
-            'visibleFrom' => $this->visibleFrom,
-            'pdfProcessingOptions' => $this->pdfProcessingOptions ?? self::DEFAULT_PROCESSING_OPTIONS,
-            'trackingPixels' => $this->trackingPixels ?? '',
-        ];
+        $this->brochures[] = $this->currentBrochure;
+        $this->currentBrochure = new Brochure();
+        $this->currentBrochure->setIntegration('https://iproto.offerista.com/api/integrations/' . $this->companyId);
 
         return $this;
     }
 
     public function getBrochures(): array
     {
-        return $this->brochures;
+        return array_map(static fn (Brochure $b) => $b->toArray(), $this->brochures);
     }
 }

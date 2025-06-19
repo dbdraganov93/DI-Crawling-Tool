@@ -1,9 +1,11 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Service;
 
 use App\Service\ClickoutsMapperService;
 use App\Service\PdfLinkAnnotatorService;
+use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use App\Service\PdfDownloaderService;
@@ -19,6 +21,7 @@ class ShopfullyService
     private PdfDownloaderService $pdfDownloaderService;
     private S3Service $s3Service;
     private PdfLinkAnnotatorService $pdfLinkAnnotatorService;
+    private LoggerInterface $logger;
 
     public function __construct(
         HttpClientInterface $httpClient,
@@ -26,12 +29,14 @@ class ShopfullyService
         PdfDownloaderService $pdfDownloaderService,
         PdfLinkAnnotatorService $pdfLinkAnnotatorService,
         S3Service $s3Service,
+        LoggerInterface $logger,
     ) {
         $this->httpClient = $httpClient;
         $this->clickoutsMapperService = $clickoutsMapperService;
         $this->pdfDownloaderService = $pdfDownloaderService;
         $this->pdfLinkAnnotatorService = $pdfLinkAnnotatorService;
         $this->s3Service = $s3Service;
+        $this->logger = $logger;
     }
 
     private function getBrochureStoresAsString(array $stores): string
@@ -57,7 +62,7 @@ class ShopfullyService
         try {
             $response['brochureData']['data'][0]['Publication']['pdf_local'] = $this->pdfDownloaderService->download($response['publicationData']['data'][0]['Publication']['pdf_url']);
         } catch (\Exception $e) {
-            echo "Download failed: " . $e->getMessage() . "\n";
+            $this->logger->error('Download failed: ' . $e->getMessage());
         }
 
         if (array_key_exists('Publication', $response['brochureData']['data'][0])) {
@@ -149,7 +154,7 @@ class ShopfullyService
         return $arrayResponse;
     }
 
-    public function fetchPublicationData(int $brochureId, string $locale = 'it_it'): array
+    public function fetchPublicationData(string $brochureId, string $locale = 'it_it'): array
     {
         $url = self::SHOPFULLY_HOST . $locale . '/publications/' . $brochureId . '.json?modifiers=pdf_url';
 

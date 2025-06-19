@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Service;
 
@@ -13,7 +14,7 @@ class LocaleService
         230 => 'cs_cz',
     ];
 
-    public function getLocale($ownerId): string
+    public function getLocale(int $ownerId): string
     {
         return self::LOCALE[$ownerId] ?? '';
     }

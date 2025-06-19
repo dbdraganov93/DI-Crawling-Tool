@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Service;
 
@@ -78,12 +79,9 @@ class CsvService
             }
         }
 
-        file_put_contents($filePath, $csv->toString());
-        $domain = getenv('APP_DOMAIN');
         $csvContent = $csv->toString();
         file_put_contents($filePath, $csvContent);
         $base64Csv = base64_encode($csvContent);
-
         $domain = getenv('APP_DOMAIN');
 
         return [
@@ -166,13 +164,9 @@ class CsvService
             }
         }
 
-        file_put_contents($filePath, $csv->toString());
-        $domain = getenv('APP_DOMAIN');
-
         $csvContent = $csv->toString();
         file_put_contents($filePath, $csvContent);
         $base64Csv = base64_encode($csvContent);
-
         $domain = getenv('APP_DOMAIN');
 
         return [

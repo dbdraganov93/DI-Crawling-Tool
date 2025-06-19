@@ -49,6 +49,9 @@ class ShopfullyLog
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $importId = null;
 
+    #[ORM\Column(type: 'integer')]
+    private int $reimportCount = 0;
+
     public function getImportId(): ?int
     {
         return $this->importId;
@@ -57,6 +60,17 @@ class ShopfullyLog
     public function setImportId(?int $importId): static
     {
         $this->importId = $importId;
+        return $this;
+    }
+
+    public function getReimportCount(): int
+    {
+        return $this->reimportCount;
+    }
+
+    public function setReimportCount(int $reimportCount): static
+    {
+        $this->reimportCount = $reimportCount;
         return $this;
     }
 
