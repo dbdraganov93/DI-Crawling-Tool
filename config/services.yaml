@@ -3,7 +3,7 @@ services:
         arguments:
             $bucket: '%env(AWS_BUCKET)%'
             $region: '%env(AWS_REGION)%'
-            $profile: '%env(AWS_PROFILE)%'
+            $profile: '%env(default::AWS_PROFILE)%'
     App\Service\IprotoService: ~
     App\Service\IprotoTokenService: ~
     App\CrawlerScripts\SampleCrawlerScript: ~
