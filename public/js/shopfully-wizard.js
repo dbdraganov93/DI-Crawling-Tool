@@ -1,192 +1,220 @@
 
         let currentStep = 0;
 
-        function showStep(step) {
-            for (let i = 0; i <= 3; i++) {
-                const el = document.getElementById(`step-${i}`);
-                el.style.display = (i === step ? 'block' : 'none');
+function showStep(step)
+{
+    for (let i = 0; i <= 3; i++) {
+        const el = document.getElementById(`step - ${i}`);
+        el.style.display = (i === step ? 'block' : 'none');
+    }
+
+    document.querySelectorAll('#stepper .stepper-step').forEach((stepEl, index) => {
+        stepEl.classList.remove('active', 'completed');
+        if (index < step) {
+            stepEl.classList.add('completed');
+        } else if (index === step) {
+            stepEl.classList.add('active');
+        }
+    });
+
+    currentStep = step;
+}
+
+function prepareAndSubmit(e)
+{
+    e.preventDefault();
+
+    const form = document.querySelector('form');
+    const steps = document.querySelectorAll('.step');
+    const originalStep = currentStep;
+
+    steps.forEach(step => step.style.display = 'block');
+
+    const isValid = form.checkValidity();
+
+    if (!isValid) {
+        form.reportValidity();
+        steps.forEach((step, index) => {
+            step.style.display = (index === originalStep ? 'block' : 'none');
+        });
+        return;
+    }
+
+    steps.forEach((step, index) => {
+        step.style.display = (index === originalStep ? 'block' : 'none');
+    });
+
+    const submitBtn = e.target;
+    submitBtn.classList.add('btn-loading');
+
+    setTimeout(() => {
+        form.submit();
+    }, 50);
+}
+
+
+
+function nextStep(step = currentStep + 1)
+{
+    const currentStepElement = document.getElementById(`step - ${currentStep}`);
+    const inputs = currentStepElement.querySelectorAll('input, select, textarea');
+
+    let isValid = true;
+
+    inputs.forEach(input => {
+        const $input = $(input);
+        const isSelect2 = $input.hasClass('select2-hidden-accessible');
+
+        $input.next('.select2-container').find('.select2-selection').removeClass('is-invalid');
+        $input.next('.select2-container').next('.select2-error-message') ? .remove();
+
+        if (isSelect2 && input.required && !input.value) {
+            isValid = false;
+
+            $input.next('.select2-container').find('.select2-selection')
+                .addClass('is-invalid');
+
+            const msg = document.createElement('div');
+            msg.className = 'text-danger select2-error-message mt-1';
+            msg.innerText = input.dataset.errorMessage || 'This field is required.';
+            $input.next('.select2-container').after(msg);
+        }
+
+        if (!isSelect2 && !input.checkValidity()) {
+            input.reportValidity();
+            if (input.offsetParent !== null) {
+                input.focus();
             }
-
-            document.querySelectorAll('#stepper .stepper-step').forEach((stepEl, index) => {
-                stepEl.classList.remove('active', 'completed');
-                if (index < step) {
-                    stepEl.classList.add('completed');
-                } else if (index === step) {
-                    stepEl.classList.add('active');
-                }
-            });
-
-            currentStep = step;
+            isValid = false;
         }
+    });
 
-        function prepareAndSubmit(e) {
-            e.preventDefault();
+    if (!isValid) {
+        return;
+    }
 
-            const form = document.querySelector('form');
-            const steps = document.querySelectorAll('.step');
-            const originalStep = currentStep;
-
-            steps.forEach(step => step.style.display = 'block');
-
-            const isValid = form.checkValidity();
-
-            if (!isValid) {
-                form.reportValidity();
-                steps.forEach((step, index) => {
-                    step.style.display = (index === originalStep ? 'block' : 'none');
-                });
-                return;
-            }
-
-            steps.forEach((step, index) => {
-                step.style.display = (index === originalStep ? 'block' : 'none');
-            });
-
-            const submitBtn = e.target;
-            submitBtn.classList.add('btn-loading');
-
-            setTimeout(() => {
-                form.submit();
-            }, 50);
-        }
+    if (step === 3) {
+        fillPreview();
+    }
+    showStep(step);
+}
 
 
 
-        function nextStep(step = currentStep + 1) {
-            const currentStepElement = document.getElementById(`step-${currentStep}`);
-            const inputs = currentStepElement.querySelectorAll('input, select, textarea');
 
-            let isValid = true;
+function prevStep()
+{
+    if (currentStep > 0) {
+        showStep(currentStep - 1);
+    }
+}
 
-            inputs.forEach(input => {
-                const $input = $(input);
-                const isSelect2 = $input.hasClass('select2-hidden-accessible');
+function addNumberField()
+{
 
-                $input.next('.select2-container').find('.select2-selection').removeClass('is-invalid');
-                $input.next('.select2-container').next('.select2-error-message')?.remove();
+    const wrapper = document.getElementById('numbers-wrapper');
+    const prototype = wrapper.dataset.prototype;
+    const indexStart = wrapper.querySelectorAll('.number-entry[data-real="true"]').length;
 
-                if (isSelect2 && input.required && !input.value) {
-                    isValid = false;
+    const bulkInput = document.getElementById('bulkNumbers');
+    let inputValue = bulkInput ? .value || '';
+    const numbers = inputValue.split(',').map(s => s.trim()).filter(Boolean);
 
-                    $input.next('.select2-container').find('.select2-selection')
-                        .addClass('is-invalid');
+    if (numbers.length === 0) {
+        const newForm = prototype.replace(/__name__/g, indexStart);
+        const div = document.createElement('div');
+        div.classList.add('number-entry', 'mb-2');
+        div.setAttribute('data-real', 'true');
+        div.innerHTML = newForm;
+        wrapper.appendChild(div);
+        return;
+    }
 
-                    const msg = document.createElement('div');
-                    msg.className = 'text-danger select2-error-message mt-1';
-                    msg.innerText = input.dataset.errorMessage || 'This field is required.';
-                    $input.next('.select2-container').after(msg);
-                }
+    numbers.forEach((number, i) => {
+        const index = indexStart + i;
+        const newForm = prototype.replace(/__name__/g, index);
+        const div = document.createElement('div');
+        div.classList.add('number-entry', 'mb-2');
+        div.setAttribute('data-real', 'true');
+        div.innerHTML = newForm;
 
-                if (!isSelect2 && !input.checkValidity()) {
-                    input.reportValidity();
-                    if (input.offsetParent !== null) input.focus();
-                    isValid = false;
-                }
-            });
-
-            if (!isValid) return;
-
-            if (step === 3) fillPreview();
-            showStep(step);
+        const numberInput = div.querySelector('input[name$="[number]"]');
+        if (numberInput) {
+            numberInput.value = number;
+            fetchAndSetDates(numberInput, div); // <-- добави този ред
         }
 
 
+        wrapper.appendChild(div);
+    });
 
+    if (bulkInput) {
+        bulkInput.value = '';
+    }
+}
+function formatDateForDatetimeLocal(dateString, isEnd = false)
+{
+    const date = new Date(dateString);
+    if (isNaN(date)) {
+        return '';
+    }
 
-        function prevStep() {
-            if (currentStep > 0) showStep(currentStep - 1);
-        }
+    // Принуждаваме го в локален формат
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = isEnd ? '23' : '00';
+    const minutes = isEnd ? '59' : '00';
 
-        function addNumberField() {
-
-            const wrapper = document.getElementById('numbers-wrapper');
-            const prototype = wrapper.dataset.prototype;
-            const indexStart = wrapper.querySelectorAll('.number-entry[data-real="true"]').length;
-
-            const bulkInput = document.getElementById('bulkNumbers');
-            let inputValue = bulkInput?.value || '';
-            const numbers = inputValue.split(',').map(s => s.trim()).filter(Boolean);
-
-            if (numbers.length === 0) {
-                const newForm = prototype.replace(/__name__/g, indexStart);
-                const div = document.createElement('div');
-                div.classList.add('number-entry', 'mb-2');
-                div.setAttribute('data-real', 'true');
-                div.innerHTML = newForm;
-                wrapper.appendChild(div);
-                return;
-            }
-
-            numbers.forEach((number, i) => {
-                const index = indexStart + i;
-                const newForm = prototype.replace(/__name__/g, index);
-                const div = document.createElement('div');
-                div.classList.add('number-entry', 'mb-2');
-                div.setAttribute('data-real', 'true');
-                div.innerHTML = newForm;
-
-                const numberInput = div.querySelector('input[name$="[number]"]');
-                if (numberInput) {
-                    numberInput.value = number;
-                    fetchAndSetDates(numberInput, div); // <-- добави този ред
-                }
-
-
-                wrapper.appendChild(div);
-            });
-
-            if (bulkInput) bulkInput.value = '';
-        }
-        function formatDateForDatetimeLocal(dateString, isEnd = false) {
-            const date = new Date(dateString);
-            if (isNaN(date)) return '';
-
-            // Принуждаваме го в локален формат
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const hours = isEnd ? '23' : '00';
-            const minutes = isEnd ? '59' : '00';
-
-            return `${year}-${month}-${day}T${hours}:${minutes}`;
-        }
+    return `${year} - ${month} - ${day}T${hours}:${minutes}`;
+}
 
 
 
 
-        async function fetchAndSetDates(numberInput, block) {
+        async function fetchAndSetDates(numberInput, block)
+        {
             const number = numberInput.value.trim();
             const localeInput = document.querySelector('[name$="[locale]"]');
-            const locale = localeInput?.value?.trim();
+            const locale = localeInput ? .value ? .trim();
 
-            if (!number || !locale) return;
+    if (!number || !locale) {
+        return;
+    }
 
-            try {
-                const url = `/api/shopfully/brochure?brochure_number=${encodeURIComponent(number)}&locale=${encodeURIComponent(locale)}`;
-                const response = await fetch(url);
-                const data = await response.json();
+    try {
+        const url = ` / api / shopfully / brochure ? brochure_number = ${encodeURIComponent(number)} & locale = ${encodeURIComponent(locale)}`;
+        const response = await fetch(url);
+        const data = await response.json();
 
-                if (Array.isArray(data) && data.length > 0) {
-                    const startDate = data[0].start_date;
-                    const endDate = data[0].end_date;
-                    const startInput = block.querySelector('input[name$="[validity_start]"]');
-                    const endInput = block.querySelector('input[name$="[validity_end]"]');
-                    const visibilityStartInput = block.querySelector('input[name$="[visibility_start]"]');
+        if (Array.isArray(data) && data.length > 0) {
+            const startDate = data[0].start_date;
+            const endDate = data[0].end_date;
+            const startInput = block.querySelector('input[name$="[validity_start]"]');
+            const endInput = block.querySelector('input[name$="[validity_end]"]');
+            const visibilityStartInput = block.querySelector('input[name$="[visibility_start]"]');
 
-                    if (startInput && startDate) startInput.value = formatDateForDatetimeLocal(startDate);
-                    if (endInput && endDate) endInput.value = formatDateForDatetimeLocal(endDate, true); // <-- fix
-                    if (visibilityStartInput && startDate) visibilityStartInput.value = formatDateForDatetimeLocal(startDate);
-                }
-            } catch (e) {
-                console.error('Failed to fetch brochure dates:', e);
+            if (startInput && startDate) {
+                startInput.value = formatDateForDatetimeLocal(startDate);
             }
+            if (endInput && endDate) {
+                endInput.value = formatDateForDatetimeLocal(endDate, true); // <-- fix
+            }
+            if (visibilityStartInput && startDate) {
+                visibilityStartInput.value = formatDateForDatetimeLocal(startDate);
+            }
+        }
+    } catch (e) {
+        console.error('Failed to fetch brochure dates:', e);
+    }
         }
 
 
 
-        function fillPreview() {
+        function fillPreview()
+        {
             const companySelect = document.querySelector('[name$="[company]"]');
-            const companyText = companySelect.options[companySelect.selectedIndex]?.text || '';
+            const companyText = companySelect.options[companySelect.selectedIndex] ? .text || '';
             document.getElementById('preview-company').textContent = companyText;
 
             const locale = document.querySelector('[name$="[locale]"]').value;
@@ -195,8 +223,8 @@
             const prefixInput = document.querySelector('[name$="[prefix]"]');
             const suffixInput = document.querySelector('[name$="[suffix]"]');
 
-            const prefix = prefixInput?.value || '';
-            const suffix = suffixInput?.value || '';
+            const prefix = prefixInput ? .value || '';
+            const suffix = suffixInput ? .value || '';
 
             document.getElementById('preview-prefix').textContent = prefix;
             document.getElementById('preview-suffix').textContent = suffix;
@@ -213,29 +241,33 @@
                 const startInput = block.querySelector('input[name$="[validity_start]"]');
                 const endInput = block.querySelector('input[name$="[validity_end]"]');
                 const visibilityInput = block.querySelector('input[name$="[visibility_start]"]');
-                if (!numberInput || !pixelInput) return;
+                if (!numberInput || !pixelInput) {
+                    return;
+                }
 
                 const number = numberInput.value.trim();
                 const pixel = pixelInput.value.trim();
-                const start = startInput?.value.trim() || '';
-                const end = endInput?.value.trim() || '';
-                const visibility = visibilityInput?.value.trim() || '';
+                const start = startInput ? .value.trim() || '';
+                const end = endInput ? .value.trim() || '';
+                const visibility = visibilityInput ? .value.trim() || '';
 
-                if (!number && !pixel && !start && !end && !visibility) return;
+                if (!number && !pixel && !start && !end && !visibility) {
+                    return;
+                }
 
                 const item = document.createElement('li');
                 item.classList.add('list-group-item', 'preview-brochure-item');
                 item.innerHTML = `
-                    <div><strong>#${visibleIndex++}: ${number}</strong></div>
-                    <div class="small text-muted">Pixel: ${pixel || '-'}</div>
-                    <div class="small">Validity: ${start || '-'} - ${end || '-'}</div>
-                    <div class="small">Visibility start: ${visibility || '-'}</div>
+                    < div > < strong > #${visibleIndex++}: ${number} < / strong > < / div >
+                    < div class = "small text-muted" > Pixel: ${pixel || '-'} < / div >
+                    < div class = "small" > Validity: ${start || '-'} - ${end || '-'} < / div >
+                    < div class = "small" > Visibility start: ${visibility || '-'} < / div >
                 `;
                 previewList.appendChild(item);
             });
         }
 
-    
+
 
         document.addEventListener('DOMContentLoaded', function () {
             new DataTable('#logsTable', {
@@ -249,7 +281,7 @@
                 }
             });
         });
-    
+
 
         document.addEventListener('DOMContentLoaded', function () {
             const ownerSelect = document.querySelector('[name$="[owner]"]');
@@ -261,7 +293,7 @@
                 companySelect.disabled = true;
 
                 try {
-                    const response = await fetch(`/company/api/companies?owner=${encodeURIComponent(ownerId)}`);
+                    const response = await fetch(` / company / api / companies ? owner = ${encodeURIComponent(ownerId)}`);
                     const companies = await response.json();
 
                     companySelect.innerHTML = '<option value="">Select a company</option>';
@@ -281,7 +313,7 @@
                 const timezoneInput = document.querySelector('[name$="[timezone]"]');
 
                 try {
-                    const response = await fetch(`/company/api/timezone?owner=${encodeURIComponent(ownerId)}`);
+                    const response = await fetch(` / company / api / timezone ? owner = ${encodeURIComponent(ownerId)}`);
                     const data = await response.json();
 
                     timezoneInput.value = data.timezone || '';
@@ -290,7 +322,7 @@
                 }
             });
         });
-    
+
 
         document.addEventListener('DOMContentLoaded', function () {
             const $ownerSelect = $('[name$="[owner]"]');
@@ -322,7 +354,7 @@
                 $companySelect.prop('disabled', true).empty().append(new Option('Loading companies...', '', false, false));
 
                 try {
-                    const response = await fetch(`/company/api/companies?owner=${encodeURIComponent(ownerId)}`);
+                    const response = await fetch(` / company / api / companies ? owner = ${encodeURIComponent(ownerId)}`);
                     const companies = await response.json();
 
                     $companySelect.empty().append(new Option('Select a company', '', true, false));
@@ -340,7 +372,7 @@
 
                 const timezoneInput = document.querySelector('[name$="[timezone]"]');
                 try {
-                    const response = await fetch(`/company/api/timezone?owner=${encodeURIComponent(ownerId)}`);
+                    const response = await fetch(` / company / api / timezone ? owner = ${encodeURIComponent(ownerId)}`);
                     const data = await response.json();
                     timezoneInput.value = data.timezone || '';
                 } catch (e) {
@@ -349,7 +381,7 @@
 
                 const localeInput = document.querySelector('[name$="[locale]"]');
                 try {
-                    const response = await fetch(`/api/shopfully/locale?ownerId=${encodeURIComponent(ownerId)}`);
+                    const response = await fetch(` / api / shopfully / locale ? ownerId = ${encodeURIComponent(ownerId)}`);
                     const data = await response.json();
                     if (data.locale && localeInput) {
                         localeInput.value = data.locale;
@@ -367,13 +399,16 @@
                 }
             });
         });
-    
+
 
         document.addEventListener('DOMContentLoaded', function () {
-            function sanitizeTrackingPixel(input) {
+            function sanitizeTrackingPixel(input)
+            {
                 let url = input.value.trim();
 
-                if (!url) return;
+                if (!url) {
+                    return;
+                }
 
                 if (!url.startsWith('https://')) {
                     if (url.startsWith('http://')) {
@@ -427,14 +462,16 @@
                 input.value = url;
             }
 
-            function attachListenersToTrackingPixels() {
+            function attachListenersToTrackingPixels()
+            {
                 document.querySelectorAll('input[name$="[tracking_pixel]"]').forEach(input => {
                     input.removeEventListener('blur', onBlurHandler);
                     input.addEventListener('blur', onBlurHandler);
                 });
             }
 
-            function onBlurHandler(e) {
+            function onBlurHandler(e)
+            {
                 sanitizeTrackingPixel(e.target);
             }
 
@@ -446,7 +483,7 @@
             });
             observer.observe(wrapper, { childList: true, subtree: true });
         });
-    
+
 
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.refresh-status-btn').forEach(button => {
@@ -456,7 +493,8 @@
 
                     this.disabled = true;
                     this.innerHTML = '⏳';
-                    function getBadgeClass(status) {
+                    function getBadgeClass(status)
+                    {
                         const normalized = (status || '').toLowerCase();
 
                         const successStatuses = ['done', 'success', 'completed'];
@@ -464,16 +502,24 @@
                         const dangerStatuses = ['failed', 'error', 'aborted'];
                         const infoStatuses = ['running', 'processing', 'pending', 'queued', 'retrying'];
 
-                        if (successStatuses.includes(normalized)) return 'bg-success';
-                        if (warningStatuses.includes(normalized)) return 'bg-warning text-dark';
-                        if (dangerStatuses.includes(normalized)) return 'bg-danger';
-                        if (infoStatuses.includes(normalized)) return 'bg-info text-dark';
+                        if (successStatuses.includes(normalized)) {
+                            return 'bg-success';
+                        }
+                        if (warningStatuses.includes(normalized)) {
+                            return 'bg-warning text-dark';
+                        }
+                        if (dangerStatuses.includes(normalized)) {
+                            return 'bg-danger';
+                        }
+                        if (infoStatuses.includes(normalized)) {
+                            return 'bg-info text-dark';
+                        }
 
                         return 'bg-secondary';
                     }
 
                     try {
-                        const response = await fetch(`/api/logs/${logId}/refresh`, {
+                        const response = await fetch(` / api / logs / ${logId} / refresh`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -487,22 +533,22 @@
                             const row = this.closest('tr');
 
                             const badgeClass = getBadgeClass(data.status);
-                            const statusText = data.status ?? 'unknown';
+                            const statusText = data.status ?  ? 'unknown';
 
                             const statusCell = row.querySelector('td:nth-child(5)');
                             if (statusCell) {
-                                statusCell.innerHTML = `<span class="badge ${badgeClass}">${statusText}</span>`;
+                                statusCell.innerHTML = ` < span class = "badge ${badgeClass}" > ${statusText} < / span > `;
                             }
 
                             const jsonCell = row.querySelector('td:nth-child(7)');
                             if (jsonCell) {
                                 jsonCell.innerHTML = `
-            <span class="text-muted">
-                Notices: ${data.noticesCount},
-                Warnings: ${data.warningsCount},
-                Errors: ${data.errorsCount}
-            </span>
-        `;
+                                < span class = "text-muted" >
+                                Notices: ${data.noticesCount},
+                                Warnings: ${data.warningsCount},
+                                Errors: ${data.errorsCount}
+                                <  / span >
+                                `;
                             }
                         } else {
                             alert('Failed to refresh status.');
@@ -518,7 +564,8 @@
             });
         });
 
-        function confirmReimport() {
+        function confirmReimport()
+        {
             return new Promise(resolve => {
                 const modalEl = document.getElementById('reimportConfirmModal');
                 if (!modalEl) {
@@ -553,7 +600,7 @@
                     this.disabled = true;
                     this.innerHTML = '⏳';
                     try {
-                        const response = await fetch(`/api/logs/${logId}/reimport`, {
+                        const response = await fetch(` / api / logs / ${logId} / reimport`, {
                             method: 'POST',
                             headers: { 'X-Requested-With': 'XMLHttpRequest' }
                         });
@@ -580,4 +627,4 @@
                 });
             });
         });
-    
+
