@@ -30,6 +30,14 @@
                     
                    "name": "APP_DEBUG",
                    "value": "0"
+                },
+                {
+                    "name": "AWS_REGION",
+                    "value": "eu-west-1"
+                },
+                {
+                    "name": "AWS_BUCKET",
+                    "value": "content.di-prod.offerista"
                 }
             ],
             "secrets": [                  
