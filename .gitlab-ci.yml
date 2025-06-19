@@ -22,6 +22,9 @@ UnitTest:
     - docker-php-ext-install zip ftp gd
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
     - composer install --prefer-dist --no-scripts --no-progress
+    - echo "APP_ENV=test" > .env
   script:
     - php vendor/bin/simple-phpunit -c phpunit.xml.dist --colors=never
+  after_script:
+    - rm -f .env
   allow_failure: false
