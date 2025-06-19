@@ -25,12 +25,7 @@ WORKDIR /var/www/html
 # Copy app code
 COPY . /var/www/html
 
-# Create a persistent .env 
-RUN echo "APP_ENV=prod" > .env \
- && echo "APP_DEBUG=0" >> .env \
- && echo "DATABASE_URL=null://" >> .env
-
-# Run composer install after .env is present
+# Run composer install 
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
 # Permissions for runtime directory
