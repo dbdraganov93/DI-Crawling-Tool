@@ -1,0 +1,119 @@
+/* Styles for shopfully wizard page */
+.badge.bg-success,
+.badge.bg-secondary {
+    color: #fff !important;
+}
+
+.stepper {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin-bottom: 2rem;
+}
+.stepper::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: #c5cae9;
+    z-index: 0;
+}
+.stepper-step {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    flex: 1;
+}
+.stepper-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin: 0 auto 0.5rem;
+    background-color: #e0e0e0;
+    color: #fff;
+    line-height: 30px;
+    font-weight: bold;
+}
+.stepper-step.active .stepper-circle,
+.stepper-step.completed .stepper-circle {
+    background-color: #6200ea;
+}
+.stepper-step.completed .stepper-circle::after {
+    content: '✓';
+}
+.stepper-label {
+    font-size: 0.9rem;
+    color: #555;
+}
+.stepper-step.active .stepper-label {
+    font-weight: bold;
+    color: #6200ea;
+}
+.btn-loading {
+    pointer-events: none;
+    opacity: 0.7;
+    position: relative;
+}
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid transparent;
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    transform: translate(-50%, -50%);
+}
+@keyframes spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+.select2-selection.is-invalid {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.25rem rgba(220,53,69,.25);
+}
+.logs-tab-scroll-wrapper {
+    max-width: 100%;
+    overflow-x: auto;
+}
+@media (min-width: 1200px) {
+    .container-fluid {
+        max-width: 150%;
+    }
+}
+.validity-start-wrapper,
+.validity-end-wrapper,
+.visibility-start-wrapper {
+    border-left: 3px solid #ced4da;
+    background-color: #f8f9fa;
+    padding-left: 8px;
+    border-radius: 4px;
+}
+
+.preview-brochure-item {
+    word-break: break-word;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.step{display:none}
+#step-0{display:block}
+/* Logs table styles */
+.logs-table-card {
+    margin-top: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.logs-table-card .card-body {
+    padding: 0;
+}
+#logsTable thead th {
+    background-color: #6200ea;
+    color: #fff;
+}

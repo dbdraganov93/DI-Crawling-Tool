@@ -1,5 +1,6 @@
 stages:
   - Codestyle
+  - UnitTest
 
 Codestyle:
   stage: Codestyle
@@ -11,4 +12,19 @@ Codestyle:
     - composer install --prefer-dist --no-scripts --no-progress
   script:
     - vendor/bin/phpcs --standard=PSR12 --report=diff src/
+  allow_failure: false
+
+UnitTest:
+  stage: UnitTest
+  image: php:8.2
+  before_script:
+    - apt-get update && apt-get install -y git unzip libzip-dev libpng-dev libjpeg-dev libfreetype6-dev
+    - docker-php-ext-install zip ftp gd
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - composer install --prefer-dist --no-scripts --no-progress
+    - echo "APP_ENV=test" > .env
+  script:
+    - php vendor/bin/simple-phpunit -c phpunit.xml.dist --colors=never
+  after_script:
+    - rm -f .env
   allow_failure: false

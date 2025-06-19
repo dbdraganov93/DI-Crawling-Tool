@@ -1,14 +1,13 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}User index{% endblock %}
+{% block title %}User Index{% endblock %}
 
 {% block body %}
     <div class="container">
         <h1 class="center-align">User Management</h1>
-        <div class="left-align">
-            <a href="{{ path('app_user_new') }}" class="waves-effect waves-light btn">Create New User</a>
-        </div><br>
-        <table id="userTable" class="striped highlight responsive-table">
+
+        <div class="table-responsive">
+        <table id="userTable" class="striped highlight responsive-table table">
             <thead>
             <tr>
                 <th>Id</th>
@@ -22,25 +21,10 @@
                 <tr>
                     <td>{{ user.id }}</td>
                     <td>{{ user.email }}</td>
+                    <td>{{ user.roles|join(', ') }}</td>
                     <td>
-                        {% for role in user.roles %}
-                            {% if role == 'ROLE_ADMIN' %}
-                                Admin
-                            {% elseif role == 'ROLE_USER' %}
-                                User
-                            {% else %}
-                                {{ role }} {# Fallback if any other roles exist #}
-                            {% endif %}
-                            {% if not loop.last %}, {% endif %}
-                        {% else %}
-                            No roles assigned
-                        {% endfor %}
-                    </td>
-
-                    <td>
-                        <a class="waves-effect waves-light btn-small" href="{{ path('app_user_show', {'id': user.id}) }}">Show</a>
-                        <a class="waves-effect waves-light btn-small orange" href="{{ path('app_user_edit', {'id': user.id}) }}">Edit</a>
-                        <a class="btn red">{{ include('user/_delete_form.html.twig', {'id': user.id}) }}</a>
+                        <a href="{{ path('app_user_show', {'id': user.id}) }}" class="btn-small waves-effect waves-light">Show</a>
+                        <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="btn-small orange waves-effect waves-light">Edit</a>
                     </td>
                 </tr>
             {% else %}
@@ -50,18 +34,14 @@
             {% endfor %}
             </tbody>
         </table>
+        </div>
 
-
+        <div class="right-align">
+            <a href="{{ path('app_user_new') }}" class="btn waves-effect waves-light">Create New User</a>
+        </div>
     </div>
 {% endblock %}
 
 {% block javascripts %}
-    <script>
-        $(document).ready(function() {
-            $('#userTable').DataTable({
-                "pagingType": "full_numbers",
-                "responsive": true
-            });
-        });
-    </script>
+    <script src="{{ asset('js/user-index.js') }}"></script>
 {% endblock %}

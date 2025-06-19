@@ -1,0 +1,79 @@
+/* Styles for crawler show page */
+.nav-tabs .nav-link {
+    border: none;
+    border-radius: .5rem .5rem 0 0;
+    font-weight: bold;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #007bff;
+}
+
+.terminal-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-basis: 45%;
+    max-width: 100%;
+    background-color: #000;
+    color: #00ff00;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-family: 'Courier New', Courier, monospace;
+    overflow: hidden;
+}
+
+.terminal-header {
+    background-color: #222;
+    color: #fff;
+    padding: 10px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.terminal {
+    padding: 20px;
+    min-height: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    flex-grow: 1;
+}
+
+.terminal-footer {
+    text-align: center;
+    padding: 10px;
+    background-color: #222;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.btn-run-crawler {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.btn-run-crawler:hover {
+    background-color: #218838;
+}
+
+@media (max-width: 768px) {
+    .crawler-container {
+        flex-direction: column;
+    }
+    .terminal-container,
+    .crawler-card {
+        max-width: 100%;
+        flex-basis: 100%;
+    }
+}
