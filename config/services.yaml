@@ -27,7 +27,6 @@ services:
             $awsSecret: '%env(AWS_SECRET_ACCESS_KEY)%'
             $region: '%env(AWS_REGION)%'
             $bucket: '%env(AWS_BUCKET)%'
-            $profile: '%env(AWS_PROFILE)%'
     # Makes classes in src/ available to be used as services
     App\:
         resource: '../src/'
