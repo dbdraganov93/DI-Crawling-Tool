@@ -13,8 +13,14 @@ while ! php bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do
   fi
 done
 
-echo "Running database migrations..."
-php bin/console doctrine:migrations:migrate --no-interaction
+# Running database migration if any migration file are available
+if ls src/Migrations/*.php > /dev/null 2>&1; then
+  echo "Running database migrations..."
+  php bin/console doctrine:migrations:migrate --no-interaction
+else
+  echo "No migration files found. Skipping migrations."
+fi
+
 
 echo "Validating Doctrine schema..."
 php bin/console doctrine:schema:validate || echo "Schema validation warnings"
