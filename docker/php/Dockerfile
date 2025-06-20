@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     default-mysql-client cron python3 python3-pip \
  && docker-php-ext-install pdo pdo_mysql intl zip ftp gd opcache \
  && apt-get clean && rm -rf /var/lib/apt/lists/*
+COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
 
 RUN pip3 install --break-system-packages PyMuPDF
 
