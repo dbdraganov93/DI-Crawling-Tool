@@ -8,12 +8,20 @@ RUN apt-get update && apt-get install -y \
     default-mysql-client cron python3 python3-pip \
  && docker-php-ext-install pdo pdo_mysql intl zip ftp gd opcache \
  && apt-get clean && rm -rf /var/lib/apt/lists/*
-COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
 
+# ✅ Ensure a base php.ini exists
+RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
+# ✅ Add your custom overrides as an additional config file
+COPY docker/php-overrides.ini "$PHP_INI_DIR/conf.d/custom.ini"
+
+# Python deps
 RUN pip3 install --break-system-packages PyMuPDF
 
+# Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Apache hardening
 RUN a2enmod rewrite headers \
  && echo "ServerTokens Prod\nServerSignature Off" > /etc/apache2/conf-available/security.conf \
  && a2enconf security
@@ -21,18 +29,17 @@ RUN a2enmod rewrite headers \
 # Apache config
 COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
 
+# App root
 WORKDIR /var/www/html
 
-# Copy app code
+# Code + env
 COPY . /var/www/html
-
-# Copy dummy .env file (for build/runtime fallback)
 COPY .env.prod /var/www/html/.env
 
-# Run composer install 
+# Composer install
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-# Permissions for runtime directory
+# CSV perms
 RUN mkdir -p /var/www/html/public/csv \
  && chown -R www-data:www-data /var/www/html/public/csv \
  && chmod -R 775 /var/www/html/public/csv
