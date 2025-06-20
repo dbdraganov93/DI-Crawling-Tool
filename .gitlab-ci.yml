@@ -1,6 +1,23 @@
+variables:
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS: "true"
+    DOCKER_CERT_PATH: /certs/client 
+    ECR_REGISTRY: 385750204895.dkr.ecr.eu-west-1.amazonaws.com
+    IMAGE_CACHE_TAG: ${CI_COMMIT_REF_SLUG}_latest # <branch-name>_latest (mutable, use as base for the next build in the same branch)
+    IMAGE_BUILD_TAG: ${CI_COMMIT_REF_SLUG}_build_${CI_COMMIT_SHORT_SHA} # <branch-name>_build_<commit-hash> (immutable, used for further testing and potential deployment)
+    IMAGE_DEPLOY_TAG: ${CI_COMMIT_REF_SLUG}_release_${CI_COMMIT_SHORT_SHA} # <branch-name>_release_<commit-hash> (immutable, used in ECR for deployments) 
+    ENVIRONMENT_NAME: prod
+
 stages:
   - Codestyle
   - UnitTest
+  - build 
+  - push
+  - cron
+  - deploy 
+
+services:
+    - docker:dind
 
 Codestyle:
   stage: Codestyle
@@ -13,7 +30,6 @@ Codestyle:
   script:
     - vendor/bin/phpcs --standard=PSR12 --report=diff src/
   allow_failure: false
-
 UnitTest:
   stage: UnitTest
   image: php:8.2
@@ -28,3 +44,89 @@ UnitTest:
   after_script:
     - rm -f .env
   allow_failure: false
+build_container:
+    stage: build
+    image:
+        name: docker:latest
+        entrypoint: [""]
+    before_script:
+        - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    script:
+      - DOCKER_BUILDKIT=1 docker build -f docker/php/Dockerfile -t $CI_REGISTRY_IMAGE:$IMAGE_BUILD_TAG -t $CI_REGISTRY_IMAGE:$IMAGE_CACHE_TAG .
+      - docker push $CI_REGISTRY_IMAGE:$IMAGE_BUILD_TAG
+      - docker push $CI_REGISTRY_IMAGE:$IMAGE_CACHE_TAG
+
+    tags:
+        - docker
+push_image:
+    stage: push
+    tags:
+        - docker
+    only:
+        - master
+        - feature/cicd-pipeline
+    image:
+        name: docker:26.1.3-dind-alpine3.19 
+        entrypoint: [""]
+    before_script:
+        # Log in on GitLab's registry:
+        - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
+        # Log in on the AWS ECR:
+        - apk update && apk add aws-cli
+        - aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin $ECR_REGISTRY
+        - docker info
+    script:
+        # Fetch the image we just build:
+        - docker pull $CI_REGISTRY_IMAGE:$IMAGE_BUILD_TAG
+        # Tag release and push it to ECR:
+        - docker tag $CI_REGISTRY_IMAGE:$IMAGE_BUILD_TAG ${ECR_REGISTRY}/${ENVIRONMENT_NAME}-dicrawler:${IMAGE_DEPLOY_TAG}
+        - docker push ${ECR_REGISTRY}/${ENVIRONMENT_NAME}-dicrawler:$IMAGE_DEPLOY_TAG
+update-cron-task:
+  stage: cron
+  tags:
+    - shell
+  script:
+    - sed -i "s/\${env}/${ENVIRONMENT_NAME}/" ecs/ecs-task-definition-cron.json
+    - sed -i "s|\${dicrawler_image}|${ECR_REGISTRY}\/${ENVIRONMENT_NAME}-dicrawler:${IMAGE_DEPLOY_TAG}|" ecs/ecs-task-definition-cron.json
+    - aws --region=eu-west-1 ecs register-task-definition --cli-input-json file://ecs/ecs-task-definition-cron.json
+    - ./bin/update_eventbridge_target.sh
+  artifacts:
+    when: always
+    paths:
+      - ecs/ecs-task-definition-cron.json
+    expire_in: 10 days
+  only:
+        - master
+.deploy:
+    stage: deploy
+    tags:
+        - shell
+    script:
+        # Prepare task definition by replacing variables with values
+        - sed -i "s/\${env}/${ENVIRONMENT_NAME}/" ecs/ecs-task-definition.json
+        - sed -i "s|\${dicrawler_image}|${ECR_REGISTRY}\/${ENVIRONMENT_NAME}-dicrawler:${IMAGE_DEPLOY_TAG}|" ecs/ecs-task-definition.json
+        # Upload new task definition version
+        - aws --region=eu-west-1 ecs register-task-definition --cli-input-json file://ecs/ecs-task-definition.json
+        # Trigger "rolling update" deployment with new task definition version
+        # The deployment is non-blocking (asynchronous), therefore we need to wait and see if it actually worked or not.
+        - aws --region=eu-west-1 ecs update-service --cluster dicrawler-di-${ENVIRONMENT_NAME} --service dicrawler-di-${ENVIRONMENT_NAME} --task-definition dicrawler-di-${ENVIRONMENT_NAME} --force-new-deployment
+        # Wait for deployment to finish and check if the deployment was successful
+        - bin/ecs_deployment_check.sh
+    artifacts:
+        when: always
+        paths:
+            # For debugging save the filled task definition file
+            - ecs/ecs-task-definition.json
+        expire_in: 10 days
+
+# Deploy to prod on master push (requires manual button-click when ready)
+deploy_prod:
+    extends: .deploy   
+    environment:
+        name: dicrawler-$ENVIRONMENT_NAME
+        url: https://dicrawler.offerista.com
+    when: manual
+    only:
+        - master
+        - feature/cicd-pipeline
+  
