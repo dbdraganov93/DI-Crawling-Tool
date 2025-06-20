@@ -38,6 +38,10 @@
                 {
                     "name": "AWS_BUCKET",
                     "value": "content.di-prod.offerista"
+                },
+                {
+                   "name": "IPROTO_AUTH_HOST",
+                   "value": "https://og-prod.eu.auth0.com/oauth/token"
                 }
             ],
             "secrets": [                  
@@ -48,7 +52,15 @@
                 {
                     "name": "APP_SECRET",
                     "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-app-secret-VVKipH"
-                } 
+                },
+                {
+                   "name": "IPROTO_CLIENT_ID",
+                   "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_ID::"
+                },
+                {
+                  "name": "IPROTO_CLIENT_SECRET",
+                  "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_SECRET::"
+                }
           ],
             "readonlyRootFilesystem": false,
             "interactive": true,
