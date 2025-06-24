@@ -14,19 +14,13 @@ ini_set('memory_limit', '512M'); // or '1G' if needed
 
 class ShopfullyCrawler
 {
-    private EntityManagerInterface $em;
-    private ShopfullyService $shopfullyService;
-    private IprotoService $iprotoService;
     private string $company;
 
     public function __construct(
-        EntityManagerInterface $em,
-        ShopfullyService $shopfullyService,
-        IprotoService $iprotoService
+        private EntityManagerInterface $em,
+        private ShopfullyService $shopfullyService,
+        private IprotoService $iprotoService
     ) {
-        $this->em = $em;
-        $this->shopfullyService = $shopfullyService;
-        $this->iprotoService = $iprotoService;
     }
 
     public function crawl(array $brochuresData): void
