@@ -21,6 +21,8 @@ class ShopfullyCrawler
     private IprotoService $iprotoService;
     private string $company;
 
+    private const DATE_FORMAT = 'Y-m-d H:i:s';
+
     public function __construct(
         EntityManagerInterface $em,
         ShopfullyService $shopfullyService,
@@ -50,9 +52,9 @@ class ShopfullyCrawler
 
             $visibleFrom = $this->normalizeDate($brochure['visibility_start'] ?? null) ?? clone $validFrom;
 
-            $brochureData['brochureData']['data'][0]['Flyer']['start_date']   = $validFrom->format('Y-m-d H:i:s');
-            $brochureData['brochureData']['data'][0]['Flyer']['end_date']     = $validTo->format('Y-m-d H:i:s');
-            $brochureData['brochureData']['data'][0]['Flyer']['visible_from'] = $visibleFrom->format('Y-m-d H:i:s');
+            $brochureData['brochureData']['data'][0]['Flyer']['start_date']   = $validFrom->format(self::DATE_FORMAT);
+            $brochureData['brochureData']['data'][0]['Flyer']['end_date']     = $validTo->format(self::DATE_FORMAT);
+            $brochureData['brochureData']['data'][0]['Flyer']['visible_from'] = $visibleFrom->format(self::DATE_FORMAT);
 
             $this->createStores($brochureData, $storeService);
             $this->createBrochure($brochureData, $brochureService);
