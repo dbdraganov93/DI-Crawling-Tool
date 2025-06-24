@@ -11,6 +11,8 @@ use App\Service\CsvService;
 use App\Service\BrochureService;
 
 ini_set('memory_limit', '512M'); // or '1G' if needed
+ini_set('max_execution_time', 300);
+ini_set('default_socket_timeout', 300);
 
 class ShopfullyCrawler
 {
