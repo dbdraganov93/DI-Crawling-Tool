@@ -23,6 +23,7 @@ class ShopfullyController extends AbstractController
     private ShopfullyService $shopfullyService;
     private LocaleService $localeService;
     private IprotoService $iprotoService;
+    private ShopfullyCrawler $crawler;
     public function __construct(ShopfullyCrawler $crawler, IprotoService $iprotoService, ShopfullyService $shopfullyService, LocaleService $localeService)
     {
         $this->shopfullyService = $shopfullyService;

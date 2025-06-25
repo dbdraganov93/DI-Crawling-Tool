@@ -38,7 +38,9 @@
 }
 .stepper-step.active .stepper-circle,
 .stepper-step.completed .stepper-circle {
-    background-color: #6200ea;
+    background-color: #f5f5f7;
+    color: #333;
+    border-bottom: 2px solid #dee2e6;
 }
 .stepper-step.completed .stepper-circle::after {
     content: '✓';
@@ -114,6 +116,7 @@
     padding: 0;
 }
 #logsTable thead th {
-    background-color: #6200ea;
-    color: #fff;
+    background-color: #f5f5f7;
+    color: #333;
+    border-bottom: 2px solid #dee2e6;
 }
