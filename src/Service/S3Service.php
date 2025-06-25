@@ -13,22 +13,17 @@ class S3Service
     private string $bucket;
     private string $region;
 
-    public function __construct(string $bucket, string $region, ?string $profile = null)
+    public function __construct(string $bucket, string $region, string $profile)
     {
         $this->bucket = $bucket;
         $this->region = $region;
 
-        $options = [
+        $this->s3Client = new S3Client([
             'region' => $this->region,
             'version' => 'latest',
-        ];
-
-        if ($profile) {
-            $options['profile'] = $profile;
-            $options['use_aws_shared_config_files'] = true;
-        }
-
-        $this->s3Client = new S3Client($options);
+            'profile' => $profile,
+            'use_aws_shared_config_files' => true,
+        ]);
     }
 
     /**

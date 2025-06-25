@@ -1,12 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-
 body {
     background-color: #f8f9fa;
-    font-family: 'Roboto', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .container {
-    margin-top: 50px;
+    margin-top: 2rem;
 }
 
 h1 {
@@ -24,7 +22,16 @@ select {
 }
 .navbar .dropdown:hover .dropdown-menu {
     display: block;
-    margin-top: 0; /* Adjust based on your design */
+    margin-top: 0;
+    top: 100%;
+    left: 0;
+    transform: none !important;
+}
+.navbar-nav .dropdown-menu {
+    position: absolute;
+}
+.navbar-nav .dropdown {
+    position: relative;
 }
 
 .dropdown-menu {
@@ -40,17 +47,58 @@ select {
     width: auto;
 }
 .btn {
-    transition: background-color .2s ease-in-out;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: background-color .2s ease-in-out, box-shadow .2s ease-in-out;
+}
+
+.btn-primary {
+    background-color: #0071e3;
+    border-color: #0071e3;
+}
+.btn-primary:hover {
+    background-color: #005bb5;
+}
+
+.btn-secondary {
+    background-color: #e5e5ea;
+    border-color: #e5e5ea;
+    color: #000;
+}
+.btn-secondary:hover {
+    background-color: #d1d1d6;
+}
+
+.btn-outline-primary {
+    border-color: #0071e3;
+    color: #0071e3;
+}
+.btn-outline-primary:hover {
+    background-color: #0071e3;
+    color: #fff;
+}
+
+.btn-outline-secondary {
+    border-color: #e5e5ea;
+    color: #000;
+}
+.btn-outline-secondary:hover {
+    background-color: #e5e5ea;
 }
 
 .navbar-nav .nav-link {
-    padding: 0.5rem 1rem;
-    display: inline-block;
+    padding: 0.08rem 1rem;
+    display: block;
+    font-weight: 500;
 }
 .navbar-nav .nav-link:hover {
-    background-color: rgba(0,0,0,0.1);
+    background-color: rgba(0,0,0,0.05);
     border-radius: .25rem;
 }
+.navbar {
+    border-bottom: 1px solid #e5e5e5;
+}
+
 
 /* Responsive helpers */
 @media (max-width: 991.98px) {
@@ -65,4 +113,121 @@ select {
 
 .table-responsive {
     margin-top: 1rem;
+}
+
+table.table {
+    background-color: #fff;
+}
+table.table thead th {
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 500;
+}
+table.table tbody td {
+    vertical-align: middle;
+}
+
+/* Apple-style login card */
+.login-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    background-color: #fff;
+}
+.login-card .form-control {
+    border-radius: 8px;
+    background-color: #f5f5f7;
+    border: 1px solid #ced4da;
+    padding: .5rem .75rem;
+}
+
+/* Generic apple style card for forms */
+.apple-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    background-color: #fff;
+    padding: 2rem;
+}
+.apple-card .form-control {
+    border-radius: 8px;
+    background-color: #f5f5f7;
+    border: 1px solid #ced4da;
+    padding: .5rem .75rem;
+}
+.apple-card > div {
+    margin-bottom: 1rem;
+}
+.apple-card label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: .25rem;
+}
+
+/* SweetAlert2 minimal look */
+.swal2-popup.apple-swal {
+    border-radius: 12px;
+    padding: 2rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+.swal2-popup.apple-swal .swal2-confirm {
+    background-color: #0071e3 !important;
+    box-shadow: none !important;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1.2rem;
+}
+.swal2-popup.apple-swal .swal2-cancel {
+    background-color: #e5e5ea !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1.2rem;
+}
+
+/* DataTables tweaks */
+.dataTables_wrapper .dataTables_filter {
+    width: 100%;
+    text-align: right;
+}
+.dataTables_wrapper {
+    overflow-x: auto;
+}
+.dataTables_wrapper .dataTables_filter label {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+}
+.dataTables_wrapper .dataTables_filter input {
+    width: 250px;
+    max-width: 100%;
+    border-radius: 8px;
+    padding: .25rem .5rem;
+    border: 1px solid #ced4da;
+    background-color: #f5f5f7;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    border: none;
+    background: transparent;
+    padding: .35rem .8rem;
+    margin: 0 .25rem;
+    color: #0071e3 !important;
+    border-radius: 8px;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background-color: #e5e5ea;
+    border-radius: 8px;
+}
+.dataTables_wrapper .dataTables_paginate {
+    margin-top: .5rem;
+}
+table.dataTable thead {
+    background-color: #f5f5f7;
+}
+table.dataTable.no-footer {
+    border-bottom: 1px solid #dee2e6;
+}
+table.dataTable tbody tr:hover {
+    background-color: #f5f5f7;
 }
