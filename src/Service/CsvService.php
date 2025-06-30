@@ -11,7 +11,7 @@ class CsvService
 {
     private string $csvDir;
 
-    public function __construct(string $csvDir = './')
+    public function __construct(string $csvDir = '/var/www/html/public/csv')
     {
         $this->csvDir = rtrim($csvDir, '/');
     }
@@ -70,7 +70,8 @@ class CsvService
 
         $timestamp = round(microtime(true) * 1000);
         $fileName = sprintf('stores_%d_%d.csv', $timestamp, $storeService->getCompanyId());
-        $filePath = $this->csvDir . './public/csv/' . $fileName;
+        // $csvDir already points to the CSV directory, just append the filename
+        $filePath = rtrim($this->csvDir, '/') . '/' . $fileName;
 
         // Ensure the directory exists
         $directory = dirname($filePath);
@@ -155,7 +156,8 @@ class CsvService
 
         $timestamp = round(microtime(true) * 1000);
         $fileName = sprintf('brochures_%d_%d.csv', $companyId, $timestamp);
-        $filePath = $this->csvDir . './public/csv/' . $fileName;
+        // $csvDir already points to the CSV directory, just append the filename
+        $filePath = rtrim($this->csvDir, '/') . '/' . $fileName;
 
         // Ensure directory exists
         $directory = dirname($filePath);

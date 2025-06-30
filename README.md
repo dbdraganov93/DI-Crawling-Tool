@@ -3,25 +3,25 @@ Crawls things.
 
 
 ## Getting started
-Run codestyle localy: 
+Run codestyle localy:
 ```
 vendor/bin/phpcs --standard=PSR12 src/
 ```
 
-Run codestyle with the custom config: 
+Run codestyle with the custom config:
 ```
 vendor/bin/phpcs
 ```
-Full report: 
+Full report:
 ```
 vendor/bin/phpcs --standard=PSR12 --report=full src/
 ```
-Diff codestyle: 
+Diff codestyle:
 ```
 vendor/bin/phpcs --standard=PSR12 --report=diff src/
 ```
 
-Fix codestyle: 
+Fix codestyle:
 ```
 vendor/bin/phpcbf --standard=PSR12 src/
 ```
@@ -150,6 +150,12 @@ source_profile = default
 region = eu-west-1
 ```
 
+The `docker-compose.yml` mounts this file at `/var/www/.aws/credentials` inside both the `app` and `worker` containers so AWS tools can automatically read it, even when processes run as the `www-data` user.
+Ensure the file is world-readable so the containers can access it:
+```bash
+chmod 644 aws-credentials
+```
+
 Test Role Assumption:
 Enter inside the app container and execute the following command (you may need to install the AWS CLI first):
 
@@ -194,6 +200,8 @@ Note for Windows Users: the "make" command only works in Unix Shell like [WSL](h
 This command will:
 
 - Build the PHP container from your custom `Dockerfile`
+- Build a matching worker container to run queued jobs
+- The worker stays alive and polls for new presets every 10 seconds
 - Wait for MySQL to be ready
 - Drop, recreate and migrate the database
 - Seed fixtures (e.g. admin user)
@@ -221,9 +229,15 @@ docker-compose.yml
 docker/php/Dockerfile
 docker/mysql/custom.cnf         # optional MySQL config
 docker/cron/iproto-cron         # optional cron job
+docker/cron/shopfully-cron      # runs presets cron job
 ```
 
 ---
+## ⏲️ Cron Jobs
+
+Cron definitions live in `docker/cron`. Enable the `shopfully-cron` file to run `app:shopfully:worker` on schedule. The command also responds to its
+legacy name `app:shopfully:execute-presets` for backwards compatibility.
+
 
 ## 🧪 Verify App is Running
 

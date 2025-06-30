@@ -14,9 +14,12 @@ use App\Form\SimpleFormType;
 use App\CrawlerScripts\ShopfullyCrawler;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\ShopfullyLogRepository;
+use App\Repository\ShopfullyPresetRepository;
+use App\Entity\ShopfullyPreset;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use App\Service\ShopfullyService;
+use Symfony\Component\Process\Process;
 
 class ShopfullyController extends AbstractController
 {
@@ -33,23 +36,52 @@ class ShopfullyController extends AbstractController
     }
 
     #[Route('/shopfully-wizard', name: 'app_shopfully_wizard')]
-    public function index(Request $request, ShopfullyLogRepository $logRepo): Response
-    {
+    public function index(
+        Request $request,
+        ShopfullyLogRepository $logRepo,
+        ShopfullyPresetRepository $presetRepo,
+        EntityManagerInterface $em
+    ): Response {
         $form = $this->createForm(ShopfullyForm::class);
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
             $data = $form->getData();
             $data['timezone'] = $form->get('timezone')->getData();
-            $this->crawler->crawl($data);
-            $this->addFlash('success', 'Form submitted successfully!');
+            $preset = new ShopfullyPreset();
+            $preset->setCreatedAt(new \DateTime());
+            $preset->setScheduledAt(new \DateTime());
+            $preset->setData($data);
+            $preset->setStatus('pending');
+            $em->persist($preset);
+            $em->flush();
+            $console = $this->getParameter('kernel.project_dir') . '/bin/console';
+            $cmd = sprintf(
+                'php %s app:shopfully:worker %d >> var/log/preset.log 2>&1',
+                $console,
+                $preset->getId()
+            );
+            $process = Process::fromShellCommandline(
+                $cmd,
+                $this->getParameter('kernel.project_dir')
+            );
+            $env = $_ENV;
+            // Ensure AWS credentials file is available for the worker process
+            $env['AWS_SHARED_CREDENTIALS_FILE'] = $env['AWS_SHARED_CREDENTIALS_FILE'] ?? '/var/www/.aws/credentials';
+            $process->setEnv($env);
+            $process->disableOutput();
+            $process->setTimeout(null);
+            $process->start();
+            $this->addFlash('success', 'Job queued and started!');
         }
 
         $logs = $logRepo->findBy([], ['createdAt' => 'DESC']);
+        $presets = $presetRepo->findBy([], ['createdAt' => 'DESC']);
 
         return $this->render('shopfully/wizard.html.twig', [
             'form' => $form->createView(),
             'logs' => $logs,
+            'presets' => $presets,
         ]);
     }
 
@@ -71,9 +103,11 @@ class ShopfullyController extends AbstractController
 
             foreach ($flyers as $entry) {
                 if (isset($entry['Flyer'])) {
+                    $clickouts = $this->shopfullyService->fetchBrochureClickouts($brochureNumber, $locale);
                     $response[] = [
                         'start_date' => $entry['Flyer']['start_date'] ?? null,
                         'end_date' => $entry['Flyer']['end_date'] ?? null,
+                        'clickouts_count' => count($clickouts),
                     ];
                 }
             }
