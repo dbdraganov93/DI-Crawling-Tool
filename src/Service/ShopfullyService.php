@@ -4,13 +4,9 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Service\ClickoutsMapperService;
-use App\Service\PdfLinkAnnotatorService;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use App\Service\PdfDownloaderService;
-use App\Service\S3Service;
 
 class ShopfullyService
 {
@@ -57,6 +53,7 @@ class ShopfullyService
         $response['brochureStores'] = $this->fetchStoresByBrochureId($brochureId, $locale);
         $response['brochureData']['data'][0]['Flyer']['stores'] = $this->getBrochureStoresAsString($response['brochureStores']);
         $response['brochureClickouts'] = $this->fetchBrochureClickouts($brochureId, $locale);
+        $response['clickoutsCount'] = count($response['brochureClickouts']);
 
 
 
@@ -132,7 +129,6 @@ class ShopfullyService
             throw new \RuntimeException('Failed to fetch clickout data fore brochure: ' . $brochureId . ', status code: ' . $response->getStatusCode());
         }
         $response = $response->toArray();
-        ;
         return $this->clickoutsMapperService->formatClickoutsForShopfully($response);
     }
 

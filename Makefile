@@ -2,6 +2,8 @@ up:
 	@echo "❗ Starting diCrawler for PRODUCTION environment (non-interactive, detached)"
 	@echo "🧹 Cleaning migrations..."
 	rm -f migrations/*.php
+	@echo "🔐 Ensuring aws-credentials permissions..."
+	chmod 644 aws-credentials
 	@echo "🚀 Starting app in detached mode (docker-compose -d)..."
 	COMPOSE_IGNORE_ORPHANS=True docker-compose -f docker-compose.yml up --build -d
 
@@ -9,7 +11,7 @@ up-local:
 	@echo "❗ This will start the diCrawler project for the LOCAL environment (with tools like Portainer)."
 	@read -p "⚠️  Are you sure you are on the LOCAL environment? (y/N): " confirm && [ "$$confirm" = "y" ] || (echo "❌ Aborted." && exit 1)
 	@echo "🔍 Checking for containers with conflicting names..."
-	@conflicts=$$(docker ps -a --format '{{.Names}}' | grep -E 'dicrawler_app|dicrawler_db|dicrawler_grafana|portainer' || true); \
+	@conflicts=$$(docker ps -a --format '{{.Names}}' | grep -E 'dicrawler_app|dicrawler_db|dicrawler_worker|dicrawler_grafana|portainer' || true); \
 	if [ -n "$$conflicts" ]; then \
 		echo "⚠️  Found conflicting containers:"; \
 		echo "$$conflicts"; \
@@ -19,6 +21,8 @@ up-local:
 	fi
 	@echo "🧹 Cleaning migrations..."
 	rm -f migrations/*.php
+	@echo "🔐 Ensuring aws-credentials permissions..."
+	chmod 644 aws-credentials
 	@echo "🧼 Checking for lingering processes on port 9000..."
 	@pid=$$(lsof -ti :9000) && [ -n "$$pid" ] && echo "🛑 Killing process on port 9000 (PID: $$pid)" && kill -9 $$pid || echo "✅ No process on port 9000."
 	@echo "🧹 Removing portainer_data volume (optional)..."

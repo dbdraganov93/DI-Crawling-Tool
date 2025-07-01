@@ -6,21 +6,29 @@ def add_links_to_pdf(pdf_path, output_path, clickouts):
     doc = fitz.open(pdf_path)
 
     for clickout in clickouts:
-        page_number = int(clickout['pageNumber']) - 1
-        page = doc[page_number]
-        width, height = page.rect.width, page.rect.height
+        try:
+            if not all(clickout.get(k) not in (None, "") for k in ("pageNumber", "x", "y", "width", "height", "url")):
+                continue
 
-        x = float(clickout['x']) * width
-        y = float(clickout['y']) * height
-        w = float(clickout['width']) * width
-        h = float(clickout['height']) * height
+            page_number = int(clickout["pageNumber"]) - 1
+            page = doc[page_number]
 
-        rect = fitz.Rect(x, y, x + w, y + h)
-        page.insert_link({
-            "kind": fitz.LINK_URI,
-            "from": rect,
-            "uri": clickout['url'].strip()
-        })
+            width, height = page.rect.width, page.rect.height
+
+            x = float(clickout["x"]) * width
+            y = float(clickout["y"]) * height
+            w = float(clickout["width"]) * width
+            h = float(clickout["height"]) * height
+
+            rect = fitz.Rect(x, y, x + w, y + h)
+            page.insert_link({
+                "kind": fitz.LINK_URI,
+                "from": rect,
+                "uri": clickout["url"].strip(),
+            })
+        except Exception:
+            # Skip malformed clickout definitions
+            continue
 
     doc.save(output_path)
     doc.close()

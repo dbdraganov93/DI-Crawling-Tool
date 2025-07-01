@@ -6,342 +6,396 @@
     {{ parent() }}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="{{ asset('css/shopfully-wizard.css') }}">
-    
+
 
 {% endblock %}
 
 {% block body %}
 <div class="container-fluid mt-5 px-4">
 
-<h1 class="text-center mb-4">Shopfully Wizard</h1>
+    <h1 class="text-center mb-4">Shopfully Wizard</h1>
 
-        {% for message in app.flashes('success') %}
-            <div class="alert alert-success">{{ message }}</div>
-        {% endfor %}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
 
-        <!-- Tab Navigation -->
-        <ul class="nav nav-tabs mb-3" id="wizardTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="form-tab" data-bs-toggle="tab" data-bs-target="#form-tab-pane" type="button" role="tab">
-                    Wizard Form
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs-tab-pane" type="button" role="tab">
-                    Logs
-                </button>
-            </li>
-        </ul>
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs mb-3" id="wizardTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="form-tab" data-bs-toggle="tab" data-bs-target="#form-tab-pane" type="button" role="tab">
+                Wizard Form
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="queue-tab" data-bs-toggle="tab" data-bs-target="#queue-tab-pane" type="button" role="tab">
+                Queue
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs-tab-pane" type="button" role="tab">
+                Logs
+            </button>
+        </li>
+    </ul>
 
-        <!-- Tab Content -->
+    <!-- Tab Content -->
     <div class="tab-content p-3 border rounded bg-white w-100" id="wizardTabsContent" >
 
-    <!-- Form Tab -->
-            <div class="tab-pane fade show active" id="form-tab-pane" role="tabpanel" >
-                <div class="stepper" id="stepper">
-                    <div class="stepper-step" data-step="0">
-                        <div class="stepper-circle">1</div>
-                        <div class="stepper-label">Owner</div>
-                    </div>
-                    <div class="stepper-step" data-step="1">
-                        <div class="stepper-circle">2</div>
-                        <div class="stepper-label">Company</div>
-                    </div>
-                    <div class="stepper-step" data-step="2">
-                        <div class="stepper-circle">3</div>
-                        <div class="stepper-label">Locale & Brochures</div>
-                    </div>
-                    <div class="stepper-step" data-step="3">
-                        <div class="stepper-circle">4</div>
-                        <div class="stepper-label">Preview</div>
-                    </div>
+        <!-- Form Tab -->
+        <div class="tab-pane fade show active" id="form-tab-pane" role="tabpanel" >
+            <div class="stepper" id="stepper">
+                <div class="stepper-step" data-step="0">
+                    <div class="stepper-circle">1</div>
+                    <div class="stepper-label">Owner</div>
                 </div>
-
-                {{ form_start(form) }}
-
-                <div id="step-0" class="step">
-                    <h4>Step 1: Select Owner</h4>
-                    <div class="mb-3">
-                        {{ form_label(form.owner) }}
-                        {{ form_widget(form.owner, {'attr': {
-                            'class': 'form-control',
-                            'required': 'required',
-                            'data-error-message': 'Please select an owner'
-                        }}) }}
-                        {{ form_errors(form.owner) }}
-                        {{ form_row(form.timezone) }}
-
-                    </div>
-                    <button type="button" class="btn btn-primary" onclick="nextStep(1)">Next</button>
+                <div class="stepper-step" data-step="1">
+                    <div class="stepper-circle">2</div>
+                    <div class="stepper-label">Company</div>
                 </div>
-
-                <div id="step-1" class="step" >
-                    <h4>Step 2: Select Company</h4>
-                    <div class="mb-3">
-                        {{ form_label(form.company) }}
-                        {{ form_widget(form.company, {'attr': {
-                            'class': 'form-control',
-                            'required': 'required',
-                            'data-error-message': 'Please select a company'
-                        }}) }}
-                        {{ form_errors(form.company) }}
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <button type="button" class="btn btn-secondary" onclick="prevStep()">Previous</button>
-                        <button type="button" class="btn btn-primary" onclick="nextStep(2)">Next</button>
-                    </div>
+                <div class="stepper-step" data-step="2">
+                    <div class="stepper-circle">3</div>
+                    <div class="stepper-label">Locale & Brochures</div>
                 </div>
-
-                <div id="step-2" class="step" >
-                    <h4>Step 3: Locale and Brochures</h4>
-
-                    <div class="mb-3">
-                        {{ form_widget(form.locale, {'attr': {'class': 'form-control'}}) }}
-                        {{ form_errors(form.locale) }}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Duplicate brochures with Prefix and/or Suffix</label>
-                        <div class="row g-2">
-                            <div class="col-md-6">
-                                {{ form_widget(form.prefix, {'attr': {'placeholder': 'Prefix'}}) }}
-                            </div>
-                            <div class="col-md-6">
-                                {{ form_widget(form.suffix, {'attr': {'placeholder': 'Suffix'}}) }}
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <div class="mb-3">
-                        {% set prototype %}
-                            <div class="number-entry mb-2">
-                                <div class="row g-2">
-                                    <div class="col">
-                                        {{ form_widget(form.numbers.vars.prototype.number, {'attr': {'class': 'form-control', 'placeholder': 'Number'}}) }}
-                                    </div>
-                                    <div class="col">
-                                        {{ form_widget(form.numbers.vars.prototype.tracking_pixel, {'attr': {'class': 'form-control', 'placeholder': 'Tracking Pixel'}}) }}
-                                    </div>
-                                    <div class="col validity-start-wrapper">
-                                        <label><i class="bi bi-calendar-check"></i> Validity Start</label>
-                                        {{ form_widget(form.numbers.vars.prototype.validity_start, {'attr': {'class': 'form-control', 'placeholder': 'Validity Start'}}) }}
-                                    </div>
-                                    <div class="col validity-end-wrapper">
-                                        <label><i class="bi bi-calendar-x"></i> Validity End</label>
-                                        {{ form_widget(form.numbers.vars.prototype.validity_end, {'attr': {'class': 'form-control', 'placeholder': 'Validity End'}}) }}
-                                    </div>
-                                    <div class="col visibility-start-wrapper">
-                                        <label><i class="bi bi-eye"></i> Visibility Start</label>
-                                        {{ form_widget(form.numbers.vars.prototype.visibility_start, {'attr': {'class': 'form-control', 'placeholder': 'Visibility Start'}}) }}
-                                    </div>
-                                </div>
-                            </div>
-                        {% endset %}
-
-                        <div id="numbers-wrapper" data-prototype="{{ prototype|e('html_attr') }}">
-                            {% for entry in form.numbers %}
-                                <div class="number-entry mb-2" data-real="true">
-                                    <div class="row g-2">
-                                        <div class="col">
-                                            {{ form_widget(entry.number, {'attr': {'class': 'form-control'}}) }}
-                                        </div>
-                                        <div class="col">
-                                            {{ form_widget(entry.tracking_pixel, {'attr': {'class': 'form-control'}}) }}
-                                        </div>
-                                        <div class="col">
-                                            {{ form_widget(entry.validity_start, {'attr': {'class': 'form-control', 'step': '1'}}) }}
-                                        </div>
-                                        <div class="col">
-                                            {{ form_widget(entry.validity_end, {'attr': {'class': 'form-control', 'step': '1'}}) }}
-                                        </div>
-                                        <div class="col">
-                                            {{ form_widget(entry.visibility_start, {'attr': {'class': 'form-control', 'step': '1'}}) }}
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-
-                        </div>
-                        <div class="mb-2">
-                            <label for="bulkNumbers" class="form-label">Enter brochure numbers separated by commas</label>
-                            <input type="text" id="bulkNumbers" class="form-control" placeholder="e.g. 123,456,789">
-                        </div>
-
-                        <button type="button" class="btn btn-outline-primary mt-2" onclick="addNumberField()">Add Brochure</button>
-                    </div>
-
-                    <div class="d-flex justify-content-between">
-                        <button type="button" class="btn btn-secondary" onclick="prevStep()">Previous</button>
-                        <button type="button" class="btn btn-primary" onclick="nextStep(3)">Next</button>
-                    </div>
+                <div class="stepper-step" data-step="3">
+                    <div class="stepper-circle">4</div>
+                    <div class="stepper-label">Preview</div>
                 </div>
-
-                <div id="step-3" class="step" >
-                    <h4>Step 4: Preview</h4>
-                    <div class="mb-2"><strong>Company:</strong> <span id="preview-company"></span></div>
-                    <div class="mb-2"><strong>Locale:</strong> <span id="preview-locale"></span></div>
-                    <div class="mb-2"><strong>Prefix:</strong> <span id="preview-prefix"></span></div>
-                    <div class="mb-2"><strong>Suffix:</strong> <span id="preview-suffix"></span></div>
-                    <div class="mb-2"><strong>Brochures:</strong> <ul id="preview-numbers" class="list-group"></ul></div>
-
-                    <div class="d-flex justify-content-between">
-                        <button type="button" class="btn btn-secondary" onclick="prevStep()">Previous</button>
-                        <button type="submit" class="btn btn-primary" onclick="prepareAndSubmit(event)">Submit</button>
-
-                    </div>
-                </div>
-
-                {{ form_end(form, { 'render_rest': false }) }}
             </div>
 
-            <!-- Logs Tab -->
-            <div class="tab-pane fade" id="logs-tab-pane" role="tabpanel">
-                <div class="logs-tab-scroll-wrapper">
-                    <div class="card logs-table-card">
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                            <table id="logsTable" class="table table-striped table-hover align-middle w-100 mb-0">
-                        <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Created At</th>
-                            <th>Iproto ID</th>
-                            <th>Locale</th>
-                            <th>Status</th>
-                            <th>Import Type</th>
-                            <th>Data (JSON)</th>
-                            <th>Reimports</th>
-                            <th>Refresh</th>
-                            <th>Reimport</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                    {% for log in logs %}
-                        <tr>
-                            <td>{{ log.id }}</td>
-                            <td>{{ log.createdAt ? log.createdAt|date('Y-m-d H:i:s') : '' }}</td>
-                            <td>
-                                <a target="_blank" href="https://business-v2.offerista.com/redirect?owner_id={{ get_owner_id_by_locale(log.locale|default(''))|default('0') }}&path=/customers/{{ log.iprotoId }}/"
-                                   class="d-inline-flex align-items-center gap-1 text-decoration-none">
-                                    <img src="{{ asset('images/btlogo.png') }}" alt="BT Logo" style="height: 16px; width: auto;">
-                                    {{ log.iprotoId }}
-                                </a>
+            {{ form_start(form) }}
 
-                            </td>
+            <div id="step-0" class="step">
+                <h4>Step 1: Select Owner</h4>
+                <div class="mb-3">
+                    {{ form_label(form.owner) }}
+                    {{ form_widget(form.owner, {'attr': {
+                        'class': 'form-control',
+                        'required': 'required',
+                        'data-error-message': 'Please select an owner'
+                    }}) }}
+                    {{ form_errors(form.owner) }}
+                    {{ form_row(form.timezone) }}
 
-                            <td>{{ log.locale }}</td>
-                            <td>
-                                {% if log.status %}
-                                    {% set status = log.status|default('')|lower %}
-                                    {% set badgeClass = 'bg-secondary' %}
-                                    {% if status in ['done', 'success', 'completed'] %}
-                                        {% set badgeClass = 'bg-success' %}
-                                    {% elseif status in ['skipped', 'partial', 'warning'] %}
-                                        {% set badgeClass = 'bg-warning text-dark' %}
-                                    {% elseif status in ['failed', 'error', 'aborted'] %}
-                                        {% set badgeClass = 'bg-danger' %}
-                                    {% elseif status in ['running', 'processing', 'pending', 'queued', 'retrying'] %}
-                                        {% set badgeClass = 'bg-info text-dark' %}
-                                    {% endif %}
-                                    <span class="badge {{ badgeClass }}">{{ log.status }}</span>
-                                {% else %}
-                                    <span class="text-muted">N/A</span>
-                                {% endif %}
-                            </td>
-                            <td><span class="text-muted">{{ log.importType }}</span></td>
-                            <td>
-                                {% set collapseId = 'collapse-log-' ~ log.id %}
-                                {% set numbers = log.data.numbers is defined ? log.data.numbers : log.data %}
-                                <a class="btn btn-sm btn-outline-secondary"
-                                   data-bs-toggle="collapse"
-                                   href="#{{ collapseId }}"
-                                   role="button"
-                                   aria-expanded="false"
-                                   aria-controls="{{ collapseId }}">
-                                    📂 {{ numbers|length }} brochure{{ numbers|length > 1 ? 's' : '' }}
-                                </a>
-                                <div class="collapse mt-2" id="{{ collapseId }}">
-                                    <ul class="list-group list-group-flush small border rounded">
-                                        {% for brochure in numbers %}
-                                            <li class="list-group-item d-flex justify-content-between">
-                                                {% if brochure.number is defined %}
-                                                    <span>#{{ loop.index }}: <strong>{{ brochure.number }}</strong></span>
-                                                    <span class="text-muted">Pixel: {{ brochure.tracking_pixel }}</span>
-                                                {% else %}
-                                                    <span>{{ brochure }}</span>
-                                                {% endif %}
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="nextStep(1)">Next</button>
+            </div>
+
+            <div id="step-1" class="step" >
+                <h4>Step 2: Select Company</h4>
+                <div class="mb-3">
+                    {{ form_label(form.company) }}
+                    {{ form_widget(form.company, {'attr': {
+                        'class': 'form-control',
+                        'required': 'required',
+                        'data-error-message': 'Please select a company'
+                    }}) }}
+                    {{ form_errors(form.company) }}
+                </div>
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary" onclick="prevStep()">Previous</button>
+                    <button type="button" class="btn btn-primary" onclick="nextStep(2)">Next</button>
+                </div>
+            </div>
+
+            <div id="step-2" class="step" >
+                <h4>Step 3: Locale and Brochures</h4>
+
+                <div class="mb-3">
+                    {{ form_widget(form.locale, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.locale) }}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Duplicate brochures with Prefix and/or Suffix</label>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            {{ form_widget(form.prefix, {'attr': {'placeholder': 'Prefix'}}) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_widget(form.suffix, {'attr': {'placeholder': 'Suffix'}}) }}
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="mb-3">
+                    {% set prototype %}
+                        <div class="number-entry mb-2">
+                            <div class="row g-2">
+                                <div class="col">
+                                    {{ form_widget(form.numbers.vars.prototype.number, {'attr': {'class': 'form-control', 'placeholder': 'Number'}}) }}
                                 </div>
-                            </td>
-                            <td class="reimport-count">{{ log.reimportCount }}</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary refresh-status-btn"
-                                        data-id="{{ log.id }}"
-                                        data-import-id="{{ log.importId }}"
-                                        title="Refresh status">
-                                    <i class="material-icons">refresh</i>
-                                </button>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary reimport-btn" data-id="{{ log.id }}" title="Reimport">
-                                    ⟳
-                                </button>
-                            </td>
-
-                        </tr>
-                    {% endfor %}
-
-                    </tbody>
-                            </table>
+                                <div class="col">
+                                    {{ form_widget(form.numbers.vars.prototype.tracking_pixel, {'attr': {'class': 'form-control', 'placeholder': 'Tracking Pixel'}}) }}
+                                </div>
+                                <div class="col validity-start-wrapper">
+                                    <label><i class="bi bi-calendar-check"></i> Validity Start</label>
+                                    {{ form_widget(form.numbers.vars.prototype.validity_start, {'attr': {'class': 'form-control', 'placeholder': 'Validity Start'}}) }}
+                                </div>
+                                <div class="col validity-end-wrapper">
+                                    <label><i class="bi bi-calendar-x"></i> Validity End</label>
+                                    {{ form_widget(form.numbers.vars.prototype.validity_end, {'attr': {'class': 'form-control', 'placeholder': 'Validity End'}}) }}
+                                </div>
+                                <div class="col visibility-start-wrapper">
+                                    <label><i class="bi bi-eye"></i> Visibility Start</label>
+                                    {{ form_widget(form.numbers.vars.prototype.visibility_start, {'attr': {'class': 'form-control', 'placeholder': 'Visibility Start'}}) }}
+                                </div>
                             </div>
+                        </div>
+                    {% endset %}
+
+                    <div id="numbers-wrapper" data-prototype="{{ prototype|e('html_attr') }}">
+                        {% for entry in form.numbers %}
+                            <div class="number-entry mb-2" data-real="true" data-clickouts-count="0">
+                                <div class="row g-2">
+                                    <div class="col">
+                                        {{ form_widget(entry.number, {'attr': {'class': 'form-control'}}) }}
+                                    </div>
+                                    <div class="col">
+                                        {{ form_widget(entry.tracking_pixel, {'attr': {'class': 'form-control'}}) }}
+                                    </div>
+                                    <div class="col">
+                                        {{ form_widget(entry.validity_start, {'attr': {'class': 'form-control', 'step': '1'}}) }}
+                                    </div>
+                                    <div class="col">
+                                        {{ form_widget(entry.validity_end, {'attr': {'class': 'form-control', 'step': '1'}}) }}
+                                    </div>
+                                    <div class="col">
+                                        {{ form_widget(entry.visibility_start, {'attr': {'class': 'form-control', 'step': '1'}}) }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                    </div>
+                    <div class="mb-2">
+                        <label for="bulkNumbers" class="form-label">Enter brochure numbers separated by commas</label>
+                        <input type="text" id="bulkNumbers" class="form-control" placeholder="e.g. 123,456,789">
+                    </div>
+
+                    <button type="button" class="btn btn-outline-primary mt-2" onclick="addNumberField()">Add Brochure</button>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary" onclick="prevStep()">Previous</button>
+                    <button type="button" class="btn btn-primary" onclick="nextStep(3)">Next</button>
+                </div>
+            </div>
+
+            <div id="step-3" class="step" >
+                <h4>Step 4: Preview</h4>
+                <div class="mb-2"><strong>Company:</strong> <span id="preview-company"></span></div>
+                <div class="mb-2"><strong>Locale:</strong> <span id="preview-locale"></span></div>
+                <div class="mb-2"><strong>Prefix:</strong> <span id="preview-prefix"></span></div>
+                <div class="mb-2"><strong>Suffix:</strong> <span id="preview-suffix"></span></div>
+                <div class="mb-2"><strong>Brochures:</strong> <ul id="preview-numbers" class="list-group"></ul></div>
+
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary" onclick="prevStep()">Previous</button>
+                    <button type="submit" class="btn btn-primary" onclick="prepareAndSubmit(event)">Submit</button>
+
+                </div>
+            </div>
+
+            {{ form_end(form, { 'render_rest': false }) }}
+        </div>
+
+        <!-- Queue Tab -->
+        <div class="tab-pane fade" id="queue-tab-pane" role="tabpanel">
+            <div class="logs-tab-scroll-wrapper">
+                <div class="card logs-table-card">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table id="queueTable" class="table table-striped table-hover align-middle w-100 mb-0">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Created</th>
+                                    <th>Scheduled</th>
+                                    <th>Executed</th>
+                                    <th>Status</th>
+                                    <th>Error</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for p in presets %}
+                                    <tr class="{% if p.status == 'failed' %}table-danger{% endif %}">
+                                        <td>{{ p.id }}</td>
+                                        <td>{{ p.createdAt ? p.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+                                        <td>{{ p.scheduledAt ? p.scheduledAt|date('Y-m-d H:i:s') : '' }}</td>
+                                        <td>{{ p.executedAt ? p.executedAt|date('Y-m-d H:i:s') : '' }}</td>
+                                        <td>
+                                            {% set status = p.status|lower %}
+                                            {% set badgeClass = 'bg-secondary' %}
+                                            {% if status in ['finished'] %}
+                                                {% set badgeClass = 'bg-success' %}
+                                            {% elseif status in ['failed'] %}
+                                                {% set badgeClass = 'bg-danger' %}
+                                            {% elseif status in ['running', 'pending'] %}
+                                                {% set badgeClass = 'bg-info text-dark' %}
+                                            {% endif %}
+                                            <span class="badge {{ badgeClass }}">{{ p.status }}</span>
+                                        </td>
+                                        <td class="text-danger">
+                                            {{ p.errorMessage }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-    
+        <!-- Logs Tab -->
+        <div class="tab-pane fade" id="logs-tab-pane" role="tabpanel">
+            <div class="logs-tab-scroll-wrapper">
+                <div class="card logs-table-card">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table id="logsTable" class="table table-striped table-hover align-middle w-100 mb-0">
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Created At</th>
+                                    <th>Iproto ID</th>
+                                    <th>Locale</th>
+                                    <th>Status</th>
+                                    <th>Import Type</th>
+                                    <th>Data (JSON)</th>
+                                    <th>Reimports</th>
+                                    <th>Refresh</th>
+                                    <th>Reimport</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for log in logs %}
+                                    <tr>
+                                        <td>{{ log.id }}</td>
+                                        <td>{{ log.createdAt ? log.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+                                        <td>
+                                            <a target="_blank" href="https://business-v2.offerista.com/redirect?owner_id={{ get_owner_id_by_locale(log.locale|default(''))|default('0') }}&path=/customers/{{ log.iprotoId }}/"
+                                               class="d-inline-flex align-items-center gap-1 text-decoration-none">
+                                                <img src="{{ asset('images/btlogo.png') }}" alt="BT Logo" style="height: 16px; width: auto;">
+                                                {{ log.iprotoId }}
+                                            </a>
 
-    
-    
+                                        </td>
 
-    
+                                        <td>{{ log.locale }}</td>
+                                        <td>
+                                            {% if log.status %}
+                                                {% set status = log.status|default('')|lower %}
+                                                {% set badgeClass = 'bg-secondary' %}
+                                                {% if status in ['done', 'success', 'completed'] %}
+                                                    {% set badgeClass = 'bg-success' %}
+                                                {% elseif status in ['skipped', 'partial', 'warning'] %}
+                                                    {% set badgeClass = 'bg-warning text-dark' %}
+                                                {% elseif status in ['failed', 'error', 'aborted'] %}
+                                                    {% set badgeClass = 'bg-danger' %}
+                                                {% elseif status in ['running', 'processing', 'pending', 'queued', 'retrying'] %}
+                                                    {% set badgeClass = 'bg-info text-dark' %}
+                                                {% endif %}
+                                                <span class="badge {{ badgeClass }}">{{ log.status }}</span>
+                                            {% else %}
+                                                <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><span class="text-muted">{{ log.importType }}</span></td>
+                                        <td>
+                                            {% set collapseId = 'collapse-log-' ~ log.id %}
+                                            {% set numbers = log.data.numbers is defined ? log.data.numbers : log.data %}
+                                            <a class="btn btn-sm btn-outline-secondary"
+                                               data-bs-toggle="collapse"
+                                               href="#{{ collapseId }}"
+                                               role="button"
+                                               aria-expanded="false"
+                                               aria-controls="{{ collapseId }}">
+                                                📂 {{ numbers|length }} brochure{{ numbers|length > 1 ? 's' : '' }}
+                                            </a>
+                                            <div class="collapse mt-2" id="{{ collapseId }}">
+                                                <ul class="list-group list-group-flush small border rounded">
+                                                    {% for brochure in numbers %}
+                                                        <li class="list-group-item d-flex justify-content-between">
+                                                            {% if brochure.number is defined %}
+                                                                <span>#{{ loop.index }}: <strong>{{ brochure.number }}</strong></span>
+                                                                <span class="text-muted">Pixel: {{ brochure.tracking_pixel }}</span>
+                                                            {% else %}
+                                                                <span>{{ brochure }}</span>
+                                                            {% endif %}
+                                                        </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        </td>
+                                        <td class="reimport-count">{{ log.reimportCount }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary refresh-status-btn"
+                                                    data-id="{{ log.id }}"
+                                                    data-import-id="{{ log.importId }}"
+                                                    title="Refresh status">
+                                                <i class="material-icons">refresh</i>
+                                            </button>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary reimport-btn" data-id="{{ log.id }}" title="Reimport">
+                                                ⟳
+                                            </button>
+                                        </td>
 
-    
+                                    </tr>
+                                {% endfor %}
 
-    
-
-    
-
-    
-
-    
-
-
-
-<div class="modal fade" id="reimportConfirmModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Reimport</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Are you sure you want to rerun?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-no" data-bs-dismiss="modal">No</button>
-                <button type="button" class="btn btn-primary btn-yes">Yes</button>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
-{% block javascripts %}
-    {{ parent() }}
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="{{ asset('js/shopfully-wizard.js') }}"></script>
-{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div class="modal fade" id="reimportConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Reimport</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to rerun?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-no" data-bs-dismiss="modal">No</button>
+                    <button type="button" class="btn btn-primary btn-yes">Yes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+    {% block javascripts %}
+        {{ parent() }}
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+        <script src="{{ asset('js/shopfully-wizard.js') }}"></script>
+    {% endblock %}
