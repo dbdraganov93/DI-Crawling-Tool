@@ -164,7 +164,7 @@ deploy_app_stage:
   extends: .deploy_app_template
   variables:
     ENVIRONMENT_NAME: stage
-    IPROTO_CLIENT_ID_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_ID::"
+    IPROTO_CLIENT_ID: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_ID::"
     IPROTO_CLIENT_SECRET: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_SECRET::"
   environment:
     name: dicrawler-${ENVIRONMENT_NAME}
@@ -178,7 +178,7 @@ deploy_app_prod:
   extends: .deploy_app_template
   variables:
     ENVIRONMENT_NAME: prod
-    IPROTO_CLIENT_ID_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_ID::"
+    IPROTO_CLIENT_ID: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_ID::"
     IPROTO_CLIENT_SECRET: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_SECRET::"
   environment:
     name: dicrawler-${ENVIRONMENT_NAME}
