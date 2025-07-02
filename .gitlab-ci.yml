@@ -162,8 +162,9 @@ deploy_app_stage:
     ENVIRONMENT_NAME: stage
   environment:
     name: dicrawler-${ENVIRONMENT_NAME}
-    url: https://dicrawler.stage.offerista.com
+    url: https://dicrawler.public-elb.di-stage.offerista.com
   only:
+    - feature/pipeline
     - master
 
 # Deploy to prod on master push (requires manual button-click when ready)
@@ -183,6 +184,7 @@ deploy_worker_stage:
   variables:
     ENVIRONMENT_NAME: stage
   only:
+    - feature/pipeline
     - master
 
 # Deploy to prod on master push (requires manual button-click when ready)
@@ -193,3 +195,4 @@ deploy_worker_prod:
   when: manual
   only:
     - master
+    
