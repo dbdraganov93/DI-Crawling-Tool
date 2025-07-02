@@ -4,8 +4,8 @@ variables:
     DOCKER_CERT_PATH: /certs/client 
     ECR_REGISTRY: 385750204895.dkr.ecr.eu-west-1.amazonaws.com
     IMAGE_CACHE_TAG: ${CI_COMMIT_REF_SLUG}_latest # <branch-name>_latest (mutable, use as base for the next build in the same branch)
-    IMAGE_BUILD_TAG: ${CI_COMMIT_REF_SLUG}_${CI_COMMIT_SHORT_SHA} # <branch-name>_<commit-hash> (immutable, used for further testing and potential deployment)
-    IMAGE_DEPLOY_TAG: ${CI_COMMIT_REF_SLUG}_${CI_COMMIT_SHORT_SHA} # <branch-name>_<commit-hash> (immutable, used in ECR for deployments) 
+    IMAGE_BUILD_TAG: ${CI_COMMIT_REF_SLUG}_build_${CI_COMMIT_SHORT_SHA} # <branch-name>_build_<commit-hash> (immutable, used for further testing and potential deployment)
+    IMAGE_DEPLOY_TAG: ${CI_COMMIT_REF_SLUG}_release_${CI_COMMIT_SHORT_SHA} # <branch-name>_release_<commit-hash> (immutable, used in ECR for deployments)
 
 stages:
   - Codestyle
@@ -51,9 +51,9 @@ build_container:
     before_script:
         - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
     script:
-      - DOCKER_BUILDKIT=1 docker build -f docker/php/Dockerfile -t $CI_REGISTRY_IMAGE:$IMAGE_BUILD_TAG -t $CI_REGISTRY_IMAGE:$IMAGE_CACHE_TAG .
-      - docker push $CI_REGISTRY_IMAGE:$IMAGE_BUILD_TAG
-      - docker push $CI_REGISTRY_IMAGE:$IMAGE_CACHE_TAG
+        - DOCKER_BUILDKIT=1 docker build -f docker/php/Dockerfile -t $CI_REGISTRY_IMAGE:$IMAGE_BUILD_TAG -t $CI_REGISTRY_IMAGE:$IMAGE_CACHE_TAG .
+        - docker push $CI_REGISTRY_IMAGE:$IMAGE_BUILD_TAG
+        - docker push $CI_REGISTRY_IMAGE:$IMAGE_CACHE_TAG
 
     tags:
         - docker
@@ -148,7 +148,6 @@ deploy_app_stage:
     name: dicrawler-${ENVIRONMENT_NAME}
     url: https://dicrawler.stage.offerista.com
   only:
-    - feature/pipeline
     - master
 
 # Deploy to prod on master push (requires manual button-click when ready)
@@ -168,7 +167,6 @@ deploy_worker_stage:
   variables:
     ENVIRONMENT_NAME: stage
   only:
-    - feature/pipeline
     - master
 
 # Deploy to prod on master push (requires manual button-click when ready)
