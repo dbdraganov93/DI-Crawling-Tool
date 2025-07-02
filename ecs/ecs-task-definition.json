@@ -51,7 +51,7 @@
                 },
                 {
                     "name": "APP_SECRET",
-                    "valueFrom": "di-dicrawler-${env}-app-secret"
+                    "valueFrom": "${APP_SECRET}"
                 },
                 {
                    "name": "IPROTO_CLIENT_ID",
