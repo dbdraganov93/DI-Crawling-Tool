@@ -7,7 +7,7 @@ services:
     working_dir: /var/www/html
     volumes:
       - ./:/var/www/html
-      - ./aws-credentials:/.aws/credentials:ro
+      - ./aws-credentials:/var/www/.aws/credentials:ro
     ports:
       - "8001:8000"
     depends_on:
@@ -15,6 +15,7 @@ services:
     environment:
       APACHE_RUN_USER: www-data
       APACHE_RUN_GROUP: www-data
+      AWS_SHARED_CREDENTIALS_FILE: /var/www/.aws/credentials
     command: >
       bash -c '
         git config --global --add safe.directory /var/www/html &&
@@ -50,8 +51,24 @@ services:
         echo "   👤 User:    root"
         echo "   🔒 Pass:    1203"
         echo "--------------------------------------------------"
-        exec apache2-foreground
-      '  
+      exec apache2-foreground
+      '
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: dicrawler_worker
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+      - ./aws-credentials:/var/www/.aws/credentials:ro
+    depends_on:
+      - mysql
+    environment:
+      AWS_SHARED_CREDENTIALS_FILE: /var/www/.aws/credentials
+    command: php bin/console app:shopfully:worker
 
   mysql:
     image: mysql:8.0

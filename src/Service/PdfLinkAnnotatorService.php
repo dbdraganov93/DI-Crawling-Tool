@@ -17,6 +17,11 @@ class PdfLinkAnnotatorService
     }
     public function annotate(string $pdfPath, string $outputPath, array $clickouts): void
     {
+        if (empty($clickouts)) {
+            // Nothing to annotate
+            return;
+        }
+
         $clickoutsJsonPath = tempnam(sys_get_temp_dir(), 'clickouts_') . '.json';
         file_put_contents($clickoutsJsonPath, json_encode($clickouts));
 

@@ -1,0 +1,1 @@
+0 * * * * cd /var/www/html && php bin/console app:shopfully:worker >> var/log/preset.log 2>&1
