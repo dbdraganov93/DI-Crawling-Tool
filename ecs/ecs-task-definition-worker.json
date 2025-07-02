@@ -24,7 +24,7 @@
                 },
                 {
                     "name": "WEBSERVER",
-                    "value": "true"
+                    "value": "false"
                 },
                 {
                     
@@ -76,7 +76,7 @@
             "healthCheck": {
                 "command": [
                     "CMD-SHELL",
-                    "curl -f http://localhost || exit 1"
+                    "pgrep -f 'php bin/console app:shopfully:worker' || exit 1"
                 ],
                 "interval": 10,
                 "timeout": 10,
