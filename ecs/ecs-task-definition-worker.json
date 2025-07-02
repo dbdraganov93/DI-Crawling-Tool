@@ -55,11 +55,11 @@
                 },
                 {
                     "name": "IPROTO_CLIENT_ID",
-                    "valueFrom": "di-dicrawler-${env}-client-credentials:IPROTO_CLIENT_ID::"
+                    "valueFrom": "${IPROTO_CLIENT_ID_${ENV}}"
                 },
                 {
                    "name": "IPROTO_CLIENT_SECRET",
-                   "valueFrom": "di-dicrawler-${env}-client-credentials:IPROTO_CLIENT_SECRET::"
+                   "valueFrom": "${IPROTO_CLIENT_SECRET_${ENV}}"
                 }
           ],
             "readonlyRootFilesystem": false,
