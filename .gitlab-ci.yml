@@ -57,7 +57,7 @@ build_container:
 
     tags:
         - docker
-push_image:
+.push_image_template:
     stage: push
     tags:
         - docker
@@ -80,6 +80,22 @@ push_image:
         # Tag release and push it to ECR:
         - docker tag $CI_REGISTRY_IMAGE:$IMAGE_BUILD_TAG ${ECR_REGISTRY}/${ENVIRONMENT_NAME}-dicrawler:${IMAGE_DEPLOY_TAG}
         - docker push ${ECR_REGISTRY}/${ENVIRONMENT_NAME}-dicrawler:$IMAGE_DEPLOY_TAG
+
+push_image_stage:
+  extends: .push_image_template
+  variables:
+    ENVIRONMENT_NAME: stage
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "feature/pipeline"'
+
+push_image_prod:
+  extends: .push_image_template
+  variables:
+    ENVIRONMENT_NAME: prod
+    ECR_REPO_NAME: prod-dicrawler
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      
 .update-cron-task-template:
   stage: cron
   tags:
