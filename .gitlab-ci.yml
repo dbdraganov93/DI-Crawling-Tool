@@ -85,16 +85,16 @@ push_image_stage:
   extends: .push_image_template
   variables:
     ENVIRONMENT_NAME: stage
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "feature/pipeline"'
+  only:
+    - feature/pipeline
 
 push_image_prod:
   extends: .push_image_template
   variables:
     ENVIRONMENT_NAME: prod
     ECR_REPO_NAME: prod-dicrawler
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
+  only:
+    - master
       
 .update-cron-task-template:
   stage: cron
