@@ -55,11 +55,11 @@
                 },
                 {
                     "name": "IPROTO_CLIENT_ID",
-                    "valueFrom": "${IPROTO_CLIENT_ID_${ENV}}"
+                    "valueFrom": "${IPROTO_CLIENT_ID}"
                 },
                 {
                    "name": "IPROTO_CLIENT_SECRET",
-                   "valueFrom": "${IPROTO_CLIENT_SECRET_${ENV}}"
+                   "valueFrom": "${IPROTO_CLIENT_SECRET}"
                 }
           ],
             "readonlyRootFilesystem": false,

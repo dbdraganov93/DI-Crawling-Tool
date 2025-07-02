@@ -160,6 +160,8 @@ deploy_app_stage:
   extends: .deploy_app_template
   variables:
     ENVIRONMENT_NAME: stage
+    IPROTO_CLIENT_ID_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_ID::"
+    IPROTO_CLIENT_SECRET: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_SECRET::"
   environment:
     name: dicrawler-${ENVIRONMENT_NAME}
     url: https://dicrawler.public-elb.di-stage.offerista.com
@@ -172,6 +174,8 @@ deploy_app_prod:
   extends: .deploy_app_template
   variables:
     ENVIRONMENT_NAME: prod
+    IPROTO_CLIENT_ID_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_ID::"
+    IPROTO_CLIENT_SECRET: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_SECRET::"
   environment:
     name: dicrawler-${ENVIRONMENT_NAME}
     url: https://dicrawler.offerista.com
@@ -183,6 +187,8 @@ deploy_worker_stage:
   extends: .deploy_worker_template
   variables:
     ENVIRONMENT_NAME: stage
+    IPROTO_CLIENT_ID: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_ID::"
+    IPROTO_CLIENT_SECRET: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_SECRET::"
   only:
     - feature/pipeline
     - master
@@ -192,7 +198,8 @@ deploy_worker_prod:
   extends: .deploy_worker_template
   variables:
     ENVIRONMENT_NAME: prod
+    IPROTO_CLIENT_ID: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_ID::"
+    IPROTO_CLIENT_SECRET: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_SECRET::"
   when: manual
   only:
     - master
-    
