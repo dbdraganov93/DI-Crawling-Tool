@@ -37,7 +37,7 @@
                 },
                 {
                     "name": "AWS_BUCKET",
-                    "value": "content.di-prod.offerista"
+                    "value": "content.di-{env}.offerista"
                 }
             ],
             "secrets": [                  
@@ -50,12 +50,12 @@
                     "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-app-secret-VVKipH"
                 },
                 {
-                   "name": "IPROTO_CLIENT_ID",
-                   "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_ID::"
+                    "name": "IPROTO_CLIENT_ID",
+                    "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_ID::"
                 },
                 {
-                  "name": "IPROTO_CLIENT_SECRET",
-                  "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_SECRET::"
+                   "name": "IPROTO_CLIENT_SECRET",
+                   "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_SECRET::"
                 }
           ],
             "readonlyRootFilesystem": false,
@@ -85,8 +85,8 @@
     "requiresCompatibilities": [
         "FARGATE"
     ],
-    "cpu": "2048",
-    "memory": "4096",
+    "cpu": "512",
+    "memory": "1024",
     "tags": [
         {
             "key": "Service",

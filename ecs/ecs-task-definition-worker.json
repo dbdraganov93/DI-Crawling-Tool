@@ -5,7 +5,7 @@
     "networkMode": "awsvpc",
     "containerDefinitions": [
         {
-            "name": "Crawler",
+            "name": "Worker",
             "image": "${dicrawler_image}",
             "portMappings": [
                 {
@@ -16,7 +16,7 @@
             ],
             "essential": true,
             "entryPoint": [],
-            "command":   [],
+            "command":   ["php", "bin/console", "app:shopfully:worker"],
             "environment": [
                 {
                     "name": "APP_ENV",
@@ -54,12 +54,12 @@
                     "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-app-secret-VVKipH"
                 },
                 {
-                   "name": "IPROTO_CLIENT_ID",
-                   "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_ID::"
+                    "name": "IPROTO_CLIENT_ID",
+                    "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_ID::"
                 },
                 {
-                  "name": "IPROTO_CLIENT_SECRET",
-                  "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_SECRET::"
+                   "name": "IPROTO_CLIENT_SECRET",
+                   "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_SECRET::"
                 }
           ],
             "readonlyRootFilesystem": false,
@@ -68,7 +68,7 @@
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
-                    "awslogs-group": "dicrawler.ecs.di-${env}",
+                    "awslogs-group": "dicrawler.worker.ecs.di-${env}",
                     "awslogs-region": "eu-west-1",
                     "awslogs-stream-prefix": "ecs"
                 }
