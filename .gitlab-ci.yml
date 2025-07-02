@@ -136,6 +136,8 @@ update_cron_prod:
   script:
     - sed -i "s/\${env}/${ENVIRONMENT_NAME}/" ecs/ecs-task-definition.json
     - sed -i "s|\${dicrawler_image}|${ECR_REGISTRY}/${ENVIRONMENT_NAME}-dicrawler:${IMAGE_DEPLOY_TAG}|" ecs/ecs-task-definition.json
+    - sed -i "s|\${IPROTO_CLIENT_ID}|${IPROTO_CLIENT_ID}|" ecs/ecs-task-definition.json
+    - sed -i "s|\${IPROTO_CLIENT_SECRET}|${IPROTO_CLIENT_SECRET}|" ecs/ecs-task-definition.json
     - aws --region=eu-west-1 ecs register-task-definition --cli-input-json file://ecs/ecs-task-definition.json
     - aws --region=eu-west-1 ecs update-service --cluster dicrawler-di-${ENVIRONMENT_NAME} --service dicrawler-di-${ENVIRONMENT_NAME} --task-definition dicrawler-di-${ENVIRONMENT_NAME} --force-new-deployment
     - bin/ecs_deployment_check.sh
@@ -152,6 +154,8 @@ update_cron_prod:
   script:
     - sed -i "s/\${env}/${ENVIRONMENT_NAME}/" ecs/ecs-task-definition-worker.json
     - sed -i "s|\${dicrawler_image}|${ECR_REGISTRY}/${ENVIRONMENT_NAME}-dicrawler:${IMAGE_DEPLOY_TAG}|" ecs/ecs-task-definition-worker.json
+    - sed -i "s|\${IPROTO_CLIENT_ID}|${IPROTO_CLIENT_ID}|" ecs/ecs-task-definition-worker.json
+    - sed -i "s|\${IPROTO_CLIENT_SECRET}|${IPROTO_CLIENT_SECRET}|" ecs/ecs-task-definition-worker.json
     - aws --region=eu-west-1 ecs register-task-definition --cli-input-json file://ecs/ecs-task-definition-worker.json
     - aws --region=eu-west-1 ecs update-service --cluster dicrawler-di-${ENVIRONMENT_NAME}-worker --service dicrawler-di-${ENVIRONMENT_NAME}-worker --task-definition dicrawler-di-${ENVIRONMENT_NAME}-worker --force-new-deployment
     - bin/ecs_deployment_check_worker.sh
