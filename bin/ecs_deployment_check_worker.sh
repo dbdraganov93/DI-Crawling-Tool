@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEPLOYMENT_STATUS=$(aws --region=eu-west-1 ecs describe-services --cluster dicrawler-di-${ENVIRONMENT_NAME} --service dicrawler-di-${ENVIRONMENT_NAME}-worker | jq .services[0].deployments[0])
+DEPLOYMENT_STATUS=$(aws --region=eu-west-1 ecs describe-services --cluster dicrawler-di-${ENVIRONMENT_NAME} --service dicrawler-di-worker-${ENVIRONMENT_NAME} | jq .services[0].deployments[0])
 echo ${DEPLOYMENT_STATUS}
 
 if [[ $(echo $DEPLOYMENT_STATUS | jq .status) != '"PRIMARY"' ]]
@@ -16,14 +16,14 @@ while [[ $(echo $DEPLOYMENT_STATUS | jq .rolloutState) == '"IN_PROGRESS"' ]]
 do
   echo "Waiting for deployment to finish ..."
   sleep 10
-  DEPLOYMENT_STATUS=$(aws --region=eu-west-1 ecs describe-services --cluster dicrawler-di-${ENVIRONMENT_NAME} --service dicrawler-di-${ENVIRONMENT_NAME}-worker | jq .services[0].deployments[0])
+  DEPLOYMENT_STATUS=$(aws --region=eu-west-1 ecs describe-services --cluster dicrawler-di-${ENVIRONMENT_NAME} --service dicrawler-di-worker-${ENVIRONMENT_NAME} | jq .services[0].deployments[0])
 done
 
 if [[ $(echo $DEPLOYMENT_STATUS | jq .rolloutState) == '"COMPLETED"' ]]
 then
   DEPLOYED_VERSION=$(echo $DEPLOYMENT_STATUS | jq -r '.taskDefinition | split(":") | last')
   # If no revision is specified for task definition (i.e <family-name>:<revision>), it gets the latest.
-  LATEST_VERSION=$(aws --region=eu-west-1 ecs describe-task-definition --task-definition dicrawler-di-${ENVIRONMENT_NAME}-worker | jq -r .taskDefinition.revision)
+  LATEST_VERSION=$(aws --region=eu-west-1 ecs describe-task-definition --task-definition dicrawler-di-worker-${ENVIRONMENT_NAME} | jq -r .taskDefinition.revision)
 
   if [[ $DEPLOYED_VERSION == $LATEST_VERSION ]]
   then
