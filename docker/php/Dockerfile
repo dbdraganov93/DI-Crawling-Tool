@@ -24,7 +24,7 @@ COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.con
 
 WORKDIR /var/www/html
 
-COPY ../cron/iproto-cron /etc/cron.d/iproto-cron
+COPY cron/iproto-cron /etc/cron.d/iproto-cron
 COPY . /var/www/html
 COPY .env.prod /var/www/html/.env
 
