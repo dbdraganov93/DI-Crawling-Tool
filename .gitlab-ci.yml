@@ -12,7 +12,6 @@ stages:
   - UnitTest
   - build 
   - push
-  - cron
   - deploy 
 
 services:
@@ -95,40 +94,7 @@ push_image_prod:
     ECR_REPO_NAME: prod-dicrawler
   only:
     - master
-      
-.update-cron-task-template:
-  stage: cron
-  tags:
-    - shell
-  script:
-    - sed -i "s/\${env}/${ENVIRONMENT_NAME}/" ecs/ecs-task-definition-cron.json
-    - sed -i "s|\${dicrawler_image}|${ECR_REGISTRY}\/${ENVIRONMENT_NAME}-dicrawler:${IMAGE_DEPLOY_TAG}|" ecs/ecs-task-definition-cron.json
-    - aws --region=eu-west-1 ecs register-task-definition --cli-input-json file://ecs/ecs-task-definition-cron.json
-    - ./bin/update_eventbridge_target.sh
-  artifacts:
-    when: always
-    paths:
-      - ecs/ecs-task-definition-cron.json
-    expire_in: 10 days
-
-update_cron_stage:
-  extends: .update-cron-task-template
-  variables:
-    ENVIRONMENT_NAME: stage
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-      when: always
-    - when: never
-
-update_cron_prod:
-  extends: .update-cron-task-template
-  variables:
-    ENVIRONMENT_NAME: prod
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
-      when: always
-    - when: never
-
+  
 .deploy_app_template:
   stage: deploy
   tags:
