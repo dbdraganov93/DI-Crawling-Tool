@@ -12,6 +12,7 @@ stages:
   - UnitTest
   - build 
   - push
+  - cron
   - deploy 
 
 services:
@@ -91,10 +92,41 @@ push_image_prod:
   extends: .push_image_template
   variables:
     ENVIRONMENT_NAME: prod
-    ECR_REPO_NAME: prod-dicrawler
   only:
     - master
-  
+
+    
+.update-cron-task-template:
+  stage: cron
+  tags:
+    - shell
+  script:
+    - sed -i "s/\${env}/${ENVIRONMENT_NAME}/" ecs/ecs-task-definition-cron.json
+    - sed -i "s|\${dicrawler_image}|${ECR_REGISTRY}\/${ENVIRONMENT_NAME}-dicrawler:${IMAGE_DEPLOY_TAG}|" ecs/ecs-task-definition-cron.json
+    - aws --region=eu-west-1 ecs register-task-definition --cli-input-json file://ecs/ecs-task-definition-cron.json
+    - ./bin/update_eventbridge_target.sh
+  artifacts:
+    when: always
+    paths:
+      - ecs/ecs-task-definition-cron.json
+    expire_in: 10 days
+update_cron_stage:
+  extends: .update-cron-task-template
+  variables:
+    ENVIRONMENT_NAME: stage
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "feature/pipeline"'
+      when: always
+    - when: never
+
+update_cron_prod:
+  extends: .update-cron-task-template
+  variables:
+    ENVIRONMENT_NAME: prod
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: always
+    - when: never 
 .deploy_app_template:
   stage: deploy
   tags:
@@ -102,9 +134,9 @@ push_image_prod:
   script:
     - sed -i "s/\${env}/${ENVIRONMENT_NAME}/" ecs/ecs-task-definition.json
     - sed -i "s|\${dicrawler_image}|${ECR_REGISTRY}/${ENVIRONMENT_NAME}-dicrawler:${IMAGE_DEPLOY_TAG}|" ecs/ecs-task-definition.json
-    - sed -i "s|\${IPROTO_CLIENT_ID}|${IPROTO_CLIENT_ID}|" ecs/ecs-task-definition.json
-    - sed -i "s|\${IPROTO_CLIENT_SECRET}|${IPROTO_CLIENT_SECRET}|" ecs/ecs-task-definition.json
-    - sed -i "s|\${APP_SECRET}|${APP_SECRET}|" ecs/ecs-task-definition.json
+    - sed -i "s|\${IPROTO_CLIENT_ID}|${IPROTO_CLIENT_ID_ARN}|" ecs/ecs-task-definition.json
+    - sed -i "s|\${IPROTO_CLIENT_SECRET}|${IPROTO_CLIENT_SECRET_ARN}|" ecs/ecs-task-definition.json
+    - sed -i "s|\${APP_SECRET}|${APP_SECRET_ARN}|" ecs/ecs-task-definition.json
     - aws --region=eu-west-1 ecs register-task-definition --cli-input-json file://ecs/ecs-task-definition.json
     - aws --region=eu-west-1 ecs update-service --cluster dicrawler-di-${ENVIRONMENT_NAME} --service dicrawler-di-${ENVIRONMENT_NAME} --task-definition dicrawler-di-${ENVIRONMENT_NAME} --force-new-deployment
     - bin/ecs_deployment_check.sh
@@ -121,9 +153,9 @@ push_image_prod:
   script:
     - sed -i "s/\${env}/${ENVIRONMENT_NAME}/" ecs/ecs-task-definition-worker.json
     - sed -i "s|\${dicrawler_image}|${ECR_REGISTRY}/${ENVIRONMENT_NAME}-dicrawler:${IMAGE_DEPLOY_TAG}|" ecs/ecs-task-definition-worker.json
-    - sed -i "s|\${IPROTO_CLIENT_ID}|${IPROTO_CLIENT_ID}|" ecs/ecs-task-definition-worker.json
-    - sed -i "s|\${IPROTO_CLIENT_SECRET}|${IPROTO_CLIENT_SECRET}|" ecs/ecs-task-definition-worker.json
-    - sed -i "s|\${APP_SECRET}|${APP_SECRET}|" ecs/ecs-task-definition-worker.json
+    - sed -i "s|\${IPROTO_CLIENT_ID}|${IPROTO_CLIENT_ID_ARN}|" ecs/ecs-task-definition-worker.json
+    - sed -i "s|\${IPROTO_CLIENT_SECRET}|${IPROTO_CLIENT_SECRET_ARN}|" ecs/ecs-task-definition-worker.json
+    - sed -i "s|\${APP_SECRET}|${APP_SECRET_ARN}|" ecs/ecs-task-definition-worker.json
     - aws --region=eu-west-1 ecs register-task-definition --cli-input-json file://ecs/ecs-task-definition-worker.json
     - aws --region=eu-west-1 ecs update-service --cluster dicrawler-di-${ENVIRONMENT_NAME} --service dicrawler-di-worker-${ENVIRONMENT_NAME} --task-definition dicrawler-di-worker-${ENVIRONMENT_NAME} --force-new-deployment
     - bin/ecs_deployment_check_worker.sh
@@ -137,9 +169,9 @@ deploy_app_stage:
   extends: .deploy_app_template
   variables:
     ENVIRONMENT_NAME: stage
-    APP_SECRET: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-app-secret-nIt2DZ"
-    IPROTO_CLIENT_ID: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_ID::"
-    IPROTO_CLIENT_SECRET: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_SECRET::"
+    APP_SECRET_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-app-secret-nIt2DZ"
+    IPROTO_CLIENT_ID_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_ID::"
+    IPROTO_CLIENT_SECRET_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_SECRET::"
   environment:
     name: dicrawler-${ENVIRONMENT_NAME}
     url: https://dicrawler.public-elb.di-stage.offerista.com
@@ -152,9 +184,9 @@ deploy_app_prod:
   extends: .deploy_app_template
   variables:
     ENVIRONMENT_NAME: prod
-    APP_SECRET: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-app-secret-VVKipH"
-    IPROTO_CLIENT_ID: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_ID::"
-    IPROTO_CLIENT_SECRET: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_SECRET::"
+    APP_SECRET_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-app-secret-VVKipH"
+    IPROTO_CLIENT_ID_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_ID::"
+    IPROTO_CLIENT_SECRET_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_SECRET::"
   environment:
     name: dicrawler-${ENVIRONMENT_NAME}
     url: https://dicrawler.offerista.com
@@ -166,9 +198,9 @@ deploy_worker_stage:
   extends: .deploy_worker_template
   variables:
     ENVIRONMENT_NAME: stage
-    APP_SECRET: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-app-secret-nIt2DZ"
-    IPROTO_CLIENT_ID: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_ID::"
-    IPROTO_CLIENT_SECRET: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_SECRET::"
+    APP_SECRET_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-app-secret-nIt2DZ"
+    IPROTO_CLIENT_ID_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_ID::"
+    IPROTO_CLIENT_SECRET_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_SECRET::"
   only:
     - feature/pipeline
     - master
@@ -178,9 +210,9 @@ deploy_worker_prod:
   extends: .deploy_worker_template
   variables:
     ENVIRONMENT_NAME: prod
-    APP_SECRET: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-app-secret-VVKipH"
-    IPROTO_CLIENT_ID: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_ID::"
-    IPROTO_CLIENT_SECRET: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_SECRET::"
+    APP_SECRET_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-app-secret-VVKipH"
+    IPROTO_CLIENT_ID_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_ID::"
+    IPROTO_CLIENT_SECRET_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_SECRET::"
   when: manual
   only:
     - master

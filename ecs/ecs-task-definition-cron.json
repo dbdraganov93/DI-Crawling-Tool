@@ -1,11 +1,11 @@
 {
-"family": "dicrawler-di-${env}",
+"family": "dicrawler-di-token-updater-${env}",
     "taskRoleArn": "arn:aws:iam::385750204895:role/dicrawler.ecs-task.di-${env}",
     "executionRoleArn": "arn:aws:iam::385750204895:role/dicrawler.ecs-task.di-${env}",
     "networkMode": "awsvpc",
     "containerDefinitions": [
         {
-            "name": "Crawler",
+            "name": "token-updater",
             "image": "${dicrawler_image}",
             "portMappings": [
                 {
@@ -16,15 +16,11 @@
             ],
             "essential": true,
             "entryPoint": [],
-            "command":   [],
+            "command":   ["php", "bin/console", "iproto:update-token"],
             "environment": [
                 {
                     "name": "APP_ENV",
                     "value": "${env}"
-                },
-                {
-                    "name": "WEBSERVER",
-                    "value": "true"
                 },
                 {
                     
@@ -32,16 +28,16 @@
                    "value": "0"
                 },
                 {
+                   "name": "IPROTO_AUTH_HOST",
+                   "value": "https://og-prod.eu.auth0.com/oauth/token"
+                },
+                {
                     "name": "AWS_REGION",
                     "value": "eu-west-1"
                 },
                 {
                     "name": "AWS_BUCKET",
-                    "value": "content.di-${env}.offerista"
-                },
-                {
-                   "name": "IPROTO_AUTH_HOST",
-                   "value": "https://og-prod.eu.auth0.com/oauth/token"
+                    "value": "content.di-{env}.offerista"
                 }
             ],
             "secrets": [                  
@@ -54,12 +50,12 @@
                     "valueFrom": "${APP_SECRET_ARN}"
                 },
                 {
-                   "name": "IPROTO_CLIENT_ID",
-                   "valueFrom": "${IPROTO_CLIENT_ID_ARN}"
+                    "name": "IPROTO_CLIENT_ID",
+                    "valueFrom": "${IPROTO_CLIENT_ID_ARN}"
                 },
                 {
-                  "name": "IPROTO_CLIENT_SECRET",
-                  "valueFrom": "${IPROTO_CLIENT_SECRET_ARN}"
+                   "name": "IPROTO_CLIENT_SECRET",
+                   "valueFrom": "${IPROTO_CLIENT_SECRET_ARN}"
                 }
           ],
             "readonlyRootFilesystem": false,
@@ -68,7 +64,7 @@
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
-                    "awslogs-group": "dicrawler.ecs.di-${env}",
+                    "awslogs-group": "dicrawler.token-updater.ecs.di-${env}",
                     "awslogs-region": "eu-west-1",
                     "awslogs-stream-prefix": "ecs"
                 }
@@ -89,8 +85,8 @@
     "requiresCompatibilities": [
         "FARGATE"
     ],
-    "cpu": "2048",
-    "memory": "4096",
+    "cpu": "512",
+    "memory": "1024",
     "tags": [
         {
             "key": "Service",

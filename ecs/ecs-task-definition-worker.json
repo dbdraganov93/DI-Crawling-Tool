@@ -51,15 +51,15 @@
                 },
                 {
                     "name": "APP_SECRET",
-                    "valueFrom": "${APP_SECRET}"
+                    "valueFrom": "${APP_SECRET_ARN}"
                 },
                 {
                     "name": "IPROTO_CLIENT_ID",
-                    "valueFrom": "${IPROTO_CLIENT_ID}"
+                    "valueFrom": "${IPROTO_CLIENT_ID_ARN}"
                 },
                 {
                    "name": "IPROTO_CLIENT_SECRET",
-                   "valueFrom": "${IPROTO_CLIENT_SECRET}"
+                   "valueFrom": "${IPROTO_CLIENT_SECRET_ARN}"
                 }
           ],
             "readonlyRootFilesystem": false,
