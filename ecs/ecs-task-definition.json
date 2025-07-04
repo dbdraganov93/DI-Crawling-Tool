@@ -37,7 +37,7 @@
                 },
                 {
                     "name": "AWS_BUCKET",
-                    "value": "content.di-prod.offerista"
+                    "value": "content.di-${env}.offerista"
                 },
                 {
                    "name": "IPROTO_AUTH_HOST",
@@ -47,19 +47,19 @@
             "secrets": [                  
                 {
                     "name": "DATABASE_URL",
-                    "valueFrom": "arn:aws:ssm:eu-west-1:385750204895:parameter/di/dicrawler/prod/database_url"
+                    "valueFrom": "arn:aws:ssm:eu-west-1:385750204895:parameter/di/dicrawler/${env}/database_url"
                 },
                 {
                     "name": "APP_SECRET",
-                    "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-app-secret-VVKipH"
+                    "valueFrom": "${APP_SECRET}"
                 },
                 {
                    "name": "IPROTO_CLIENT_ID",
-                   "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_ID::"
+                   "valueFrom": "${IPROTO_CLIENT_ID}"
                 },
                 {
                   "name": "IPROTO_CLIENT_SECRET",
-                  "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_SECRET::"
+                  "valueFrom": "${IPROTO_CLIENT_SECRET}"
                 }
           ],
             "readonlyRootFilesystem": false,

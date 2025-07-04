@@ -1,11 +1,11 @@
 {
-"family": "dicrawler-di-token-updater-${env}",
+"family": "dicrawler-di-worker-${env}",
     "taskRoleArn": "arn:aws:iam::385750204895:role/dicrawler.ecs-task.di-${env}",
     "executionRoleArn": "arn:aws:iam::385750204895:role/dicrawler.ecs-task.di-${env}",
     "networkMode": "awsvpc",
     "containerDefinitions": [
         {
-            "name": "token-updater",
+            "name": "Worker",
             "image": "${dicrawler_image}",
             "portMappings": [
                 {
@@ -16,11 +16,15 @@
             ],
             "essential": true,
             "entryPoint": [],
-            "command":   ["php", "bin/console", "iproto:update-token"],
+            "command":   ["php", "bin/console", "app:shopfully:worker"],
             "environment": [
                 {
                     "name": "APP_ENV",
                     "value": "${env}"
+                },
+                {
+                    "name": "WEBSERVER",
+                    "value": "false"
                 },
                 {
                     
@@ -28,34 +32,34 @@
                    "value": "0"
                 },
                 {
-                   "name": "IPROTO_AUTH_HOST",
-                   "value": "https://og-prod.eu.auth0.com/oauth/token"
-                },
-                {
                     "name": "AWS_REGION",
                     "value": "eu-west-1"
                 },
                 {
                     "name": "AWS_BUCKET",
-                    "value": "content.di-prod.offerista"
+                    "value": "content.di-${env}.offerista"
+                },
+                {
+                   "name": "IPROTO_AUTH_HOST",
+                   "value": "https://og-prod.eu.auth0.com/oauth/token"
                 }
             ],
             "secrets": [                  
                 {
                     "name": "DATABASE_URL",
-                    "valueFrom": "arn:aws:ssm:eu-west-1:385750204895:parameter/di/dicrawler/prod/database_url"
+                    "valueFrom": "arn:aws:ssm:eu-west-1:385750204895:parameter/di/dicrawler/${env}/database_url"
                 },
                 {
                     "name": "APP_SECRET",
-                    "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-app-secret-VVKipH"
+                    "valueFrom": "${APP_SECRET}"
                 },
                 {
-                   "name": "IPROTO_CLIENT_ID",
-                   "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_ID::"
+                    "name": "IPROTO_CLIENT_ID",
+                    "valueFrom": "${IPROTO_CLIENT_ID}"
                 },
                 {
-                  "name": "IPROTO_CLIENT_SECRET",
-                  "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_SECRET::"
+                   "name": "IPROTO_CLIENT_SECRET",
+                   "valueFrom": "${IPROTO_CLIENT_SECRET}"
                 }
           ],
             "readonlyRootFilesystem": false,
@@ -64,7 +68,7 @@
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
-                    "awslogs-group": "dicrawler.token-updater.ecs.di-${env}",
+                    "awslogs-group": "dicrawler.worker.ecs.di-${env}",
                     "awslogs-region": "eu-west-1",
                     "awslogs-stream-prefix": "ecs"
                 }
@@ -72,7 +76,7 @@
             "healthCheck": {
                 "command": [
                     "CMD-SHELL",
-                    "curl -f http://localhost || exit 1"
+                    "pgrep -f 'php bin/console app:shopfully:worker' || exit 1"
                 ],
                 "interval": 10,
                 "timeout": 10,
