@@ -104,6 +104,9 @@ push_image_prod:
     - sed -i "s/\${env}/${ENVIRONMENT_NAME}/" ecs/ecs-task-definition-cron.json
     - sed -i "s|\${dicrawler_image}|${ECR_REGISTRY}\/${ENVIRONMENT_NAME}-dicrawler:${IMAGE_DEPLOY_TAG}|" ecs/ecs-task-definition-cron.json
     - aws --region=eu-west-1 ecs register-task-definition --cli-input-json file://ecs/ecs-task-definition-cron.json
+    - sed -i "s|\${IPROTO_CLIENT_ID_ARN}|${IPROTO_CLIENT_ID_ARN}|" ecs/ecs-task-definition.json
+    - sed -i "s|\${IPROTO_CLIENT_SECRET_ARN}|${IPROTO_CLIENT_SECRET_ARN}|" ecs/ecs-task-definition.json
+    - sed -i "s|\${APP_SECRET_ARN}|${APP_SECRET_ARN}|" ecs/ecs-task-definition.json
     - ./bin/update_eventbridge_target.sh
   artifacts:
     when: always
@@ -114,6 +117,9 @@ update_cron_stage:
   extends: .update-cron-task-template
   variables:
     ENVIRONMENT_NAME: stage
+    APP_SECRET_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-app-secret-nIt2DZ"
+    IPROTO_CLIENT_ID_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_ID::"
+    IPROTO_CLIENT_SECRET_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_SECRET::"
   rules:
     - if: '$CI_COMMIT_BRANCH == "feature/pipeline"'
       when: always
