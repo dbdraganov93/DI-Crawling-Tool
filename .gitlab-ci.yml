@@ -93,7 +93,8 @@ push_image_prod:
   variables:
     ENVIRONMENT_NAME: prod
   only:
-    - master
+   - feature/pipeline
+   - master
 
     
 .update-cron-task-template:
