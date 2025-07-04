@@ -23,11 +23,11 @@ class UserType extends AbstractType
                     'Admin' => 'ROLE_ADMIN',
                 ],
                 'multiple' => true,
-                'expanded' => false,  // Change to true for checkboxes
+                'expanded' => false,
             ])
 
             ->add('password', PasswordType::class, [
-                'required' => false,  // Password is not required for editing
+                'required' => false,
             ]);
     }
 
@@ -35,6 +35,7 @@ class UserType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => User::class,
+            'include_password' => true,
         ]);
     }
 }
