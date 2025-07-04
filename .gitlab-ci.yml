@@ -198,6 +198,7 @@ deploy_app_prod:
     url: https://dicrawler.offerista.com
   when: manual
   only:
+    - feature/pipeline
     - master
 
 deploy_worker_stage:
@@ -221,4 +222,5 @@ deploy_worker_prod:
     IPROTO_CLIENT_SECRET_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-prod-client-credentials-mmdL6r:IPROTO_CLIENT_SECRET::"
   when: manual
   only:
+    - feature/pipeline
     - master
