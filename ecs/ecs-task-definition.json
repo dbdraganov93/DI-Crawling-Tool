@@ -29,7 +29,7 @@
                 {
                     
                    "name": "APP_DEBUG",
-                   "value": "0"
+                   "value": "1"
                 },
                 {
                     "name": "AWS_REGION",
