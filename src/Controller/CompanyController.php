@@ -95,5 +95,4 @@ final class CompanyController extends AbstractController
 
         return new JsonResponse(['timezone' => $timezone]);
     }
-
 }
