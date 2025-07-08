@@ -27,10 +27,7 @@ WORKDIR /var/www/html
 COPY . /var/www/html
 COPY .env.prod /var/www/html/.env
 
-RUN composer install --optimize-autoloader --no-scripts
-
-COPY migrate.sh /usr/local/bin/migrate.sh
-RUN chmod +x /usr/local/bin/migrate.sh
+RUN composer install --no-dev --optimize-autoloader --no-scripts
 
 RUN mkdir -p /var/www/html/public/csv \
  && chown -R www-data:www-data /var/www/html/public/csv \
