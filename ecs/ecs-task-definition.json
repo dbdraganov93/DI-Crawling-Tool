@@ -1,100 +1,143 @@
 {
-"family": "dicrawler-di-${env}",
-    "taskRoleArn": "arn:aws:iam::385750204895:role/dicrawler.ecs-task.di-${env}",
-    "executionRoleArn": "arn:aws:iam::385750204895:role/dicrawler.ecs-task.di-${env}",
-    "networkMode": "awsvpc",
-    "containerDefinitions": [
+  "family": "dicrawler-di-${env}",
+  "taskRoleArn": "arn:aws:iam::385750204895:role/dicrawler.ecs-task.di-${env}",
+  "executionRoleArn": "arn:aws:iam::385750204895:role/dicrawler.ecs-task.di-${env}",
+  "networkMode": "awsvpc",
+  "containerDefinitions": [
+    {
+      "name": "Crawler",
+      "image": "${dicrawler_image}",
+      "portMappings": [
         {
-            "name": "Crawler",
-            "image": "${dicrawler_image}",
-            "portMappings": [
-                {
-                    "containerPort": 80,
-                    "hostPort": 80,
-                    "protocol": "tcp"
-                }
-            ],
-            "essential": true,
-            "entryPoint": [],
-            "command":   [],
-            "environment": [
-                {
-                    "name": "APP_ENV",
-                    "value": "${env}"
-                },
-                {
-                    "name": "WEBSERVER",
-                    "value": "true"
-                },
-                {
-                    
-                   "name": "APP_DEBUG",
-                   "value": "0"
-                },
-                {
-                    "name": "AWS_REGION",
-                    "value": "eu-west-1"
-                },
-                {
-                    "name": "AWS_BUCKET",
-                    "value": "content.di-${env}.offerista"
-                },
-                {
-                   "name": "IPROTO_AUTH_HOST",
-                   "value": "https://og-prod.eu.auth0.com/oauth/token"
-                }
-            ],
-            "secrets": [                  
-                {
-                    "name": "DATABASE_URL",
-                    "valueFrom": "arn:aws:ssm:eu-west-1:385750204895:parameter/di/dicrawler/${env}/database_url"
-                },
-                {
-                    "name": "APP_SECRET",
-                    "valueFrom": "${APP_SECRET}"
-                },
-                {
-                   "name": "IPROTO_CLIENT_ID",
-                   "valueFrom": "${IPROTO_CLIENT_ID}"
-                },
-                {
-                  "name": "IPROTO_CLIENT_SECRET",
-                  "valueFrom": "${IPROTO_CLIENT_SECRET}"
-                }
-          ],
-            "readonlyRootFilesystem": false,
-            "interactive": true,
-            "pseudoTerminal": true,
-            "logConfiguration": {
-                "logDriver": "awslogs",
-                "options": {
-                    "awslogs-group": "dicrawler.ecs.di-${env}",
-                    "awslogs-region": "eu-west-1",
-                    "awslogs-stream-prefix": "ecs"
-                }
-            },
-            "healthCheck": {
-                "command": [
-                    "CMD-SHELL",
-                    "curl -f http://localhost || exit 1"
-                ],
-                "interval": 10,
-                "timeout": 10,
-                "retries": 5,
-                "startPeriod": 5
-            }
+          "containerPort": 80,
+          "hostPort": 80,
+          "protocol": "tcp"
         }
-    ],
-    "volumes": [],
-    "requiresCompatibilities": [
-        "FARGATE"
-    ],
-    "cpu": "2048",
-    "memory": "4096",
-    "tags": [
+      ],
+      "essential": true,
+      "entryPoint": [],
+      "command": [],
+      "environment": [
         {
-            "key": "Service",
-            "value": "dicrawler"
+          "name": "APP_ENV",
+          "value": "${env}"
+        },
+        {
+          "name": "WEBSERVER",
+          "value": "true"
+        },
+        {
+          "name": "APP_DEBUG",
+          "value": "0"
+        },
+        {
+          "name": "AWS_REGION",
+          "value": "eu-west-1"
+        },
+        {
+          "name": "AWS_BUCKET",
+          "value": "content.di-${env}.offerista"
+        },
+        {
+          "name": "IPROTO_AUTH_HOST",
+          "value": "https://og-prod.eu.auth0.com/oauth/token"
         }
-    ]
+      ],
+      "secrets": [
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "arn:aws:ssm:eu-west-1:385750204895:parameter/di/dicrawler/${env}/database_url"
+        },
+        {
+          "name": "APP_SECRET",
+          "valueFrom": "${APP_SECRET}"
+        },
+        {
+          "name": "IPROTO_CLIENT_ID",
+          "valueFrom": "${IPROTO_CLIENT_ID}"
+        },
+        {
+          "name": "IPROTO_CLIENT_SECRET",
+          "valueFrom": "${IPROTO_CLIENT_SECRET}"
+        }
+      ],
+      "readonlyRootFilesystem": false,
+      "interactive": true,
+      "pseudoTerminal": true,
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "dicrawler.ecs.di-${env}",
+          "awslogs-region": "eu-west-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost || exit 1"
+        ],
+        "interval": 10,
+        "timeout": 10,
+        "retries": 5,
+        "startPeriod": 5
+      },
+      "dependsOn": [
+        {
+          "containerName": "db-migrations",
+          "condition": "COMPLETE"
+        }
+      ]
+    },
+    {
+      "name": "db-migrations",
+      "image": "${dicrawler_image}",
+      "essential": false,
+      "command": [
+        "sh",
+        "-c",
+        "php bin/console doctrine:migrations:migrate --no-interaction || echo 'Migration failed or already applied'"
+      ],
+      "environment": [
+        {
+          "name": "APP_ENV",
+          "value": "${env}"
+        },
+        {
+          "name": "AWS_REGION",
+          "value": "eu-west-1"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "arn:aws:ssm:eu-west-1:385750204895:parameter/di/dicrawler/${env}/database_url"
+        },
+        {
+          "name": "APP_SECRET",
+          "valueFrom": "${APP_SECRET}"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "dicrawler.ecs.di-${env}",
+          "awslogs-region": "eu-west-1",
+          "awslogs-stream-prefix": "ecs-migrations"
+        }
+      }
+    }
+  ],
+  "volumes": [],
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "2048",
+  "memory": "4096",
+  "tags": [
+    {
+      "key": "Service",
+      "value": "dicrawler"
+    }
+  ]
 }
