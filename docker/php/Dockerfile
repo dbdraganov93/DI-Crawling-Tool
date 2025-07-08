@@ -29,8 +29,8 @@ COPY .env.prod /var/www/html/.env
 
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-COPY ../../bin/migrate.sh /bin/migrate.sh
-RUN chmod +x /bin/migrate.sh
+COPY migrate.sh /usr/local/bin/migrate.sh
+RUN chmod +x /usr/local/bin/migrate.sh
 
 RUN mkdir -p /var/www/html/public/csv \
  && chown -R www-data:www-data /var/www/html/public/csv \
