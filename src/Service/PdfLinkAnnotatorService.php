@@ -18,7 +18,9 @@ class PdfLinkAnnotatorService
     public function annotate(string $pdfPath, string $outputPath, array $clickouts): void
     {
         if (empty($clickouts)) {
-            // Nothing to annotate
+            // Nothing to annotate, just copy the file so callers always have
+            // the expected output available
+            copy($pdfPath, $outputPath);
             return;
         }
 

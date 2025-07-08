@@ -24,11 +24,14 @@ class UserType extends AbstractType
                 ],
                 'multiple' => true,
                 'expanded' => false,
-            ])
-
-            ->add('password', PasswordType::class, [
-                'required' => false,
+                'attr' => ['class' => 'js-roles-select'],
             ]);
+
+        if ($options['include_password']) {
+            $builder->add('password', PasswordType::class, [
+                'required' => $options['include_password'],
+            ]);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void

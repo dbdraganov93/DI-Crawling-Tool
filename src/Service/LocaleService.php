@@ -7,6 +7,7 @@ namespace App\Service;
 class LocaleService
 {
     const LOCALE = [
+        1   => 'de_de',
         231 => 'it_it',
         239 => 'es_es',
         200 => 'fr_fr',

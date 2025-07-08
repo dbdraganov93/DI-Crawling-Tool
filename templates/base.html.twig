@@ -18,8 +18,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- Tom Select for nicer multi-selects -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css">
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 
     {% block stylesheets %}{% endblock %}
 </head>
@@ -33,37 +37,37 @@
             </button>
             <div class="collapse navbar-collapse" id="mainNavbar">
                 <ul class="navbar-nav">
-                {% if app.user %}
+                    {% if app.user %}
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_company_index') }}">Companies</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_crawler_index') }}">Crawlers</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_shopfully_wizard') }}">Shopfully wizard</a>
-                    </li>
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="settingsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Settings
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="settingsDropdown">
-                                <li><a class="dropdown-item" href="{{ path('app_user_index') }}">Users</a></li>
-                            </ul>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_company_index') }}">Companies</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_crawler_index') }}">Crawlers</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_shopfully_wizard') }}">Shopfully wizard</a>
+                        </li>
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="settingsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Settings
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="settingsDropdown">
+                                    <li><a class="dropdown-item" href="{{ path('app_user_index') }}">Users</a></li>
+                                </ul>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_logout') }}">Logout</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_login') }}">Login</a>
                         </li>
                     {% endif %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_logout') }}">Logout</a>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_login') }}">Login</a>
-                    </li>
-                {% endif %}
-            </ul>
-        </div>
+                </ul>
+            </div>
         </div>
     </nav>
 </header>
@@ -76,25 +80,5 @@
 
 {% block javascripts %}{% endblock %}
 
-{% if app.session and app.session.get('show_2fa_prompt') %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        Swal.fire({
-            title: 'Enable Two-Factor Authentication?',
-            text: 'Would you like to enable 2FA for additional security?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Yes',
-            cancelButtonText: 'Later',
-            customClass: { popup: 'apple-swal' }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = '{{ path('app_user_2fa', {'id': app.user.id}) }}';
-            }
-        });
-    });
-</script>
-{% set _ = app.session.remove('show_2fa_prompt') %}
-{% endif %}
 </body>
 </html>
