@@ -20,7 +20,7 @@ class IprotoTokenService
         $client = HttpClient::create();
 
         try {
-            $response = $client->request('POST', $_ENV['IPROTO_AUTH_HOST'], [
+            $response = $client->request('POST', $_ENV['IPROTO_AUTH_HOST'] ?? 'https://og-prod.eu.auth0.com/oauth/token', [
                 'json' => [
                     'client_id' => $_ENV['IPROTO_CLIENT_ID'],
                     'client_secret' => $_ENV['IPROTO_CLIENT_SECRET'],

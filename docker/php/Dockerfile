@@ -29,6 +29,14 @@ COPY .env.prod /var/www/html/.env
 
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
+# Run Symfony migrations (and optionally create them)
+RUN php bin/console doctrine:migrations:diff --no-interaction
+RUN php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
+RUN composer require symfony/process
+# Optional: Create new migrations if needed (for dev only)
+
+
+
 RUN mkdir -p /var/www/html/public/csv \
  && chown -R www-data:www-data /var/www/html/public/csv \
  && chmod -R 775 /var/www/html/public/csv
