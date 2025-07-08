@@ -84,7 +84,7 @@
       },
       "dependsOn": [
         {
-          "containerName": "migrations",
+          "containerName": "db-migrations",
           "condition": "COMPLETE"
         }
       ]
