@@ -11,7 +11,7 @@ class CsvService
 {
     private string $csvDir;
 
-    public function __construct(string $csvDir = '/var/www/html/public/csv')
+    public function __construct(string $csvDir = './public/csv')
     {
         $this->csvDir = rtrim($csvDir, '/');
     }

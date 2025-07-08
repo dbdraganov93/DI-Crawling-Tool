@@ -76,4 +76,30 @@ class TwoFactorController extends AbstractController
 
         return $this->render('security/verify_2fa.html.twig');
     }
+
+    #[Route('/remove/{id}', name: 'app_user_2fa_remove', methods: ['POST'])]
+    public function remove(User $user, Request $request, EntityManagerInterface $em): Response
+    {
+        $current = $this->getUser();
+        if (!$current) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if (!$this->isGranted('ROLE_ADMIN') && $current !== $user) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if ($this->isCsrfTokenValid('remove2fa' . $user->getId(), $request->request->get('_token'))) {
+            $user->setTwoFactorSecret(null);
+            $user->setTwoFactorEnabled(false);
+            $em->flush();
+            $this->addFlash('success', 'Two-factor authentication removed.');
+        }
+
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return $this->redirectToRoute('app_user_edit', ['id' => $user->getId()]);
+        }
+
+        return $this->redirectToRoute('app_home');
+    }
 }

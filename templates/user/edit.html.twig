@@ -10,6 +10,12 @@
             {{ include('user/_form.html.twig', {'button_label': 'Update'}) }}
         </div>
         <a href="{{ path('app_user_change_password', {'id': user.id}) }}" class="btn btn-outline-secondary mb-3">Change Password</a>
+        {% if user.twoFactorEnabled %}
+            <form method="post" action="{{ path('app_user_2fa_remove', {'id': user.id}) }}" class="d-inline" onsubmit="return confirm('Remove two-factor authentication?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('remove2fa' ~ user.id) }}">
+                <button class="btn btn-warning mb-3">Remove 2FA</button>
+            </form>
+        {% endif %}
 
         <div class="d-flex justify-content-between mt-4">
             <a href="{{ path('app_user_index') }}" class="btn btn-secondary">Back to List</a>

@@ -120,6 +120,34 @@ class ShopfullyController extends AbstractController
         }
     }
 
+    #[Route('/api/shopfully/preview', name: 'api_shopfully_preview', methods: ['GET'])]
+    public function getBrochurePreview(Request $request): JsonResponse
+    {
+        $brochureNumber = $request->query->get('brochure_number');
+        $locale = $request->query->get('locale');
+
+        if (!$brochureNumber || !$locale) {
+            throw new BadRequestHttpException('Missing brochure_number or locale');
+        }
+
+        try {
+            $brochureData = $this->shopfullyService->fetchBrochureData($brochureNumber, $locale);
+            $publicationId = $brochureData['publication_id'] ?? null;
+            $publicationData = $publicationId ? $this->shopfullyService->fetchPublicationData($publicationId, $locale) : [];
+            $pdfUrl = $publicationData['data'][0]['Publication']['pdf_url'] ?? null;
+            $clickouts = $this->shopfullyService->fetchBrochureClickouts($brochureNumber, $locale);
+
+            return new JsonResponse([
+                'pdf_url' => $pdfUrl,
+                'clickouts' => $clickouts,
+            ]);
+        } catch (\Throwable $e) {
+            return new JsonResponse([
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     #[Route('/api/shopfully/locale', name: 'api_shopfully_locale_by_owner', methods: ['GET'])]
     public function getLocaleByOwner(Request $request): JsonResponse
     {

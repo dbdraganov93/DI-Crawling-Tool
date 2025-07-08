@@ -46,4 +46,23 @@ class ProfileController extends AbstractController
             'form' => $form,
         ]);
     }
+
+    #[Route('/remove-2fa', name: 'app_profile_remove_2fa', methods: ['POST'])]
+    public function removeTwoFactor(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        if ($this->isCsrfTokenValid('remove2fa' . $user->getId(), $request->request->get('_token'))) {
+            $user->setTwoFactorSecret(null);
+            $user->setTwoFactorEnabled(false);
+            $entityManager->flush();
+            $this->addFlash('success', 'Two-factor authentication removed.');
+        }
+
+        return $this->redirectToRoute('app_home');
+    }
 }
