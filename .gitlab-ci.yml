@@ -82,12 +82,12 @@ push_image_stage:
     ENVIRONMENT_NAME: stage
   only:
     - master
+    - feature/improvements
 push_image_prod:
   extends: .push_image_template
   variables:
     ENVIRONMENT_NAME: prod
   only:
-   - feature/improvements
    - master
 .deploy_app_template:
   stage: deploy
