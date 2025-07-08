@@ -6,29 +6,26 @@ namespace App\Service;
 
 use App\Entity\IprotoToken;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class IprotoTokenService
 {
     public function __construct(
-        private EntityManagerInterface $em
+        private EntityManagerInterface $em,
+        private HttpClientInterface $httpClient,
+        private string $iprotoAuthHost,
+        private string $iprotoClientId,
+        private string $iprotoClientSecret
     ) {
     }
 
     public function createToken(): void
     {
-        $client = HttpClient::create();
-
         try {
-            //JUST FOR DEBUG!!! REMOVE IT
-            echo 'Here are the global vars I catch:';
-            var_dump($_ENV['IPROTO_AUTH_HOST']);
-            var_dump($_ENV['IPROTO_CLIENT_SECRET']);
-            var_dump($_ENV['IPROTO_CLIENT_ID']);
-            $response = $client->request('POST', $_ENV['IPROTO_AUTH_HOST'] ?? 'https://og-prod.eu.auth0.com/oauth/token', [
+            $response = $this->httpClient->request('POST', $this->iprotoAuthHost, [
                 'json' => [
-                    'client_id' => $_ENV['IPROTO_CLIENT_ID'],
-                    'client_secret' => $_ENV['IPROTO_CLIENT_SECRET'],
+                    'client_id' => $this->iprotoClientId,
+                    'client_secret' => $this->iprotoClientSecret,
                     'audience' => 'backend',
                     'grant_type' => 'client_credentials',
                 ],
@@ -46,6 +43,7 @@ class IprotoTokenService
                 $token = new IprotoToken();
                 $this->em->persist($token);
             }
+
             $token->setToken($data['access_token']);
             $token->setTokenType($data['token_type']);
             $token->setScope($data['scope']);
