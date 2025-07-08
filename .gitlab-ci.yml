@@ -82,7 +82,6 @@ push_image_stage:
     ENVIRONMENT_NAME: stage
   only:
     - master
-    - feature/improvements
 push_image_prod:
   extends: .push_image_template
   variables:
@@ -139,7 +138,6 @@ deploy_app_stage:
     url: https://dicrawler.public-elb.di-stage.offerista.com
   only:
     - master
-    - feature/improvements
 
 # Deploy to prod on master push (requires manual button-click when ready)
 deploy_app_prod:
@@ -165,7 +163,6 @@ deploy_worker_stage:
     IPROTO_CLIENT_SECRET_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_SECRET::"
   only:
     - master
-    - feature/improvements
 
 # Deploy to prod on master push (requires manual button-click when ready)
 deploy_worker_prod:
