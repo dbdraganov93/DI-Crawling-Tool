@@ -16,7 +16,7 @@
             ],
             "essential": true,
             "entryPoint": [],
-            "command":   [],
+            "command":   ["/bin/sh", "/bin/migrate.sh"],
             "environment": [
                 {
                     "name": "APP_ENV",

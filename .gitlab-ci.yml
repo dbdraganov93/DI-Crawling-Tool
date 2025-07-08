@@ -60,9 +60,6 @@ build_container:
     stage: push
     tags:
         - docker
-    only:
-        - master
-        - feature/pipeline
     image:
         name: docker:26.1.3-dind-alpine3.19 
         entrypoint: [""]
@@ -90,6 +87,7 @@ push_image_prod:
   variables:
     ENVIRONMENT_NAME: prod
   only:
+   - feature/improvements
    - master
 .deploy_app_template:
   stage: deploy
@@ -141,6 +139,7 @@ deploy_app_stage:
     url: https://dicrawler.public-elb.di-stage.offerista.com
   only:
     - master
+    - feature/improvements
 
 # Deploy to prod on master push (requires manual button-click when ready)
 deploy_app_prod:
@@ -166,6 +165,7 @@ deploy_worker_stage:
     IPROTO_CLIENT_SECRET_ARN: "arn:aws:secretsmanager:eu-west-1:385750204895:secret:di-dicrawler-stage-client-credentials-4rAszT:IPROTO_CLIENT_SECRET::"
   only:
     - master
+    - feature/improvements
 
 # Deploy to prod on master push (requires manual button-click when ready)
 deploy_worker_prod:
