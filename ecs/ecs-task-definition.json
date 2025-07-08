@@ -90,7 +90,7 @@
       ]
     },
     {
-      "name": "migrations",
+      "name": "db-migrations",
       "image": "${dicrawler_image}",
       "essential": false,
       "command": [
@@ -102,6 +102,20 @@
         {
           "name": "APP_ENV",
           "value": "${env}"
+        },
+        {
+          "name": "AWS_REGION",
+          "value": "eu-west-1"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "arn:aws:ssm:eu-west-1:385750204895:parameter/di/dicrawler/${env}/database_url"
+        },
+        {
+          "name": "APP_SECRET",
+          "valueFrom": "${APP_SECRET}"
         }
       ],
       "logConfiguration": {
