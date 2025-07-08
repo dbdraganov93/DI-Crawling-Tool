@@ -20,9 +20,17 @@ class IprotoService
     ) {
     }
 
-    public function getAllCompanies(string $owner, int $itemsPerPage = 1000): array
+    public function getAllCompanies(string $owner, bool $includeDeleted = false, int $itemsPerPage = 1000): array
     {
-        $response = $this->sendRequest('GET', '/api/integrations', ['itemsPerPage' => $itemsPerPage, 'owner' => $owner]);
+        $params = [
+            'itemsPerPage' => $itemsPerPage,
+            'owner' => $owner,
+            'exists' => [
+                'deletedAt' => $includeDeleted,
+            ],
+        ];
+
+        $response = $this->sendRequest('GET', '/api/integrations', $params);
 
         return $response['body'];
     }
@@ -35,6 +43,35 @@ class IprotoService
 
         return $response['body'];
     }
+
+    public function getIntegrations(array $params): array
+    {
+        $response = $this->sendRequest('GET', '/api/integrations', $params);
+
+        return $response['body'];
+    }
+
+    public function createCompany(array $data): array
+    {
+        $response = $this->sendRequest('POST', '/api/integrations', [], $data);
+
+        return $response['body'];
+    }
+
+    public function undeleteCompany(int|string $id): array
+    {
+        $response = $this->sendRequest('GET', '/api/integrations/undelete/' . $id);
+
+        return $response['body'];
+    }
+
+    public function deleteCompany(int|string $id): array
+    {
+        $response = $this->sendRequest('DELETE', '/api/integrations/delete/' . $id);
+
+        return $response['body'];
+    }
+
 
 
 

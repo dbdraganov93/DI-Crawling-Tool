@@ -96,13 +96,31 @@
     border-radius: 4px;
 }
 
-.preview-brochure-item {
-    word-break: break-word;
-    background-color: #f8f9fa;
+.preview-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.preview-brochure-card {
+    flex: 1 1 240px;
+    background-color: #fff;
     border: 1px solid #dee2e6;
-    border-radius: 4px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+    word-break: break-word;
+}
+
+.preview-brochure-card .info {
     padding: 0.5rem;
-    margin-bottom: 0.5rem;
+}
+
+.preview-brochure-card .pdf-preview-grid {
+    max-width: 100%;
+    margin: 0;
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 0;
 }
 .step{display:none}
 #step-0{display:block}
@@ -120,4 +138,26 @@
     background-color: #f5f5f7;
     color: #333;
     border-bottom: 2px solid #dee2e6;
+}
+
+/* PDF preview */
+.pdf-preview-grid {
+    position: relative;
+    width: 100%;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+}
+.pdf-preview-grid canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+.pdf-preview-marker {
+    position: absolute;
+    border: 2px solid #28a745;
+    background: rgba(40, 167, 69, 0.2);
+    border-radius: 4px;
+    pointer-events: none;
 }

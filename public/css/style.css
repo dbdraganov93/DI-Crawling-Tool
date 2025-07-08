@@ -86,6 +86,15 @@ select {
     background-color: #e5e5ea;
 }
 
+.btn-outline-danger {
+    border-color: #ff3b30;
+    color: #ff3b30;
+}
+.btn-outline-danger:hover {
+    background-color: #ff3b30;
+    color: #fff;
+}
+
 .navbar-nav .nav-link {
     padding: 0.08rem 1rem;
     display: block;
@@ -231,3 +240,24 @@ table.dataTable.no-footer {
 table.dataTable tbody tr:hover {
     background-color: #f5f5f7;
 }
+
+.loader-magic {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background: #0071e3;
+    display: inline-block;
+    animation: pulse 1s infinite;
+}
+
+
+@keyframes pulse {
+    0% { transform: scale(0.9); opacity: 0.7; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(0.9); opacity: 0.7; }
+}
+
+.job-details {
+    background-color: #f9f9f9;
+}
+

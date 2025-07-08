@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Service\ClickoutsMapperService;
+use App\Service\PdfLinkAnnotatorService;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use App\Service\PdfDownloaderService;
+use App\Service\S3Service;
 
 class ShopfullyService
 {
