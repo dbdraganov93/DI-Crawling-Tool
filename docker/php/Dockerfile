@@ -29,7 +29,7 @@ COPY .env.prod /var/www/html/.env
 
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-COPY bin/migrate.sh /bin/migrate.sh
+COPY ../../bin/migrate.sh /bin/migrate.sh
 RUN chmod +x /bin/migrate.sh
 
 RUN mkdir -p /var/www/html/public/csv \
