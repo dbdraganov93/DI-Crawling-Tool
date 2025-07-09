@@ -32,7 +32,8 @@
         "symfony/yaml": "6.4.*",
         "tecnickcom/tcpdf": "^6.10",
         "twig/extra-bundle": "^2.12|^3.0",
-        "twig/twig": "^3.14"
+        "twig/twig": "^3.14",
+        "symfony/process": "^6.0"
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.6",
