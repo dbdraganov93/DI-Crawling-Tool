@@ -28,7 +28,7 @@ COPY . /var/www/html
 COPY .env.prod /var/www/html/.env
 
 RUN git config --global --add safe.directory /var/www/html
-RUN composer require symfony/process 
+RUN composer require symfony/process --no-scripts 
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
 RUN mkdir -p /var/www/html/public/csv \
