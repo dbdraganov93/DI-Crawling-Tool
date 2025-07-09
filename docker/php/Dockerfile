@@ -27,8 +27,9 @@ WORKDIR /var/www/html
 COPY . /var/www/html
 COPY .env.prod /var/www/html/.env
 
-RUN composer require symfony/process --no-dev \
-&& composer install --no-dev --optimize-autoloader --no-scripts
+RUN git config --global --add safe.directory /var/www/html
+RUN composer require symfony/process 
+RUN composer install --no-dev --optimize-autoloader --no-scripts
 
 RUN mkdir -p /var/www/html/public/csv \
  && chown -R www-data:www-data /var/www/html/public/csv \
