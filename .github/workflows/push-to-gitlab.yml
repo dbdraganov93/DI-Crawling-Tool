@@ -1,0 +1,33 @@
+name: Mirror branch to GitLab
+
+on:
+  push:
+    branches-ignore:
+      - master  # avoid pushing master if you already mirror from GitLab to GitHub
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  mirror-to-gitlab:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Configure Git
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+
+    - name: Push branch to GitLab
+      env:
+        GITLAB_URL: ${{ secrets.GITLAB_URL }}
+        GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+      run: |
+        BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+
+        echo "Pushing branch: $BRANCH_NAME to GitLab"
+
+        git remote add gitlab https://oauth2:${GITLAB_TOKEN}@${GITLAB_URL#https://}
+        git push gitlab $BRANCH_NAME:$BRANCH_NAME --force
