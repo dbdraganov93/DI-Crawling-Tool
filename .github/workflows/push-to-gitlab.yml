@@ -1,0 +1,32 @@
+name: Mirror all non-master branches to GitLab
+
+on:
+  push:
+    branches-ignore:
+      - master
+
+jobs:
+  mirror-to-gitlab:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout full branch
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Push to GitLab
+        env:
+          GITLAB_URL: ${{ secrets.GITLAB_URL }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          echo "Pushing branch: $BRANCH_NAME to GitLab..."
+          
+          git remote add gitlab https://oauth2:${GITLAB_TOKEN}@${GITLAB_URL#https://}
+          git push gitlab "$BRANCH_NAME:$BRANCH_NAME"
