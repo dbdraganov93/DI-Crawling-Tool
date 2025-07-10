@@ -7,6 +7,12 @@
         <div class="col-md-5 col-lg-4">
             <div class="card login-card p-4">
                 <h1 class="text-center mb-4">Create Account</h1>
+                {% for message in app.flashes('error') %}
+                    <div class="alert alert-danger">{{ message }}</div>
+                {% endfor %}
+                {% for message in app.flashes('success') %}
+                    <div class="alert alert-success">{{ message }}</div>
+                {% endfor %}
                 {{ form_start(registrationForm) }}
                 {{ form_row(registrationForm.email) }}
                 {{ form_row(registrationForm.roles) }}
