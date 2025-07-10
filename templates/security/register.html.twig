@@ -14,8 +14,14 @@
                     <div class="alert alert-success">{{ message }}</div>
                 {% endfor %}
                 {{ form_start(registrationForm) }}
-                {{ form_row(registrationForm.email) }}
-                {{ form_row(registrationForm.roles) }}
+                <div class="mb-3">
+                    {{ form_label(registrationForm.email) }}
+                    {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control', 'id': 'regEmail'}}) }}
+                </div>
+                <div class="mb-3">
+                    {{ form_label(registrationForm.roles) }}
+                    {{ form_widget(registrationForm.roles, {'attr': {'class': 'form-control js-roles-select'}}) }}
+                </div>
                 <div class="mb-3 position-relative">
                     {{ form_label(registrationForm.password) }}
                     <div class="input-group">
@@ -34,16 +40,22 @@
 
 {% block javascripts %}
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const toggle = document.getElementById('togglePassword');
-            const password = document.getElementById('regPassword');
+        document.addEventListener('DOMContentLoaded', function () {
+            var toggle = document.getElementById('togglePassword');
+            var password = document.getElementById('regPassword');
             if (toggle && password) {
-                toggle.addEventListener('click', () => {
-                    password.type = password.type === 'password' ? 'text' : 'password';
+                toggle.addEventListener('click', function () {
+                    var isHidden = password.type === 'password';
+                    password.type = isHidden ? 'text' : 'password';
+                    var icon = toggle.querySelector('.material-icons');
+                    if (icon) {
+                        icon.textContent = isHidden ? 'visibility_off' : 'visibility';
+                    }
                 });
             }
-            const select = document.querySelector('.js-roles-select');
-            if (select) {
+
+            var select = document.querySelector('.js-roles-select');
+            if (select && window.TomSelect) {
                 new TomSelect(select, {plugins: ['remove_button']});
             }
         });

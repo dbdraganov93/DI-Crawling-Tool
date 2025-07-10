@@ -172,6 +172,16 @@ table.table tbody td {
     margin-bottom: .25rem;
 }
 
+.apple-card .input-group .btn {
+    border-radius: 8px;
+    border-color: #ced4da;
+    background-color: #f5f5f7;
+    color: #0071e3;
+}
+.apple-card .input-group .form-control {
+    border-right: 0;
+}
+
 /* SweetAlert2 minimal look */
 .swal2-popup.apple-swal {
     border-radius: 12px;
