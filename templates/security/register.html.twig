@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Register{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-5 col-lg-4">
+            <div class="card login-card p-4">
+                <h1 class="text-center mb-4">Create Account</h1>
+                {{ form_start(registrationForm) }}
+                {{ form_row(registrationForm.email) }}
+                {{ form_row(registrationForm.roles) }}
+                <div class="mb-3 position-relative">
+                    {{ form_label(registrationForm.password) }}
+                    <div class="input-group">
+                        {{ form_widget(registrationForm.password, {'attr': {'class': 'form-control', 'id':'regPassword'}}) }}
+                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                            <span class="material-icons">visibility</span>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Register</button>
+                {{ form_end(registrationForm) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.getElementById('togglePassword');
+            const password = document.getElementById('regPassword');
+            if (toggle && password) {
+                toggle.addEventListener('click', () => {
+                    password.type = password.type === 'password' ? 'text' : 'password';
+                });
+            }
+        });
+    </script>
+{% endblock %}

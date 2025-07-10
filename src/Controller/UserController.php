@@ -44,6 +44,7 @@ final class UserController extends AbstractController
                     $form->get('password')->getData()
                 )
             );
+            $user->setApproved(true);
             $entityManager->persist($user);
             $entityManager->flush();
 
@@ -119,5 +120,19 @@ final class UserController extends AbstractController
         return $this->render('user/show.html.twig', [
             'user' => $user,
         ]);
+    }
+
+    #[Route('/{id}/approve', name: 'app_user_approve', methods: ['POST'])]
+    public function approve(User $user, EntityManagerInterface $entityManager, Request $request): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if ($this->isCsrfTokenValid('approve' . $user->getId(), $request->get('_token'))) {
+            $user->setApproved(true);
+            $entityManager->flush();
+            $this->addFlash('success', 'User approved');
+        }
+
+        return $this->redirectToRoute('app_user_index');
     }
 }

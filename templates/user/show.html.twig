@@ -22,6 +22,10 @@
                 <td>{{ user.roles ? user.roles|json_encode : 'N/A' }}</td>
             </tr>
             <tr>
+                <th>Approved</th>
+                <td>{{ user.approved ? 'Yes' : 'No' }}</td>
+            </tr>
+            <tr>
                 <th>Password</th>
                 <td>{{ user.password ? '******' : 'N/A' }}</td> {# For security, don't display raw password #}
             </tr>
