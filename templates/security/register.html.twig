@@ -34,18 +34,17 @@
 
 {% block javascripts %}
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const toggle = document.getElementById('togglePassword');
-            const password = document.getElementById('regPassword');
-            if (toggle && password) {
-                toggle.addEventListener('click', () => {
-                    password.type = password.type === 'password' ? 'text' : 'password';
-                });
-            }
-            const select = document.querySelector('.js-roles-select');
-            if (select) {
-                new TomSelect(select, {plugins: ['remove_button']});
-            }
-        });
+        const toggle = document.getElementById('togglePassword');
+        const password = document.getElementById('regPassword');
+        if (toggle && password) {
+            toggle.addEventListener('click', () => {
+                password.type = password.type === 'password' ? 'text' : 'password';
+            });
+        }
+
+        const select = document.querySelector('.js-roles-select');
+        if (select && window.TomSelect) {
+            new TomSelect(select, {plugins: ['remove_button']});
+        }
     </script>
 {% endblock %}
