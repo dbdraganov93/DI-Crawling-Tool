@@ -13,6 +13,7 @@
                 <th>Id</th>
                 <th>Email</th>
                 <th>Roles</th>
+                <th>Approved</th>
                 <th>Actions</th>
             </tr>
             </thead>
@@ -22,16 +23,24 @@
                     <td>{{ user.id }}</td>
                     <td>{{ user.email }}</td>
                     <td>{{ user.roles|join(', ') }}</td>
+                    <td>{{ user.approved ? 'Yes' : 'No' }}</td>
                     <td>
                         <a href="{{ path('app_user_show', {'id': user.id}) }}" class="btn btn-sm btn-outline-secondary">Show</a>
                         <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="btn btn-sm btn-outline-primary">Edit</a>
                         <a href="{{ path('app_user_change_password', {'id': user.id}) }}" class="btn btn-sm btn-outline-primary">Password</a>
                         <a href="{{ path('app_user_2fa', {'id': user.id}) }}" class="btn btn-sm btn-outline-primary">Add 2FA</a>
+                        {% if not user.approved %}
+                            <form method="post" action="{{ path('app_user_approve', {'id': user.id}) }}" class="d-inline">
+                                <input type="hidden" name="_token" value="{{ csrf_token('approve' ~ user.id) }}">
+                                <button class="btn btn-sm btn-success">Approve</button>
+                            </form>
+                        {% endif %}
                     </td>
                 </tr>
             {% else %}
                 <tr>
                     <td class="text-center">No records found</td>
+                    <td></td>
                     <td></td>
                     <td></td>
                     <td></td>
