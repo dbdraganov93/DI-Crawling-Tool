@@ -7,6 +7,12 @@
         <div class="col-md-5 col-lg-4">
             <div class="card login-card p-4">
             <h1 class="text-center mb-4">Login</h1>
+            {% for message in app.flashes('success') %}
+                <div class="alert alert-success">{{ message }}</div>
+            {% endfor %}
+            {% for message in app.flashes('error') %}
+                <div class="alert alert-danger">{{ message }}</div>
+            {% endfor %}
             <form method="post">
                 {% if error %}
                     <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
@@ -33,7 +39,10 @@
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
                 <button type="submit" class="btn btn-primary w-100">Sign in</button>
-            </form>
+                </form>
+                <div class="text-center mt-2">
+                    <a href="{{ path('app_register') }}" class="small">Create account</a>
+                </div>
             </div>
         </div>
     </div>

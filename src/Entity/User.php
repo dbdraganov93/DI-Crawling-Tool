@@ -38,6 +38,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'boolean')]
     private bool $twoFactorEnabled = false;
 
+    #[ORM\Column(type: 'boolean')]
+    private bool $approved = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -126,6 +129,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setTwoFactorEnabled(bool $twoFactorEnabled): static
     {
         $this->twoFactorEnabled = $twoFactorEnabled;
+
+        return $this;
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->approved;
+    }
+
+    public function setApproved(bool $approved): static
+    {
+        $this->approved = $approved;
 
         return $this;
     }
