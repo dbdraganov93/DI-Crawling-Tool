@@ -5,7 +5,7 @@
 {% block body %}
     <div class="row justify-content-center mt-5">
         <div class="col-md-5 col-lg-4">
-            <div class="card login-card p-4">
+            <div class="apple-card">
                 <h1 class="text-center mb-4">Create Account</h1>
                 {% for message in app.flashes('error') %}
                     <div class="alert alert-danger">{{ message }}</div>
@@ -41,6 +41,10 @@
                 toggle.addEventListener('click', () => {
                     password.type = password.type === 'password' ? 'text' : 'password';
                 });
+            }
+            const select = document.querySelector('.js-roles-select');
+            if (select) {
+                new TomSelect(select, {plugins: ['remove_button']});
             }
         });
     </script>
