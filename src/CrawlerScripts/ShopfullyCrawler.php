@@ -2,6 +2,7 @@
 
 namespace App\CrawlerScripts;
 
+use App\Dto\Brochure;
 use App\Entity\ShopfullyLog;
 use App\Service\IprotoService;
 use App\Service\StoreService;
@@ -29,31 +30,33 @@ class ShopfullyCrawler
         $this->iprotoService = $iprotoService;
     }
 
-    public function crawl(array $brochuresData): void
+    public function crawl(array $requestData): void
     {
-        $this->company = $brochuresData['company'];
-        $locale = $brochuresData['locale'];
-        $brochures = $brochuresData['numbers'];
-
+        $this->company = $requestData['company'];
+        $locale = $requestData['locale'];
+        $brochureDetails = $requestData['numbers'];
+        dd($requestData);
         $brochureService = new BrochureService($this->company);
         $storeService = new StoreService($this->company);
 
-        foreach ($brochures as $brochure) {
-            $brochureData = $this->shopfullyService->getBrochure($brochure['number'], $locale);
-            $brochureData['trackingPixel'] = $brochure['tracking_pixel'];
-            $validFrom = $this->normalizeDate($brochure['validity_start'] ?? null) ?? new \DateTime();
+        $brochures = [];
+        foreach ($brochureDetails as $brochureDetail) {
+            $sfBrochure = $this->shopfullyService->getBrochure($brochureDetail['number'], $locale);
+            $brochureData = $sfBrochure['brochureData'];
+            $brochureData['trackingPixel'] = $brochureDetail['tracking_pixel'] ?? '';
+            $validFrom = $this->normalizeDate($brochureDetail['validity_start'] ?? null) ?? new \DateTime();
 
-            $validTo = $this->normalizeDate($brochure['validity_end'] ?? null) ?? clone $validFrom;
+            $validTo = $this->normalizeDate($brochureDetail['validity_end'] ?? null) ?? clone $validFrom;
             $validTo = (clone $validTo)->setTime(23, 59, 59);
 
-            $visibleFrom = $this->normalizeDate($brochure['visibility_start'] ?? null) ?? clone $validFrom;
+            $visibleFrom = $this->normalizeDate($brochureDetail['visibility_start'] ?? null) ?? clone $validFrom;
 
-            $brochureData['brochureData']['data'][0]['Flyer']['start_date']   = $validFrom->format('Y-m-d H:i:s');
-            $brochureData['brochureData']['data'][0]['Flyer']['end_date']     = $validTo->format('Y-m-d H:i:s');
-            $brochureData['brochureData']['data'][0]['Flyer']['visible_from'] = $visibleFrom->format('Y-m-d H:i:s');
+            $brochureData['start_date']   = $validFrom->format('Y-m-d H:i:s');
+            $brochureData['end_date']     = $validTo->format('Y-m-d H:i:s');
+            $brochureData['visible_from'] = $visibleFrom->format('Y-m-d H:i:s');
 
-            $this->createStores($brochureData, $storeService);
-            $this->createBrochure($brochureData, $brochureService);
+            $this->createStores($sfBrochure['brochureStores'], $storeService);
+            $brochures[] = $this->createBrochure($brochureData);
         }
 
         $csvService = new CsvService();
@@ -63,8 +66,8 @@ class ShopfullyCrawler
         $storeImport = $this->iprotoService->importData($storeCsv);
         $brochureImport = $this->iprotoService->importData($brochureCsv);
 
-        $this->log($locale, $brochuresData, $storeImport, 'stores');
-        $this->log($locale, $brochuresData, $brochureImport, 'brochures');
+        $this->log($locale, $requestData, $storeImport, 'stores');
+        $this->log($locale, $requestData, $brochureImport, 'brochures');
     }
 
     private function log($locale, array $data, $import, $type): void
@@ -90,7 +93,7 @@ class ShopfullyCrawler
 
     private function createStores(array $stores, StoreService $storeService): void
     {
-        foreach ($stores['brochureStores'] as $store) {
+        foreach ($stores as $store) {
             $storeService
                 ->setStoreNumber($store['Store']['id'])
                 ->setCity($store['Store']['city'])
@@ -106,19 +109,21 @@ class ShopfullyCrawler
         }
     }
 
-    private function createBrochure(array $brochureData, BrochureService $brochureService): void
+    private function createBrochure(array $brochureData): Brochure
     {
-        $brochureService
-            ->setPdfUrl($brochureData['publicationData']['data'][0]['Publication']['pdf_url'])
-            ->setBrochureNumber($brochureData['brochureData']['data'][0]['Flyer']['id'])
-            ->setTitle($brochureData['brochureData']['data'][0]['Flyer']['title'])
-            ->setVariety('leaflet')
-            ->setValidFrom($brochureData['brochureData']['data'][0]['Flyer']['start_date'])
-            ->setValidTo($brochureData['brochureData']['data'][0]['Flyer']['end_date'])
-            ->setVisibleFrom($brochureData['brochureData']['data'][0]['Flyer']['start_date'])
-            ->setTrackingPixels($brochureData['trackingPixel'] ?? '')
-            ->setStoreNumber($brochureData['brochureData']['data'][0]['Flyer']['stores'])
-            ->addCurrentBrochure();
+        $brochureDataToPass = [
+            'integration' => $this->company,
+            'pdfUrl' => $brochureData['pdf_url'],
+            'brochureNumber' => $brochureData['id'],
+            'title' => $brochureData['title'],
+            'validFrom' => $brochureData['start_date'],
+            'validTo' => $brochureData['end_date'],
+            'visibleFrom' => $brochureData['visible_from'],
+            'trackingPixels' => $brochureData['trackingPixel'],
+            'storeNumber' => $brochureData['stores'],
+        ];
+
+        return Brochure::fromArray($brochureDataToPass);
     }
 
     private function normalizeDate(mixed $value): ?\DateTime
