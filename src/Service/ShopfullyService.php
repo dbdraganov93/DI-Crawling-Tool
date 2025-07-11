@@ -62,7 +62,10 @@ class ShopfullyService
 
 
         try {
-            $response['brochureData']['data'][0]['Publication']['pdf_local'] = $this->pdfDownloaderService->download($response['publicationData']['data'][0]['Publication']['pdf_url']);
+            $response['brochureData']['data'][0]['Publication']['pdf_local'] = $this->pdfDownloaderService->download(
+                $response['publicationData']['data'][0]['Publication']['pdf_url'],
+                self::API_KEY
+            );
         } catch (\Exception $e) {
             $this->logger->error('Download failed: ' . $e->getMessage());
         }
