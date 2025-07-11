@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service;
 
 use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class PdfLinkAnnotatorService
 {
@@ -40,7 +39,12 @@ class PdfLinkAnnotatorService
         $process->run();
 
         if (!$process->isSuccessful()) {
-            throw new ProcessFailedException($process);
+            $message = trim($process->getErrorOutput() . '\n' . $process->getOutput());
+            if ($message === '') {
+                $message = 'Unknown error while running add_links.py';
+            }
+
+            throw new \RuntimeException('PDF annotation failed: ' . $message);
         }
 
         // Overwrite the original with the modified version
