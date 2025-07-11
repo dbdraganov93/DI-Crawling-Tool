@@ -16,6 +16,14 @@ class PdfLinkAnnotatorService
     }
     public function annotate(string $pdfPath, string $outputPath, array $clickouts): void
     {
+        if (!file_exists($pdfPath)) {
+            throw new \RuntimeException('Input PDF not found: ' . $pdfPath);
+        }
+
+        if (!file_exists($this->pythonScript)) {
+            throw new \RuntimeException('Annotation script missing at ' . $this->pythonScript);
+        }
+
         if (empty($clickouts)) {
             // Nothing to annotate, just copy the file so callers always have
             // the expected output available
