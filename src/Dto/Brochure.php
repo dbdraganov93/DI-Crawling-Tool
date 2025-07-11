@@ -4,9 +4,9 @@ namespace App\Dto;
 
 class Brochure
 {
-    public const DEFAULT_VARIETY = 'leaflet';
-
-    public const DEFAULT_PROCESSING_OPTIONS = [
+    private const DEFAULT_VARIETY = 'leaflet';
+    private const INTEGRATION_URL = 'https://iproto.offerista.com/api/integrations/';
+    private const DEFAULT_PROCESSING_OPTIONS = [
         'version' => '2021-04-19',
         'cutPages' => true,
         'dpi' => 250,
@@ -49,7 +49,7 @@ class Brochure
 
     private function setIntegration(string $integration): void
     {
-        $this->integration = $integration;
+        $this->integration = self::INTEGRATION_URL . $integration;
     }
 
     private function setSalesRegion(string $salesRegion): void
