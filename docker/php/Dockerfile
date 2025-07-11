@@ -30,9 +30,9 @@ COPY .env.prod /var/www/html/.env
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-RUN mkdir -p /var/www/html/public/csv \
- && chown -R www-data:www-data /var/www/html/public/csv \
- && chmod -R 775 /var/www/html/public/csv
+RUN mkdir -p /var/www/html/public/csv /var/www/html/public/pdf \
+ && chown -R www-data:www-data /var/www/html/public/csv /var/www/html/public/pdf \
+ && chmod -R 775 /var/www/html/public/csv /var/www/html/public/pdf
 
 EXPOSE 80
 CMD ["apache2-foreground"]

@@ -61,19 +61,24 @@ class ShopfullyService
 
 
 
+        $pdfLocal = null;
         try {
-            $response['brochureData']['data'][0]['Publication']['pdf_local'] = $this->pdfDownloaderService->download($response['publicationData']['data'][0]['Publication']['pdf_url']);
+            $pdfLocal = $this->pdfDownloaderService->download(
+                $response['publicationData']['data'][0]['Publication']['pdf_url'],
+                self::API_KEY
+            );
+            $response['brochureData']['data'][0]['Publication']['pdf_local'] = $pdfLocal;
         } catch (\Exception $e) {
             $this->logger->error('Download failed: ' . $e->getMessage());
         }
 
-        if (array_key_exists('Publication', $response['brochureData']['data'][0])) {
+        if ($pdfLocal && array_key_exists('Publication', $response['brochureData']['data'][0])) {
             $this->pdfLinkAnnotatorService->annotate(
-                $response['brochureData']['data'][0]['Publication']['pdf_local'],
-                $response['brochureData']['data'][0]['Publication']['pdf_local'],
+                $pdfLocal,
+                $pdfLocal,
                 $response['brochureClickouts']
             );
-            $response['publicationData']['data'][0]['Publication']['pdf_url'] = $this->s3Service->upload($response['brochureData']['data'][0]['Publication']['pdf_local']);
+            $response['publicationData']['data'][0]['Publication']['pdf_url'] = $this->s3Service->upload($pdfLocal);
         }
 
 

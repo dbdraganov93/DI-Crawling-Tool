@@ -17,6 +17,11 @@ mkdir -p /var/www/html/public/csv
 chown -R www-data:www-data /var/www/html/public/csv
 chmod -R 775 /var/www/html/public/csv
 
+echo "📁 Ensuring PDF directory exists..."
+mkdir -p /var/www/html/public/pdf
+chown -R www-data:www-data /var/www/html/public/pdf
+chmod -R 775 /var/www/html/public/pdf
+
 echo "🧨 Dropping database (if exists)..."
 php bin/console doctrine:database:drop --if-exists --force
 
