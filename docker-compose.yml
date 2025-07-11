@@ -24,9 +24,9 @@ services:
         done &&
         echo "✅ MySQL is up" &&
         composer install &&
-        mkdir -p /var/www/html/public/csv &&
-        chown -R www-data:www-data /var/www/html/public/csv &&
-        chmod -R 775 /var/www/html/public/csv &&
+        mkdir -p /var/www/html/public/csv /var/www/html/public/pdf &&
+        chown -R www-data:www-data /var/www/html/public/csv /var/www/html/public/pdf &&
+        chmod -R 775 /var/www/html/public/csv /var/www/html/public/pdf &&
         php bin/console doctrine:database:drop --if-exists --force &&
         php bin/console doctrine:database:create &&
         rm -f src/Migrations/*.php &&
@@ -68,7 +68,13 @@ services:
       - mysql
     environment:
       AWS_SHARED_CREDENTIALS_FILE: /var/www/.aws/credentials
-    command: php bin/console app:shopfully:worker
+    command: >
+      bash -c '
+        mkdir -p /var/www/html/public/pdf &&
+        chown -R www-data:www-data /var/www/html/public/pdf &&
+        chmod -R 775 /var/www/html/public/pdf &&
+        php bin/console app:shopfully:worker
+      '
 
   mysql:
     image: mysql:8.0
