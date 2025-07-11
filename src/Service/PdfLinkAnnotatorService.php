@@ -23,6 +23,18 @@ class PdfLinkAnnotatorService
             return;
         }
 
+        // Ensure PyMuPDF is available before running the Python script so we
+        // can give a helpful error message instead of a cryptic stack trace.
+        $check = new Process([
+            'python3',
+            '-c',
+            'import importlib.util,sys; sys.exit(0 if importlib.util.find_spec("fitz") else 1)'
+        ]);
+        $check->run();
+        if (!$check->isSuccessful()) {
+            throw new \RuntimeException('PyMuPDF (fitz) is not installed. Run `pip install PyMuPDF`.');
+        }
+
         $clickoutsJsonPath = tempnam(sys_get_temp_dir(), 'clickouts_') . '.json';
         file_put_contents($clickoutsJsonPath, json_encode($clickouts));
 

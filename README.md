@@ -64,7 +64,8 @@ pip install PyMuPDF
 This dependency is required for the `add_links.py` script used by
 `PdfLinkAnnotatorService` to embed clickout links into downloaded PDFs.
 If PyMuPDF is missing, the PDF will be downloaded but the annotation step
-will fail and no links will be added.
+will fail and no links will be added. The service now checks for the
+library at runtime and throws an explicit error if it's missing.
 Run the server
 ```
 symfony serve -d
