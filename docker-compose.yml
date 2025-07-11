@@ -9,7 +9,7 @@ services:
       - ./:/var/www/html
       - ./aws-credentials:/var/www/.aws/credentials:ro
     ports:
-      - "8001:8000"
+      - "8001:80"
     depends_on:
       - mysql
     environment:
