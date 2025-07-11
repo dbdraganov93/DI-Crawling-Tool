@@ -42,10 +42,17 @@ class PdfDownloaderService
                     'x-api-key' => $apiKey,
                 ],
             ]);
+
+            if ($response->getStatusCode() !== 200) {
+                throw new \RuntimeException(
+                    sprintf('Failed to download file: HTTP %d', $response->getStatusCode())
+                );
+            }
+
             $content = $response->getContent();
             file_put_contents($destinationPath, $content);
         } catch (\Throwable $e) {
-            throw new \Exception("Download failed: " . $e->getMessage());
+            throw new \Exception('Download failed: ' . $e->getMessage());
         }
 
         return $destinationPath;
