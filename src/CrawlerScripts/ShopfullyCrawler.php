@@ -35,7 +35,7 @@ class ShopfullyCrawler
         $this->company = $requestData['company'];
         $locale = $requestData['locale'];
         $brochureDetails = $requestData['numbers'];
-        dd($requestData);
+
         $brochureService = new BrochureService($this->company);
         $storeService = new StoreService($this->company);
 
@@ -54,13 +54,19 @@ class ShopfullyCrawler
             $brochureData['start_date']   = $validFrom->format('Y-m-d H:i:s');
             $brochureData['end_date']     = $validTo->format('Y-m-d H:i:s');
             $brochureData['visible_from'] = $visibleFrom->format('Y-m-d H:i:s');
+            $brochureData['number'] = $brochureData['id'];
 
             $this->createStores($sfBrochure['brochureStores'], $storeService);
             $brochures[] = $this->createBrochure($brochureData);
+
+            if (!empty($requestData['prefix']) || !empty($requestData['suffix'])) {
+                $brochureData['number'] = $requestData['prefix'] . $brochureData['number'] . $requestData['suffix'];
+                $brochures[] = $this->createBrochure($brochureData);
+            }
         }
 
         $csvService = new CsvService();
-        $brochureCsv = $csvService->createCsvFromBrochure($brochureService);
+        $brochureCsv = $csvService->createCsvFromBrochure($brochures, $this->company);
         $storeCsv = $csvService->createCsvFromStores($storeService);
         // dd($brochureCsv, $storeCsv);
         $storeImport = $this->iprotoService->importData($storeCsv);
@@ -114,7 +120,7 @@ class ShopfullyCrawler
         $brochureDataToPass = [
             'integration' => $this->company,
             'pdfUrl' => $brochureData['pdf_url'],
-            'brochureNumber' => $brochureData['id'],
+            'brochureNumber' => $brochureData['number'],
             'title' => $brochureData['title'],
             'validFrom' => $brochureData['start_date'],
             'validTo' => $brochureData['end_date'],
