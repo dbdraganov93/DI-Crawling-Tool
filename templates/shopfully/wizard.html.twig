@@ -213,6 +213,7 @@
                                     <tr>
                                         <th>ID</th>
                                         <th>Created</th>
+                                        <th>Author</th>
                                         <th>Scheduled</th>
                                         <th>Executed</th>
                                         <th>Status</th>
@@ -224,6 +225,7 @@
                                         <tr class="{% if p.status == 'failed' %}table-danger{% endif %}">
                                             <td>{{ p.id }}</td>
                                             <td>{{ p.createdAt ? p.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+                                            <td>{{ p.author ? p.author|split('@')[0] : 'Unknown' }}</td>
                                             <td>{{ p.scheduledAt ? p.scheduledAt|date('Y-m-d H:i:s') : '' }}</td>
                                             <td>{{ p.executedAt ? p.executedAt|date('Y-m-d H:i:s') : '' }}</td>
                                             <td>
@@ -262,6 +264,7 @@
                         <tr>
                             <th>ID</th>
                             <th>Created At</th>
+                            <th>Author</th>
                             <th>Iproto ID</th>
                             <th>Locale</th>
                             <th>Status</th>
@@ -277,6 +280,7 @@
                         <tr>
                             <td>{{ log.id }}</td>
                             <td>{{ log.createdAt ? log.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+                            <td>{{ log.author ? log.author|split('@')[0] : 'Unknown' }}</td>
                             <td>
                                 <a target="_blank" href="https://business-v2.offerista.com/redirect?owner_id={{ get_owner_id_by_locale(log.locale|default(''))|default('0') }}&path=/customers/{{ log.iprotoId }}/"
                                    class="d-inline-flex align-items-center gap-1 text-decoration-none">
