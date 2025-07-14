@@ -6,6 +6,7 @@ namespace App\Service;
 
 use League\Csv\Writer;
 use SplTempFileObject;
+use App\Dto\Brochure;
 
 class CsvService
 {
@@ -96,15 +97,8 @@ class CsvService
         ];
     }
 
-    public function createCsvFromBrochure(BrochureService $brochureService): array
+    public function createCsvFromBrochure(array $brochures, string $companyId): array
     {
-        $brochures = $brochureService->getBrochures(); // ← THIS WAS MISSING
-
-        if (empty($brochures)) {
-            throw new \RuntimeException('No brochures to export.');
-        }
-        $companyId = $brochureService->getCompanyId();
-
         $headers = [
             'brochure_number',
             'type',
@@ -131,26 +125,30 @@ class CsvService
         $csv->insertOne($headers);
 
         foreach ($brochures as $brochure) {
+            if (!$brochure instanceof Brochure) {
+                throw new \InvalidArgumentException('Expected array of Dto\Brochure objects.');
+            }
+
             $csv->insertOne([
-                $brochure['brochureNumber'] ?? '',
-                $brochure['type'] ?? 'default',
-                $brochure['pdfUrl'] ?? '',
-                $brochure['title'] ?? '',
-                $brochure['tags'] ?? '', // tags
-                $brochure['validFrom'] ?? '',
-                $brochure['validTo'] ?? '',
-                $brochure['visibleFrom'] ?? '',
-                $brochure['storeNumber'] ?? '',
-                $brochure['distribution'] ?? '', // distribution
-                $brochure['variety'] ?? '',
-                $brochure['national'] ?? '', // national
-                $brochure['gender'] ?? '',
-                $brochure['ageRange'] ?? '',
-                $brochure['trackingPixels'] ?? '',
-                isset($brochure['pdf_processing_options']) ? json_encode($brochure['pdf_processing_options']) : '',
+                $brochure->getBrochureNumber() ?? '',
+                $brochure->getType() ?? '',
+                $brochure->getPdfUrl() ?? '',
+                $brochure->getTitle() ?? '',
+                '', // tags
+                $brochure->getValidFrom() ?? '',
+                $brochure->getValidTo() ?? '',
+                $brochure->getVisibleFrom() ?? '',
+                $brochure->getStoreNumber() ?? '',
+                $brochure->getSalesRegion() ?? '',
+                $brochure->getVariety() ?? '',
+                '', // national
+                '', // gender
+                '', // ageRange
+                $brochure->getTrackingPixels() ?? '',
+                !empty($brochure->getPdfProcessingOptions()) ? json_encode($brochure->getPdfProcessingOptions()) : '',
                 '', // lang_code
-                '', // zipcode
-                $brochure['layout'] ?? '',
+                $brochure->getZipcode() ?? '', // zipcode
+                $brochure->getLayout() ?? '',
             ]);
         }
 

@@ -5,6 +5,7 @@ namespace App\Dto;
 class Brochure
 {
     private const DEFAULT_VARIETY = 'leaflet';
+    private const DEFAULT_TYPE = 'default';
     private const INTEGRATION_URL = 'https://iproto.offerista.com/api/integrations/';
     private const DEFAULT_PROCESSING_OPTIONS = [
         'version' => '2021-04-19',
@@ -27,6 +28,8 @@ class Brochure
     private string $layout = '';
     private string $trackingPixels = '';
     private string $storeNumber = '';
+    private string $zipcode = '';
+    private string $type = self::DEFAULT_TYPE;
 
     public static function fromArray(array $data): self
     {
@@ -139,7 +142,7 @@ class Brochure
 
     public function getPdfProcessingOptions(): array
     {
-        return $this->pdfProcessingOptions ?: self::DEFAULT_PROCESSING_OPTIONS;
+        return $this->pdfProcessingOptions = [];
     }
 
     private function setLayout(string $layout): void
@@ -172,6 +175,26 @@ class Brochure
         return $this->storeNumber;
     }
 
+    private function setZipcode(string $zipcode): void
+    {
+        $this->zipcode = $zipcode;
+    }
+
+    public function getZipcode(): string
+    {
+        return $this->zipcode;
+    }
+
+    private function setType(string $type): void
+    {
+        $this->type = $type;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
     public function toArray(): array
     {
         return [
@@ -188,6 +211,7 @@ class Brochure
             'pdfProcessingOptions' => $this->pdfProcessingOptions ?: self::DEFAULT_PROCESSING_OPTIONS,
             'trackingPixels' => $this->trackingPixels,
             'layout' => $this->layout,
+            'type' => $this->type ?: self::DEFAULT_TYPE,
         ];
     }
 }
