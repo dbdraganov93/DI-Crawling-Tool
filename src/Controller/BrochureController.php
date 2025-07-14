@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Service\BrochureLinkerService;
+use App\Entity\BrochureJob;
+use App\Repository\BrochureJobRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Process\Process;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +22,7 @@ class BrochureController extends AbstractController
     }
 
     #[Route('/brochure/upload', name: 'brochure_upload', methods: ['POST'])]
-    public function upload(Request $request): JsonResponse
+    public function upload(Request $request, EntityManagerInterface $em): JsonResponse
     {
         $file = $request->files->get('pdf');
         if (!$file) {
@@ -29,15 +33,60 @@ class BrochureController extends AbstractController
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);
         }
-        $path = $dir . '/' . $file->getClientOriginalName();
-        $file->move($dir, $file->getClientOriginalName());
 
-        $result = $this->linker->process($path);
+        $filename = uniqid('brochure_', true) . '.pdf';
+        $file->move($dir, $filename);
+        $path = $dir . '/' . $filename;
+
+        $job = new BrochureJob();
+        $job->setPdfPath($path);
+        $em->persist($job);
+        $em->flush();
+
+        $console = $this->getParameter('kernel.project_dir') . '/bin/console';
+        $cmd = sprintf('php %s app:brochure:worker %d >> var/log/brochure-job.log 2>&1', $console, $job->getId());
+        $process = Process::fromShellCommandline($cmd, $this->getParameter('kernel.project_dir'));
+        $process->disableOutput();
+        $process->setTimeout(null);
+        $process->start();
+
+        return new JsonResponse(['job_id' => $job->getId()]);
+    }
+
+    #[Route('/brochure/status/{id}', name: 'brochure_status', methods: ['GET'])]
+    public function status(int $id, BrochureJobRepository $repo): JsonResponse
+    {
+        $job = $repo->find($id);
+        if (!$job) {
+            return new JsonResponse(['error' => 'Job not found'], Response::HTTP_NOT_FOUND);
+        }
 
         return new JsonResponse([
-            'annotated_pdf' => $result['annotated'],
-            'data_file' => $result['json'],
-            'data' => $result['data'],
+            'status' => $job->getStatus(),
+            'error' => $job->getErrorMessage(),
         ]);
+    }
+
+    #[Route('/brochure/download/{id}/{type}', name: 'brochure_download', requirements: ['type' => 'pdf|json'], methods: ['GET'])]
+    public function download(int $id, string $type, BrochureJobRepository $repo): Response
+    {
+        $job = $repo->find($id);
+        if (!$job) {
+            return new Response('Job not found', 404);
+        }
+
+        $path = $type === 'pdf' ? $job->getResultPdf() : $job->getResultJson();
+        if (!$path || !file_exists($path)) {
+            return new Response('File not ready', 404);
+        }
+
+        return $this->file($path);
+    }
+
+    #[Route('/brochure/wizard', name: 'brochure_wizard', methods: ['GET'])]
+    public function wizard(BrochureJobRepository $repo): Response
+    {
+        $jobs = $repo->findBy([], ['createdAt' => 'DESC']);
+        return $this->render('brochure/wizard.html.twig', ['jobs' => $jobs]);
     }
 }

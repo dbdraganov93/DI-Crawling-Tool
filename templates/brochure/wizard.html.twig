@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Brochure Linker{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('css/brochure-wizard.css') }}">
+{% endblock %}
+
+{% block body %}
+<h1 class="text-center mb-4">Brochure Linker</h1>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" name="pdf" accept="application/pdf" required class="form-control mb-3">
+            <button type="submit" class="btn btn-primary w-100">Upload</button>
+        </form>
+        <div id="progress" class="text-center mt-4" style="display:none;">
+            <div class="spinner-border text-primary ai-spinner" role="status"></div>
+            <p class="mt-2">Processing with AI magic...</p>
+        </div>
+        <div id="result" class="mt-4" style="display:none;">
+            <a id="downloadPdf" class="btn btn-success mb-2" href="#">Download Annotated PDF</a>
+            <a id="downloadJson" class="btn btn-secondary" href="#">Download JSON</a>
+        </div>
+    </div>
+</div>
+
+<h2 class="mt-5">Recent Jobs</h2>
+<table class="table" id="jobsTable">
+    <thead><tr><th>ID</th><th>Status</th><th>Created</th><th>Action</th></tr></thead>
+    <tbody>
+    {% for j in jobs %}
+        <tr data-id="{{ j.id }}">
+            <td>{{ j.id }}</td>
+            <td>{{ j.status }}</td>
+            <td>{{ j.createdAt|date('Y-m-d H:i') }}</td>
+            <td>
+                {% if j.resultPdf %}
+                    <a href="{{ path('brochure_download', {id:j.id, type:'pdf'}) }}" class="btn btn-sm btn-primary">PDF</a>
+                    <a href="{{ path('brochure_download', {id:j.id, type:'json'}) }}" class="btn btn-sm btn-secondary">JSON</a>
+                {% endif %}
+            </td>
+        </tr>
+    {% else %}
+        <tr><td colspan="4" class="text-center">No jobs</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/brochure-wizard.js') }}"></script>
+{% endblock %}
