@@ -2,6 +2,7 @@
 
 namespace App\Tests\Service;
 
+use App\Dto\Brochure;
 use App\Service\CsvService;
 use App\Service\StoreService;
 use App\Service\BrochureService;
@@ -32,11 +33,14 @@ class CsvServiceTest extends TestCase
         $tmpDir = sys_get_temp_dir() . '/csv_test_' . uniqid();
         $service = new CsvService($tmpDir);
 
-        $brochureService = new BrochureService(10);
-        $brochureService->setPdfUrl('u')->addCurrentBrochure();
+        $brochures = [
+            Brochure::fromArray([
+                'pdfUrl' => 'u',
+            ])
+        ];
 
-        $result = $service->createCsvFromBrochure($brochureService);
-        $this->assertSame(10, $result['companyId']);
+        $result = $service->createCsvFromBrochure($brochures, '10');
+        $this->assertSame('10', $result['companyId']);
         $this->assertFileExists($result['filePath']);
         $this->assertNotEmpty($result['base64']);
         unlink($result['filePath']);
