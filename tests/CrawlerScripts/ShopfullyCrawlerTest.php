@@ -9,7 +9,6 @@ use App\Service\IprotoService;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use App\Service\StoreService;
-use App\Service\BrochureService;
 use App\Entity\ShopfullyLog;
 
 class ShopfullyCrawlerTest extends TestCase

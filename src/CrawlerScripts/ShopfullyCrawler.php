@@ -9,7 +9,6 @@ use App\Service\StoreService;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Service\ShopfullyService;
 use App\Service\CsvService;
-use App\Service\BrochureService;
 
 ini_set('memory_limit', '512M'); // or '1G' if needed
 
@@ -36,7 +35,6 @@ class ShopfullyCrawler
         $locale = $requestData['locale'];
         $brochureDetails = $requestData['numbers'];
 
-        $brochureService = new BrochureService($this->company);
         $storeService = new StoreService($this->company);
 
         $brochures = [];
