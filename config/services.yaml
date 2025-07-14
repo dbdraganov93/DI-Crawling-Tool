@@ -31,6 +31,9 @@ services:
             $iprotoAuthHost: '%env(IPROTO_AUTH_HOST)%'
             $iprotoClientId: '%env(IPROTO_CLIENT_ID)%'
             $iprotoClientSecret: '%env(IPROTO_CLIENT_SECRET)%'
+            $openaiApiKey: '%env(OPENAI_API_KEY)%'
+            $googleApiKey: '%env(GOOGLE_SEARCH_API_KEY)%'
+            $googleCx: '%env(GOOGLE_SEARCH_CX)%'
     # Makes classes in src/ available to be used as services
     App\:
         resource: '../src/'
@@ -67,6 +70,8 @@ services:
 
     # Ensure ShopfullyService is properly autowired
     App\Service\ShopfullyService: ~
+
+    App\Service\BrochureLinkerService: ~
 
     App\Service\FileLogger:
         arguments:
