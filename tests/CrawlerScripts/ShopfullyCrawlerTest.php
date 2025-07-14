@@ -3,6 +3,7 @@
 namespace App\Tests\CrawlerScripts;
 
 use App\CrawlerScripts\ShopfullyCrawler;
+use App\Dto\Brochure;
 use App\Service\ShopfullyService;
 use App\Service\IprotoService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -40,7 +41,7 @@ class ShopfullyCrawlerTest extends TestCase
         $ref = new \ReflectionClass($crawler);
         $method = $ref->getMethod('createStores');
         $method->setAccessible(true);
-        $method->invoke($crawler, $data, $storeService);
+        $method->invoke($crawler, $data['brochureStores'], $storeService);
 
         $stores = $storeService->getStores();
         $this->assertCount(2, $stores);
@@ -51,29 +52,33 @@ class ShopfullyCrawlerTest extends TestCase
     public function testCreateBrochureAddsBrochure(): void
     {
         $crawler = $this->getCrawler();
-        $brochureService = new BrochureService(10);
+
+        $refProp = new \ReflectionProperty($crawler, 'company');
+        $refProp->setAccessible(true);
+        $refProp->setValue($crawler, 10); // or any string/integer representing company ID
 
         $data = [
-            'publicationData' => ['data' => [['Publication' => ['pdf_url' => 'http://example.com/p.pdf']]]],
-            'brochureData' => ['data' => [['Flyer' => [
-                'id' => 'B1',
-                'title' => 'Title',
-                'start_date' => '2023-01-01',
-                'end_date' => '2023-01-02',
-                'stores' => '1'
-            ]]]],
-            'trackingPixel' => 'pix'
+            'pdf_url' => 'http://example.com/p.pdf',
+            'number' => 'B1',
+            'title' => 'Title',
+            'start_date' => '2023-01-01',
+            'end_date' => '2023-01-02',
+            'visible_from' => '2023-01-01',
+            'stores' => '1',
+            'trackingPixel' => 'pix',
         ];
 
+        $brochures = [];
         $ref = new \ReflectionClass($crawler);
         $method = $ref->getMethod('createBrochure');
         $method->setAccessible(true);
-        $method->invoke($crawler, $data, $brochureService);
+        $brochures[] = $method->invoke($crawler, $data);
 
-        $brochures = $brochureService->getBrochures();
         $this->assertCount(1, $brochures);
-        $this->assertSame('Title', $brochures[0]['title']);
-        $this->assertSame('B1', $brochures[0]['brochureNumber']);
+        $brochure = reset($brochures);
+        $this->assertInstanceOf(Brochure::class, $brochure);
+        $this->assertSame('Title', $brochure->getTitle());
+        $this->assertSame('B1', $brochure->getBrochureNumber());
     }
 
     public function testLogPersistsEntity(): void
@@ -115,11 +120,12 @@ class ShopfullyCrawlerTest extends TestCase
 
         $brochureData = [
             'publicationData' => ['data' => [['Publication' => ['pdf_url' => 'http://example.com/p.pdf']]]],
-            'brochureData' => ['data' => [['Flyer' => [
+            'brochureData' => [
+                'pdf_url' => 'http://example.com/p.pdf',
                 'id' => 'B1',
                 'title' => 'Title',
                 'stores' => '1'
-            ]]]],
+            ],
             'brochureStores' => [
                 ['Store' => ['id' => '1', 'city' => 'Berlin', 'zip' => '10115', 'address' => 'S', 'lat' => '1', 'lng' => '2', 'more_info' => 'T', 'description' => 'D', 'phone' => 'p', 'fax' => 'f']]
             ]
@@ -188,7 +194,7 @@ class ShopfullyCrawlerTest extends TestCase
 
         $brochureData = [
             'publicationData' => ['data' => [['Publication' => ['pdf_url' => 'http://example.com/p.pdf']]]],
-            'brochureData' => ['data' => [['Flyer' => ['id' => 'B1', 'title' => 'Title', 'stores' => '1']]]],
+            'brochureData' => ['id' => 'B1', 'title' => 'Title', 'stores' => '1', 'pdf_url' => 'http://example.com/p.pdf'],
             'brochureStores' => [
                 ['Store' => ['id' => '1', 'city' => 'Berlin', 'zip' => '10115', 'address' => 'S', 'lat' => '1', 'lng' => '2', 'more_info' => 'T', 'description' => 'D', 'phone' => 'p', 'fax' => 'f']]
             ]
@@ -250,7 +256,7 @@ class ShopfullyCrawlerTest extends TestCase
 
         $brochureData = [
             'publicationData' => ['data' => [['Publication' => ['pdf_url' => 'http://example.com/p.pdf']]]],
-            'brochureData' => ['data' => [['Flyer' => ['id' => 'B1', 'title' => 'Title', 'stores' => '1']]]],
+            'brochureData' => ['id' => 'B1', 'title' => 'Title', 'stores' => '1', 'pdf_url' => 'http://example.com/p.pdf'],
             'brochureStores' => [
                 ['Store' => ['id' => '1', 'city' => 'Berlin', 'zip' => '10115', 'address' => 'S', 'lat' => '1', 'lng' => '2', 'more_info' => 'T', 'description' => 'D', 'phone' => 'p', 'fax' => 'f']]
             ]
