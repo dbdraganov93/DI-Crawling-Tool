@@ -24,7 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const resp = await fetch(buildUrl('/brochure/upload'), {method: 'POST', body: data});
         const json = await resp.json();
-        pollStatus(json.job_id);
+        if (json.job_id) {
+            pollStatus(json.job_id);
+        } else if (json.error) {
+            progress.innerHTML = '<p class="text-danger">' + json.error + '</p>';
+        } else {
+            progress.innerHTML = '<p class="text-danger">Upload failed</p>';
+        }
     });
 
     async function pollStatus(id) {

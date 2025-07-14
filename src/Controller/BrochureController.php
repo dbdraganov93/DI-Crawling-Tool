@@ -24,33 +24,40 @@ class BrochureController extends AbstractController
     #[Route('/brochure/upload', name: 'brochure_upload', methods: ['POST'])]
     public function upload(Request $request, EntityManagerInterface $em): JsonResponse
     {
-        $file = $request->files->get('pdf');
-        if (!$file) {
-            return new JsonResponse(['error' => 'No PDF provided'], Response::HTTP_BAD_REQUEST);
+        try {
+            $file = $request->files->get('pdf');
+            if (!$file) {
+                return new JsonResponse(['error' => 'No PDF provided'], Response::HTTP_BAD_REQUEST);
+            }
+
+            $dir = $this->getParameter('kernel.project_dir') . '/var/brochures/original';
+            if (!is_dir($dir)) {
+                mkdir($dir, 0777, true);
+            }
+
+            $filename = uniqid('brochure_', true) . '.pdf';
+            $file->move($dir, $filename);
+            $path = $dir . '/' . $filename;
+
+            $job = new BrochureJob();
+            $job->setPdfPath($path);
+            $em->persist($job);
+            $em->flush();
+
+            $console = $this->getParameter('kernel.project_dir') . '/bin/console';
+            $cmd = sprintf('php %s app:brochure:worker %d >> var/log/brochure-job.log 2>&1', $console, $job->getId());
+            $process = Process::fromShellCommandline($cmd, $this->getParameter('kernel.project_dir'));
+            $process->disableOutput();
+            $process->setTimeout(null);
+            $process->start();
+
+            return new JsonResponse(['job_id' => $job->getId()]);
+        } catch (\Throwable $e) {
+            return new JsonResponse(
+                ['error' => 'Failed to queue brochure', 'details' => $e->getMessage()],
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            );
         }
-
-        $dir = $this->getParameter('kernel.project_dir') . '/var/brochures/original';
-        if (!is_dir($dir)) {
-            mkdir($dir, 0777, true);
-        }
-
-        $filename = uniqid('brochure_', true) . '.pdf';
-        $file->move($dir, $filename);
-        $path = $dir . '/' . $filename;
-
-        $job = new BrochureJob();
-        $job->setPdfPath($path);
-        $em->persist($job);
-        $em->flush();
-
-        $console = $this->getParameter('kernel.project_dir') . '/bin/console';
-        $cmd = sprintf('php %s app:brochure:worker %d >> var/log/brochure-job.log 2>&1', $console, $job->getId());
-        $process = Process::fromShellCommandline($cmd, $this->getParameter('kernel.project_dir'));
-        $process->disableOutput();
-        $process->setTimeout(null);
-        $process->start();
-
-        return new JsonResponse(['job_id' => $job->getId()]);
     }
 
     #[Route('/brochure/status/{id}', name: 'brochure_status', methods: ['GET'])]
