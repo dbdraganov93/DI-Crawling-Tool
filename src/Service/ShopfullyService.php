@@ -60,7 +60,10 @@ class ShopfullyService
         $response['clickoutsCount'] = count($response['brochureClickouts']);
 
         try {
-            $response['brochureData']['pdf_url'] = $this->pdfDownloaderService->download($response['publicationData']['pdf_url']);
+            $response['brochureData']['pdf_url'] = $this->pdfDownloaderService->download(
+                $response['publicationData']['pdf_url'],
+                self::API_KEY
+            );
         } catch (\Exception $e) {
             $this->logger->error('Download failed: ' . $e->getMessage());
         }
