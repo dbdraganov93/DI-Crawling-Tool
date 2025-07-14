@@ -19,7 +19,7 @@ class Brochure
     private string $salesRegion = '';
     private string $brochureNumber = '';
     private string $title = '';
-    private string $variety = '';
+    private string $variety = self::DEFAULT_VARIETY;
     private string $validFrom = '';
     private string $validTo = '';
     private string $visibleFrom = '';
@@ -47,9 +47,19 @@ class Brochure
         $this->pdfUrl = $pdfUrl;
     }
 
+    public function getPdfUrl(): string
+    {
+        return $this->pdfUrl;
+    }
+
     private function setIntegration(string $integration): void
     {
         $this->integration = self::INTEGRATION_URL . $integration;
+    }
+
+    public function getIntegration(): string
+    {
+        return $this->integration;
     }
 
     private function setSalesRegion(string $salesRegion): void
@@ -57,9 +67,19 @@ class Brochure
         $this->salesRegion = $salesRegion;
     }
 
+    public function getSalesRegion(): string
+    {
+        return $this->salesRegion;
+    }
+
     private function setBrochureNumber(string $brochureNumber): void
     {
         $this->brochureNumber = $brochureNumber;
+    }
+
+    public function getBrochureNumber(): string
+    {
+        return $this->brochureNumber;
     }
 
     private function setTitle(string $title): void
@@ -67,9 +87,19 @@ class Brochure
         $this->title = $title;
     }
 
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
+
     private function setVariety(string $variety): void
     {
         $this->variety = $variety;
+    }
+
+    public function getVariety(): string
+    {
+        return $this->variety;
     }
 
     private function setValidFrom(string $validFrom): void
@@ -77,9 +107,19 @@ class Brochure
         $this->validFrom = $validFrom;
     }
 
+    public function getValidFrom(): string
+    {
+        return $this->validFrom;
+    }
+
     private function setValidTo(string $validTo): void
     {
         $this->validTo = $validTo;
+    }
+
+    public function getValidTo(): string
+    {
+        return $this->validTo;
     }
 
     private function setVisibleFrom(string $visibleFrom): void
@@ -87,9 +127,19 @@ class Brochure
         $this->visibleFrom = $visibleFrom;
     }
 
+    public function getVisibleFrom(): string
+    {
+        return $this->visibleFrom;
+    }
+
     private function setPdfProcessingOptions(array $pdfProcessingOptions): void
     {
         $this->pdfProcessingOptions = $pdfProcessingOptions;
+    }
+
+    public function getPdfProcessingOptions(): array
+    {
+        return $this->pdfProcessingOptions ?: self::DEFAULT_PROCESSING_OPTIONS;
     }
 
     private function setLayout(string $layout): void
@@ -97,14 +147,29 @@ class Brochure
         $this->layout = $layout;
     }
 
+    public function getLayout(): string
+    {
+        return $this->layout;
+    }
+
     private function setTrackingPixels(string $trackingPixels): void
     {
         $this->trackingPixels = $trackingPixels;
     }
 
+    public function getTrackingPixels(): string
+    {
+        return $this->trackingPixels;
+    }
+
     private function setStoreNumber(string $storeNumber): void
     {
         $this->storeNumber = $storeNumber;
+    }
+
+    public function getStoreNumber(): string
+    {
+        return $this->storeNumber;
     }
 
     public function toArray(): array
@@ -115,13 +180,13 @@ class Brochure
             'sales_region' => $this->salesRegion,
             'brochureNumber' => $this->brochureNumber,
             'title' => $this->title,
-            'variety' => $this->variety !== '' ? $this->variety : self::DEFAULT_VARIETY,
+            'variety' => $this->variety ?: self::DEFAULT_VARIETY,
             'validFrom' => $this->validFrom,
             'validTo' => $this->validTo,
             'storeNumber' => $this->storeNumber,
             'visibleFrom' => $this->visibleFrom,
             'pdfProcessingOptions' => $this->pdfProcessingOptions ?: self::DEFAULT_PROCESSING_OPTIONS,
-            'trackingPixels' => $this->trackingPixels ?: '',
+            'trackingPixels' => $this->trackingPixels,
             'layout' => $this->layout,
         ];
     }
