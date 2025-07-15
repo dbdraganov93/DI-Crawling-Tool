@@ -21,6 +21,13 @@ class BrochureController extends AbstractController
     {
     }
 
+    #[Route('/brochure/upload', name: 'brochure_upload_form', methods: ['GET'])]
+    public function uploadForm(BrochureJobRepository $repo): Response
+    {
+        $jobs = $repo->findBy([], ['createdAt' => 'DESC']);
+        return $this->render('brochure/wizard.html.twig', ['jobs' => $jobs]);
+    }
+
     #[Route('/brochure/upload', name: 'brochure_upload', methods: ['POST'])]
     public function upload(Request $request, EntityManagerInterface $em): JsonResponse
     {
