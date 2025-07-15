@@ -57,7 +57,7 @@ class BrochureLinkerService
             ];
         }
 
-        $linkedDir = $this->projectDir . '/var/brochures/linked';
+        $linkedDir = $this->projectDir . '/pdf';
         if (!is_dir($linkedDir)) {
             mkdir($linkedDir, 0777, true);
         }

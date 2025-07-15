@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y \
     unzip git curl libzip-dev zip libonig-dev \
     libxml2-dev libpq-dev libcurl4-openssl-dev \
     libicu-dev libpng-dev libjpeg-dev libfreetype6-dev \
-    default-mysql-client cron python3 python3-pip \
+    default-mysql-client cron python3 python3-pip python3-pil \
  && docker-php-ext-install pdo pdo_mysql intl zip ftp gd opcache \
  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -35,9 +35,6 @@ RUN mkdir -p /var/www/html/public/csv /var/www/html/public/pdf \
  && chmod -R 775 /var/www/html/public/csv /var/www/html/public/pdf
 
 # Ensure brochure upload directories exist with permissive rights
-RUN mkdir -p /var/www/html/var/brochures/original /var/www/html/var/brochures/linked \
- && chown -R www-data:www-data /var/www/html/var/brochures \
- && chmod -R 777 /var/www/html/var/brochures
 
 EXPOSE 80
 CMD ["apache2-foreground"]

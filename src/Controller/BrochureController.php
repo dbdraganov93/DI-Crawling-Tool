@@ -37,7 +37,7 @@ class BrochureController extends AbstractController
                 return new JsonResponse(['error' => 'No PDF provided'], Response::HTTP_BAD_REQUEST);
             }
 
-            $dir = $this->getParameter('kernel.project_dir') . '/var/brochures/original';
+            $dir = $this->getParameter('kernel.project_dir') . '/public/pdf';
             if (!is_dir($dir)) {
                 mkdir($dir, 0777, true);
             }

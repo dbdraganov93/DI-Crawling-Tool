@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y \
     unzip git nano curl libzip-dev zip libonig-dev \
     libxml2-dev libpq-dev libcurl4-openssl-dev \
     libicu-dev libpng-dev libjpeg-dev libfreetype6-dev \
-    default-mysql-client netcat-openbsd cron python3 python3-pip \
+    default-mysql-client netcat-openbsd cron python3 python3-pip python3-pil \
     && docker-php-ext-install pdo pdo_mysql intl zip ftp gd opcache
 
 RUN pip3 install --break-system-packages PyMuPDF
@@ -21,8 +21,5 @@ RUN mkdir -p /var/www/html/public/csv /var/www/html/public/pdf \
  && chmod -R 775 /var/www/html/public/csv /var/www/html/public/pdf
 
 # Ensure brochure upload directories with open permissions
-RUN mkdir -p /var/www/html/var/brochures/original /var/www/html/var/brochures/linked \
- && chown -R www-data:www-data /var/www/html/var/brochures \
- && chmod -R 777 /var/www/html/var/brochures
 
 EXPOSE 80
