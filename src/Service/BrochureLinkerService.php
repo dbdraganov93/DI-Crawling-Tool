@@ -7,6 +7,7 @@ namespace App\Service;
 use Symfony\Component\Process\Process;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Service that enriches uploaded brochure PDFs with product links.
@@ -22,6 +23,7 @@ class BrochureLinkerService
         private string $openaiApiKey,
         private string $googleApiKey,
         private string $googleCx,
+        private LoggerInterface $logger,
     ) {
         $this->projectDir = $kernel->getProjectDir();
     }
@@ -35,6 +37,7 @@ class BrochureLinkerService
      */
     public function process(string $pdfPath): array
     {
+        $this->logger->info('Starting brochure processing', ['pdf' => $pdfPath]);
         $pages = $this->extractText($pdfPath);
         $allText = '';
         foreach ($pages as $p) {
@@ -72,6 +75,11 @@ class BrochureLinkerService
             'meta' => $meta,
             'products' => $products,
         ], JSON_PRETTY_PRINT));
+
+        $this->logger->info('Brochure processed', [
+            'annotated' => $annotatedPath,
+            'json' => $jsonPath,
+        ]);
 
         return [
             'annotated' => $annotatedPath,
@@ -147,14 +155,31 @@ class BrochureLinkerService
                 $this->googleCx,
                 urlencode($query)
             );
+
+            $this->logger->info('Searching product', ['query' => $query]);
+
             try {
                 $resp = $this->httpClient->request('GET', $url);
+                $status = $resp->getStatusCode();
+                $this->logger->info('Google response', ['status' => $status]);
+
+                if ($status !== 200) {
+                    throw new \RuntimeException('Google API status ' . $status);
+                }
+
                 $data = $resp->toArray(false);
-                $p['url'] = $data['items'][0]['link'] ?? null;
-            } catch (\Throwable) {
-                $p['url'] = null;
+                if (isset($data['items'][0]['link'])) {
+                    $p['url'] = $data['items'][0]['link'];
+                } else {
+                    $this->logger->warning('No search results', ['query' => $query, 'response' => $data]);
+                    $p['url'] = null;
+                }
+            } catch (\Throwable $e) {
+                $this->logger->error('Search failed', ['query' => $query, 'error' => $e->getMessage()]);
+                throw new \RuntimeException('Google search failed: ' . $e->getMessage());
             }
         }
+
         return $products;
     }
 
