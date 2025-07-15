@@ -57,7 +57,9 @@ class BrochureLinkerService
             ];
         }
 
-        $linkedDir = $this->projectDir . '/pdf';
+        // store linked brochures under the public/pdf directory so they are
+        // accessible via the web server
+        $linkedDir = $this->projectDir . '/public/pdf';
         if (!is_dir($linkedDir)) {
             mkdir($linkedDir, 0777, true);
         }
