@@ -4,10 +4,10 @@ RUN apt-get update && apt-get install -y \
     unzip git nano curl libzip-dev zip libonig-dev \
     libxml2-dev libpq-dev libcurl4-openssl-dev \
     libicu-dev libpng-dev libjpeg-dev libfreetype6-dev \
-    default-mysql-client netcat-openbsd cron python3 python3-pip python3-pil \
+    default-mysql-client netcat-openbsd cron python3 python3-pip python3-pil tesseract-ocr \
     && docker-php-ext-install pdo pdo_mysql intl zip ftp gd opcache
 
-RUN pip3 install --break-system-packages PyMuPDF
+RUN pip3 install --break-system-packages PyMuPDF pytesseract
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
