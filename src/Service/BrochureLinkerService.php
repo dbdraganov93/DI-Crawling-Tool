@@ -147,8 +147,15 @@ class BrochureLinkerService
      */
     private function enrichProducts(array $products, string $website): array
     {
+        if (empty($this->googleApiKey) || empty($this->googleCx)) {
+            throw new \RuntimeException('Google search credentials not configured');
+        }
+
+        $domain = parse_url($website, PHP_URL_HOST) ?: $website;
+        $domain = preg_replace('/^www\./', '', $domain);
+
         foreach ($products as &$p) {
-            $query = trim(sprintf('site:%s %s', $website, $p['product']));
+            $query = trim(sprintf('site:%s %s', $domain, $p['product']));
             $url = sprintf(
                 'https://www.googleapis.com/customsearch/v1?key=%s&cx=%s&q=%s',
                 $this->googleApiKey,
@@ -164,10 +171,18 @@ class BrochureLinkerService
                 $this->logger->info('Google response', ['status' => $status]);
 
                 if ($status !== 200) {
+                    $body = $resp->getContent(false);
+                    $this->logger->error('Google API non-200', ['body' => $body]);
                     throw new \RuntimeException('Google API status ' . $status);
                 }
 
                 $data = $resp->toArray(false);
+
+                if (isset($data['error'])) {
+                    $this->logger->error('Google API error', ['response' => $data]);
+                    throw new \RuntimeException('Google API error: ' . ($data['error']['message'] ?? 'unknown'));
+                }
+
                 if (isset($data['items'][0]['link'])) {
                     $p['url'] = $data['items'][0]['link'];
                 } else {
