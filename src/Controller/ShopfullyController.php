@@ -51,6 +51,7 @@ class ShopfullyController extends AbstractController
             $preset = new ShopfullyPreset();
             $preset->setCreatedAt(new \DateTime());
             $preset->setScheduledAt(new \DateTime());
+            $preset->setAuthor($this->getUser()?->getUserIdentifier());
             $preset->setData($data);
             $preset->setStatus('pending');
             $em->persist($preset);

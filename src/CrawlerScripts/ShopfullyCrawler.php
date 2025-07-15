@@ -18,6 +18,7 @@ class ShopfullyCrawler
     private ShopfullyService $shopfullyService;
     private IprotoService $iprotoService;
     private string $company;
+    private ?string $author = null;
 
     public function __construct(
         EntityManagerInterface $em,
@@ -27,6 +28,17 @@ class ShopfullyCrawler
         $this->em = $em;
         $this->shopfullyService = $shopfullyService;
         $this->iprotoService = $iprotoService;
+    }
+
+    public function setAuthor(?string $author): self
+    {
+        $this->author = $author;
+        return $this;
+    }
+
+    public function getAuthor(): ?string
+    {
+        return $this->author;
     }
 
     public function crawl(array $requestData): void
@@ -90,6 +102,7 @@ class ShopfullyCrawler
         $log->setErrorsCount($import['errorsCount'] ?? 0);
         $log->setImportId($import['id']);
         $log->setCreatedAt(new \DateTime());
+        $log->setAuthor($this->author);
 
         $this->em->persist($log);
         $this->em->flush();

@@ -14,6 +14,9 @@ class ShopfullyLog
     #[ORM\Column]
     private ?int $id = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $author = null;
+
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
 
@@ -31,6 +34,17 @@ class ShopfullyLog
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $status = null;
+
+    public function getAuthor(): ?string
+    {
+        return $this->author;
+    }
+
+    public function setAuthor(?string $author): static
+    {
+        $this->author = $author;
+        return $this;
+    }
 
 
 

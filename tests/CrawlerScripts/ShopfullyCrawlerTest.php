@@ -94,6 +94,7 @@ class ShopfullyCrawlerTest extends TestCase
         $em->expects($this->once())->method('flush');
 
         $crawler = new ShopfullyCrawler($em, $shopfullyService, $iprotoService);
+        $crawler->setAuthor('tester@example.com');
         $refProp = new \ReflectionProperty($crawler, 'company');
         $refProp->setAccessible(true);
         $refProp->setValue($crawler, 7);
@@ -109,6 +110,7 @@ class ShopfullyCrawlerTest extends TestCase
         $this->assertSame(7, $logs[0]->getIprotoId());
         $this->assertSame($formData, $logs[0]->getData());
         $this->assertSame(0, $logs[0]->getReimportCount());
+        $this->assertSame('tester@example.com', $logs[0]->getAuthor());
     }
 
     public function testCrawlRunsThroughFlow(): void
