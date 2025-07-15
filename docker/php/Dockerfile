@@ -34,5 +34,10 @@ RUN mkdir -p /var/www/html/public/csv /var/www/html/public/pdf \
  && chown -R www-data:www-data /var/www/html/public/csv /var/www/html/public/pdf \
  && chmod -R 775 /var/www/html/public/csv /var/www/html/public/pdf
 
+# Ensure brochure upload directories exist with permissive rights
+RUN mkdir -p /var/www/html/var/brochures/original /var/www/html/var/brochures/linked \
+ && chown -R www-data:www-data /var/www/html/var/brochures \
+ && chmod -R 777 /var/www/html/var/brochures
+
 EXPOSE 80
 CMD ["apache2-foreground"]
