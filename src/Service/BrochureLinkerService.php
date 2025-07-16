@@ -32,10 +32,11 @@ class BrochureLinkerService
      * Process a brochure PDF and return information about detected products.
      *
      * @param string $pdfPath Path to uploaded brochure
+     * @param string|null $website Optional website override for product search
      *
      * @return array{annotated:string,json:string,data:array} paths to files and data
      */
-    public function process(string $pdfPath): array
+    public function process(string $pdfPath, ?string $website = null): array
     {
         $this->logger->info('Starting brochure processing', ['pdf' => $pdfPath]);
         $pages = $this->extractText($pdfPath);
@@ -46,7 +47,11 @@ class BrochureLinkerService
 
         $meta = $this->detectCompany($allText);
         $products = $this->detectProducts($pages);
-        $products = $this->enrichProducts($products, $meta['website'] ?? '');
+        $searchWebsite = $website ?: ($meta['website'] ?? '');
+        if ($website) {
+            $meta['website'] = $website;
+        }
+        $products = $this->enrichProducts($products, $searchWebsite);
 
         $clickouts = [];
         foreach ($products as $p) {

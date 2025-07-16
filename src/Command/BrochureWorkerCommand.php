@@ -66,7 +66,7 @@ class BrochureWorkerCommand extends Command
         $this->em->flush();
 
         try {
-            $data = $this->linker->process($job->getPdfPath());
+            $data = $this->linker->process($job->getPdfPath(), $job->getSearchWebsite());
             $job->setStatus('finished');
             $job->setResultPdf($data['annotated']);
             $job->setResultJson($data['json']);

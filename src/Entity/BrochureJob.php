@@ -23,6 +23,9 @@ class BrochureJob
     private string $pdfPath = '';
 
     #[ORM\Column(length: 255, nullable: true)]
+    private ?string $searchWebsite = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $resultPdf = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -98,6 +101,17 @@ class BrochureJob
     public function setErrorMessage(?string $errorMessage): self
     {
         $this->errorMessage = $errorMessage;
+        return $this;
+    }
+
+    public function getSearchWebsite(): ?string
+    {
+        return $this->searchWebsite;
+    }
+
+    public function setSearchWebsite(?string $searchWebsite): self
+    {
+        $this->searchWebsite = $searchWebsite;
         return $this;
     }
 }

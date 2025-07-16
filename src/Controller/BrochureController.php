@@ -37,6 +37,8 @@ class BrochureController extends AbstractController
                 return new JsonResponse(['error' => 'No PDF provided'], Response::HTTP_BAD_REQUEST);
             }
 
+            $website = $request->request->get('website');
+
             $dir = $this->getParameter('kernel.project_dir') . '/public/pdf';
             if (!is_dir($dir)) {
                 mkdir($dir, 0777, true);
@@ -48,6 +50,7 @@ class BrochureController extends AbstractController
 
             $job = new BrochureJob();
             $job->setPdfPath($path);
+            $job->setSearchWebsite($website ?: null);
             $em->persist($job);
             $em->flush();
 
