@@ -4,6 +4,7 @@ namespace App\Dto;
 
 class Store extends AbstractDto
 {
+    private string $integration = '';
     private string $storeNumber = '';
     private string $city = '';
     private string $zipcode = '';
@@ -29,10 +30,12 @@ class Store extends AbstractDto
     private string $service = '';
     private string $toilet = '';
     private string $defaultRadius = '';
+    private string $addressExtra = '';
 
     public function toArray(): array
     {
         return [
+            'integration' => $this->getIntegration(),
             'storeNumber' => $this->getStoreNumber(),
             'city' => $this->getCity(),
             'zipcode' => $this->getZipcode(),
@@ -57,8 +60,21 @@ class Store extends AbstractDto
             'section' => $this->getSection(),
             'service' => $this->getService(),
             'toilet' => $this->getToilet(),
-            'defaultRadius' => $this->getDefaultRadius()
+            'defaultRadius' => $this->getDefaultRadius(),
+            'addressExtra' => $this->getAddressExtra(),
         ];
+    }
+
+    protected function setIntegration(string $integration): self
+    {
+        $this->integration = $integration;
+
+        return $this;
+    }
+
+    public function getIntegration(): string
+    {
+        return $this->integration;
     }
 
     protected function setStoreNumber(string $storeNumber): self
@@ -359,5 +375,17 @@ class Store extends AbstractDto
     public function getDefaultRadius(): string
     {
         return $this->defaultRadius;
+    }
+
+    protected function setAddressExtra(string $addressExtra): self
+    {
+        $this->addressExtra = $addressExtra;
+
+        return $this;
+    }
+
+    public function getAddressExtra(): string
+    {
+        return $this->addressExtra;
     }
 }
