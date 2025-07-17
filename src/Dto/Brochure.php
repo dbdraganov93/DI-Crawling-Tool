@@ -2,10 +2,8 @@
 
 namespace App\Dto;
 
-class Brochure
+class Brochure extends AbstractDto
 {
-    private const DEFAULT_VARIETY = 'leaflet';
-    private const DEFAULT_TYPE = 'default';
     private const INTEGRATION_URL = 'https://iproto.offerista.com/api/integrations/';
     private const DEFAULT_PROCESSING_OPTIONS = [
         'version' => '2021-04-19',
@@ -20,7 +18,7 @@ class Brochure
     private string $salesRegion = '';
     private string $brochureNumber = '';
     private string $title = '';
-    private string $variety = self::DEFAULT_VARIETY;
+    private string $variety = 'leaflet';
     private string $validFrom = '';
     private string $validTo = '';
     private string $visibleFrom = '';
@@ -29,23 +27,39 @@ class Brochure
     private string $trackingPixels = '';
     private string $storeNumber = '';
     private string $zipcode = '';
-    private string $type = self::DEFAULT_TYPE;
+    private string $type = 'default';
+    private string $tags = '';
+    private int $national = 0;
+    private string $gender = '';
+    private string $ageRange = '';
+    private string $langCode = '';
 
-    public static function fromArray(array $data): self
+    public function toArray(): array
     {
-        $instance = new self();
-
-        foreach ($data as $key => $value) {
-            $method = 'set' . ucfirst($key);
-            if (method_exists($instance, $method)) {
-                $instance->$method($value);
-            }
-        }
-
-        return $instance;
+        return [
+            'pdfUrl' => $this->getPdfUrl(),
+            'integration' => $this->getIntegration(),
+            'salesRegion' => $this->getSalesRegion(),
+            'brochureNumber' => $this->getBrochureNumber(),
+            'title' => $this->getTitle(),
+            'variety' => $this->getVariety(),
+            'validFrom' => $this->getValidFrom(),
+            'validTo' => $this->getValidTo(),
+            'storeNumber' => $this->getStoreNumber(),
+            'visibleFrom' => $this->getVisibleFrom(),
+            'pdfProcessingOptions' => $this->getPdfProcessingOptions(),
+            'trackingPixels' => $this->getTrackingPixels(),
+            'layout' => $this->getLayout(),
+            'type' => $this->getType(),
+            'tags' => $this->getTags(),
+            'national' => $this->getNational(),
+            'gender' => $this->getGender(),
+            'ageRange' => $this->getAgeRange(),
+            'langCode' => $this->getLangCode(),
+        ];
     }
 
-    private function setPdfUrl(string $pdfUrl): void
+    protected function setPdfUrl(string $pdfUrl): void
     {
         $this->pdfUrl = $pdfUrl;
     }
@@ -55,7 +69,7 @@ class Brochure
         return $this->pdfUrl;
     }
 
-    private function setIntegration(string $integration): void
+    protected function setIntegration(string $integration): void
     {
         $this->integration = self::INTEGRATION_URL . $integration;
     }
@@ -65,7 +79,7 @@ class Brochure
         return $this->integration;
     }
 
-    private function setSalesRegion(string $salesRegion): void
+    protected function setSalesRegion(string $salesRegion): void
     {
         $this->salesRegion = $salesRegion;
     }
@@ -75,7 +89,7 @@ class Brochure
         return $this->salesRegion;
     }
 
-    private function setBrochureNumber(string $brochureNumber): void
+    protected function setBrochureNumber(string $brochureNumber): void
     {
         $this->brochureNumber = $brochureNumber;
     }
@@ -85,7 +99,7 @@ class Brochure
         return $this->brochureNumber;
     }
 
-    private function setTitle(string $title): void
+    protected function setTitle(string $title): void
     {
         $this->title = $title;
     }
@@ -95,7 +109,7 @@ class Brochure
         return $this->title;
     }
 
-    private function setVariety(string $variety): void
+    protected function setVariety(string $variety): void
     {
         $this->variety = $variety;
     }
@@ -105,7 +119,7 @@ class Brochure
         return $this->variety;
     }
 
-    private function setValidFrom(string $validFrom): void
+    protected function setValidFrom(string $validFrom): void
     {
         $this->validFrom = $validFrom;
     }
@@ -115,7 +129,7 @@ class Brochure
         return $this->validFrom;
     }
 
-    private function setValidTo(string $validTo): void
+    protected function setValidTo(string $validTo): void
     {
         $this->validTo = $validTo;
     }
@@ -125,7 +139,7 @@ class Brochure
         return $this->validTo;
     }
 
-    private function setVisibleFrom(string $visibleFrom): void
+    protected function setVisibleFrom(string $visibleFrom): void
     {
         $this->visibleFrom = $visibleFrom;
     }
@@ -135,7 +149,7 @@ class Brochure
         return $this->visibleFrom;
     }
 
-    private function setPdfProcessingOptions(array $pdfProcessingOptions): void
+    protected function setPdfProcessingOptions(array $pdfProcessingOptions): void
     {
         $this->pdfProcessingOptions = $pdfProcessingOptions;
     }
@@ -145,7 +159,7 @@ class Brochure
         return $this->pdfProcessingOptions = [];
     }
 
-    private function setLayout(string $layout): void
+    protected function setLayout(string $layout): void
     {
         $this->layout = $layout;
     }
@@ -155,7 +169,7 @@ class Brochure
         return $this->layout;
     }
 
-    private function setTrackingPixels(string $trackingPixels): void
+    protected function setTrackingPixels(string $trackingPixels): void
     {
         $this->trackingPixels = $trackingPixels;
     }
@@ -165,7 +179,7 @@ class Brochure
         return $this->trackingPixels;
     }
 
-    private function setStoreNumber(string $storeNumber): void
+    protected function setStoreNumber(string $storeNumber): void
     {
         $this->storeNumber = $storeNumber;
     }
@@ -175,7 +189,7 @@ class Brochure
         return $this->storeNumber;
     }
 
-    private function setZipcode(string $zipcode): void
+    protected function setZipcode(string $zipcode): void
     {
         $this->zipcode = $zipcode;
     }
@@ -185,7 +199,7 @@ class Brochure
         return $this->zipcode;
     }
 
-    private function setType(string $type): void
+    protected function setType(string $type): void
     {
         $this->type = $type;
     }
@@ -195,23 +209,53 @@ class Brochure
         return $this->type;
     }
 
-    public function toArray(): array
+    protected function setTags(string $tags): void
     {
-        return [
-            'pdfUrl' => $this->pdfUrl,
-            'integration' => $this->integration,
-            'sales_region' => $this->salesRegion,
-            'brochureNumber' => $this->brochureNumber,
-            'title' => $this->title,
-            'variety' => $this->variety ?: self::DEFAULT_VARIETY,
-            'validFrom' => $this->validFrom,
-            'validTo' => $this->validTo,
-            'storeNumber' => $this->storeNumber,
-            'visibleFrom' => $this->visibleFrom,
-            'pdfProcessingOptions' => $this->pdfProcessingOptions ?: self::DEFAULT_PROCESSING_OPTIONS,
-            'trackingPixels' => $this->trackingPixels,
-            'layout' => $this->layout,
-            'type' => $this->type ?: self::DEFAULT_TYPE,
-        ];
+        $this->tags = $tags;
+    }
+
+    public function getTags(): string
+    {
+        return $this->tags;
+    }
+
+    protected function setNational(int $national): void
+    {
+        $this->national = $national;
+    }
+
+    public function getNational(): int
+    {
+        return $this->national;
+    }
+
+    protected function setGender(string $gender): void
+    {
+        $this->setGender($gender);
+    }
+
+    public function getGender(): string
+    {
+        return $this->gender;
+    }
+
+    protected function setAgeRange(string $ageRange): void
+    {
+        $this->ageRange = $ageRange;
+    }
+
+    public function getAgeRange(): string
+    {
+        return $this->ageRange;
+    }
+
+    protected function setLangCode(string $langCode): void
+    {
+        $this->langCode = $langCode;
+    }
+
+    public function getLangCode(): string
+    {
+        return $this->langCode;
     }
 }
