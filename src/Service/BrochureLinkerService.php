@@ -43,9 +43,11 @@ class BrochureLinkerService
         $this->logger->info('Starting brochure processing', ['pdf' => $pdfPath]);
         $pages = $this->extractText($pdfPath);
         $allText = '';
-        foreach ($pages as $p) {
+        foreach ($pages as &$p) {
+            $p['text'] = implode(' ', array_column($p['blocks'], 'text'));
             $allText .= $p['text'] . "\n";
         }
+        unset($p);
 
         $meta = $this->detectCompany($allText);
         $products = $this->detectProducts($pages);
@@ -104,7 +106,16 @@ class BrochureLinkerService
     /**
      * Run Python OCR script on the PDF.
      *
-     * @return array<array{page:int,text:string}>
+     * @return array<array{
+     *     page:int,
+     *     blocks:array<array{
+     *         text:string,
+     *         x:float,
+     *         y:float,
+     *         width:float,
+     *         height:float
+     *     }>
+     * }>
      */
     private function extractText(string $pdfPath): array
     {
@@ -133,7 +144,17 @@ class BrochureLinkerService
     /**
      * Detect products per page using ChatGPT.
      *
-     * @param array<array{page:int,text:string}> $pages
+     * @param array<array{
+     *     page:int,
+     *     text:string,
+     *     blocks:array<array{
+     *         text:string,
+     *         x:float,
+     *         y:float,
+     *         width:float,
+     *         height:float
+     *     }>
+     * }> $pages
      */
     private function detectProducts(array $pages): array
     {
@@ -148,11 +169,33 @@ class BrochureLinkerService
             if (is_array($pageProducts)) {
                 foreach ($pageProducts as $p) {
                     $p['page'] = $page['page'];
+                    $p['position'] = $this->findPosition($page['blocks'], $p['product']);
                     $products[] = $p;
                 }
             }
         }
         return $products;
+    }
+
+    /**
+     * Attempt to find a bounding box for the given product name within the page blocks.
+     *
+     * @param array<array{text:string,x:float,y:float,width:float,height:float}> $blocks
+     */
+    private function findPosition(array $blocks, string $product): ?array
+    {
+        $needle = mb_strtolower($product);
+        foreach ($blocks as $b) {
+            if (mb_stripos(mb_strtolower($b['text']), $needle) !== false) {
+                return [
+                    'x' => $b['x'],
+                    'y' => $b['y'],
+                    'width' => $b['width'],
+                    'height' => $b['height'],
+                ];
+            }
+        }
+        return null;
     }
 
     /**
