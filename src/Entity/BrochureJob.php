@@ -26,6 +26,12 @@ class BrochureJob
     private ?string $searchWebsite = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    private ?string $linkPrefix = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $linkSuffix = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $resultPdf = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -112,6 +118,28 @@ class BrochureJob
     public function setSearchWebsite(?string $searchWebsite): self
     {
         $this->searchWebsite = $searchWebsite;
+        return $this;
+    }
+
+    public function getLinkPrefix(): ?string
+    {
+        return $this->linkPrefix;
+    }
+
+    public function setLinkPrefix(?string $linkPrefix): self
+    {
+        $this->linkPrefix = $linkPrefix;
+        return $this;
+    }
+
+    public function getLinkSuffix(): ?string
+    {
+        return $this->linkSuffix;
+    }
+
+    public function setLinkSuffix(?string $linkSuffix): self
+    {
+        $this->linkSuffix = $linkSuffix;
         return $this;
     }
 }

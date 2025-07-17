@@ -38,6 +38,8 @@ class BrochureController extends AbstractController
             }
 
             $website = $request->request->get('website');
+            $prefix = $request->request->get('prefix');
+            $suffix = $request->request->get('suffix');
 
             $dir = $this->getParameter('kernel.project_dir') . '/public/pdf';
             if (!is_dir($dir)) {
@@ -51,6 +53,8 @@ class BrochureController extends AbstractController
             $job = new BrochureJob();
             $job->setPdfPath($path);
             $job->setSearchWebsite($website ?: null);
+            $job->setLinkPrefix($prefix ?: null);
+            $job->setLinkSuffix($suffix ?: null);
             $em->persist($job);
             $em->flush();
 

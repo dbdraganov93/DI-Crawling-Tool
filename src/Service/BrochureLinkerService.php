@@ -31,12 +31,14 @@ class BrochureLinkerService
     /**
      * Process a brochure PDF and return information about detected products.
      *
-     * @param string $pdfPath Path to uploaded brochure
+     * @param string      $pdfPath Path to uploaded brochure
      * @param string|null $website Optional website override for product search
+     * @param string|null $prefix  Optional prefix to prepend to each link
+     * @param string|null $suffix  Optional suffix to append to each link
      *
      * @return array{annotated:string,json:string,data:array} paths to files and data
      */
-    public function process(string $pdfPath, ?string $website = null): array
+    public function process(string $pdfPath, ?string $website = null, ?string $prefix = null, ?string $suffix = null): array
     {
         $this->logger->info('Starting brochure processing', ['pdf' => $pdfPath]);
         $pages = $this->extractText($pdfPath);
@@ -54,16 +56,22 @@ class BrochureLinkerService
         $products = $this->enrichProducts($products, $searchWebsite);
 
         $clickouts = [];
-        foreach ($products as $p) {
+        foreach ($products as &$p) {
+            $finalUrl = $p['url'] ?? '';
+            if ($finalUrl !== '') {
+                $finalUrl = ($prefix ?? '') . $finalUrl . ($suffix ?? '');
+            }
+            $p['url'] = $finalUrl;
             $clickouts[] = [
                 'pageNumber' => $p['page'],
                 'x' => $p['position']['x'] ?? 0.8,
                 'y' => $p['position']['y'] ?? 0.05,
                 'width' => $p['position']['width'] ?? 0.15,
                 'height' => $p['position']['height'] ?? 0.05,
-                'url' => $p['url'] ?? '',
+                'url' => $finalUrl,
             ];
         }
+        unset($p);
 
         // store linked brochures under the public/pdf directory so they are
         // accessible via the web server
