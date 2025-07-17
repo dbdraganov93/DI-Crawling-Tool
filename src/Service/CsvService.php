@@ -67,6 +67,8 @@ class CsvService
                 continue; // Skip duplicate store numbers
             }
 
+            $storeNumbers[] = $storeNumber;
+
             $row = [
                 $storeNumber,
                 $store->getCity() ?? '',
@@ -113,6 +115,7 @@ class CsvService
         }
 
         $csvContent = $csv->toString();
+        dd($csvContent);
         file_put_contents($filePath, $csvContent);
         $base64Csv = base64_encode($csvContent);
         $domain = getenv('APP_DOMAIN');
