@@ -54,16 +54,15 @@ class ShopfullyCrawler
             $sfBrochure = $this->shopfullyService->getBrochure($brochureDetail['number'], $locale);
             $brochureData = $sfBrochure['brochureData'];
             $brochureData['trackingPixel'] = $brochureDetail['tracking_pixel'] ?? '';
-            $validFrom = $this->normalizeDate($brochureDetail['validity_start'] ?? null) ?? new \DateTime();
 
-            $validTo = $this->normalizeDate($brochureDetail['validity_end'] ?? null) ?? clone $validFrom;
+            $validFrom = $this->normalizeDate($brochureDetail['validity_start']);
+            $validTo = $this->normalizeDate($brochureDetail['validity_end']);
             $validTo = (clone $validTo)->setTime(23, 59, 59);
+            $visibleFrom = $this->normalizeDate($brochureDetail['visibility_start']);
+            $brochureData['validFrom']   = $validFrom->format('Y-m-d H:i:s');
+            $brochureData['validTo']     = $validTo->format('Y-m-d H:i:s');
+            $brochureData['visibleFrom'] = $visibleFrom->format('Y-m-d H:i:s');
 
-            $visibleFrom = $this->normalizeDate($brochureDetail['visibility_start'] ?? null) ?? clone $validFrom;
-
-            $brochureData['start_date']   = $validFrom->format('Y-m-d H:i:s');
-            $brochureData['end_date']     = $validTo->format('Y-m-d H:i:s');
-            $brochureData['visible_from'] = $visibleFrom->format('Y-m-d H:i:s');
             $brochureData['number'] = $brochureData['id'];
 
             $this->createStores($sfBrochure['brochureStores'], $storeService);
@@ -133,9 +132,9 @@ class ShopfullyCrawler
             'pdfUrl' => $brochureData['pdf_url'],
             'brochureNumber' => $brochureData['number'],
             'title' => $brochureData['title'],
-            'validFrom' => $brochureData['start_date'],
-            'validTo' => $brochureData['end_date'],
-            'visibleFrom' => $brochureData['visible_from'],
+            'validFrom' => $brochureData['validFrom'],
+            'validTo' => $brochureData['validTo'],
+            'visibleFrom' => $brochureData['visibleFrom'],
             'trackingPixels' => $brochureData['trackingPixel'],
             'storeNumber' => $brochureData['stores'],
         ];
