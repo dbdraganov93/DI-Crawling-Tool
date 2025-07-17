@@ -156,7 +156,7 @@ class Brochure extends AbstractDto
 
     public function getPdfProcessingOptions(): array
     {
-        return $this->pdfProcessingOptions = [];
+        return $this->pdfProcessingOptions;
     }
 
     protected function setLayout(string $layout): void
