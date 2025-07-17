@@ -170,33 +170,65 @@ class BrochureLinkerService
 
             $this->logger->info('Searching product', ['query' => $query]);
 
-            try {
-                $resp = $this->httpClient->request('GET', $url);
-                $status = $resp->getStatusCode();
-                $this->logger->info('Google response', ['status' => $status]);
+            $attempt = 0;
+            while ($attempt < 3) {
+                try {
+                    $resp = $this->httpClient->request('GET', $url);
+                    $status = $resp->getStatusCode();
+                    $this->logger->info('Google response', [
+                        'status' => $status,
+                        'attempt' => $attempt + 1,
+                    ]);
 
-                if ($status !== 200) {
-                    $body = $resp->getContent(false);
-                    $this->logger->error('Google API non-200', ['body' => $body]);
-                    throw new \RuntimeException('Google API status ' . $status);
+                    if ($status !== 200) {
+                        $body = $resp->getContent(false);
+                        $this->logger->error('Google API non-200', [
+                            'status' => $status,
+                            'body' => $body,
+                        ]);
+                        if ($status >= 500 && $attempt < 2) {
+                            $attempt++;
+                            sleep(1);
+                            continue;
+                        }
+                        throw new \RuntimeException('Google API status ' . $status);
+                    }
+
+                    $data = $resp->toArray(false);
+
+                    if (isset($data['error'])) {
+                        $this->logger->error('Google API error', ['response' => $data]);
+                        throw new \RuntimeException('Google API error: ' . ($data['error']['message'] ?? 'unknown'));
+                    }
+
+                    if (isset($data['items'][0]['link'])) {
+                        $p['url'] = $data['items'][0]['link'];
+                    } else {
+                        $this->logger->warning('No search results', [
+                            'query' => $query,
+                            'response' => $data,
+                        ]);
+                        $p['url'] = null;
+                    }
+
+                    break; // success
+                } catch (\Throwable $e) {
+                    $this->logger->warning('Search attempt failed', [
+                        'query' => $query,
+                        'error' => $e->getMessage(),
+                        'attempt' => $attempt + 1,
+                    ]);
+                    if ($attempt < 2) {
+                        $attempt++;
+                        sleep(1);
+                        continue;
+                    }
+                    $this->logger->error('Search failed', [
+                        'query' => $query,
+                        'error' => $e->getMessage(),
+                    ]);
+                    throw new \RuntimeException('Google search failed: ' . $e->getMessage());
                 }
-
-                $data = $resp->toArray(false);
-
-                if (isset($data['error'])) {
-                    $this->logger->error('Google API error', ['response' => $data]);
-                    throw new \RuntimeException('Google API error: ' . ($data['error']['message'] ?? 'unknown'));
-                }
-
-                if (isset($data['items'][0]['link'])) {
-                    $p['url'] = $data['items'][0]['link'];
-                } else {
-                    $this->logger->warning('No search results', ['query' => $query, 'response' => $data]);
-                    $p['url'] = null;
-                }
-            } catch (\Throwable $e) {
-                $this->logger->error('Search failed', ['query' => $query, 'error' => $e->getMessage()]);
-                throw new \RuntimeException('Google search failed: ' . $e->getMessage());
             }
         }
 
