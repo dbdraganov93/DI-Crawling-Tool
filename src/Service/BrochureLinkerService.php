@@ -185,8 +185,16 @@ class BrochureLinkerService
     private function findPosition(array $blocks, string $product): ?array
     {
         $needle = mb_strtolower($product);
+        $needleTokens = array_values(array_filter(preg_split('/\s+/', $needle)));
+
+        $best = null;
+        $bestScore = 0.0;
+
         foreach ($blocks as $b) {
-            if (mb_stripos(mb_strtolower($b['text']), $needle) !== false) {
+            $hay = mb_strtolower($b['text']);
+
+            // direct substring match
+            if (str_contains($hay, $needle)) {
                 return [
                     'x' => $b['x'],
                     'y' => $b['y'],
@@ -194,7 +202,68 @@ class BrochureLinkerService
                     'height' => $b['height'],
                 ];
             }
+
+            // compute token intersection score
+            $hayTokens = array_values(array_filter(preg_split('/\s+/', $hay)));
+            if (empty($hayTokens)) {
+                continue;
+            }
+
+            $intersection = array_intersect($needleTokens, $hayTokens);
+            $score = count($intersection) / count($needleTokens);
+
+            // also consider overall similarity
+            similar_text($needle, $hay, $similarity);
+            $score = max($score, $similarity / 100);
+
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $best = $b;
+            }
+
+            if ($score >= 0.8) {
+                break; // good enough
+            }
         }
+
+        if ($best && $bestScore >= 0.5) {
+            return [
+                'x' => $best['x'],
+                'y' => $best['y'],
+                'width' => $best['width'],
+                'height' => $best['height'],
+            ];
+        }
+
+        // Fallback: union of matches for individual tokens
+        $matches = [];
+        foreach ($needleTokens as $token) {
+            foreach ($blocks as $b) {
+                if (str_contains(mb_strtolower($b['text']), $token)) {
+                    $matches[] = $b;
+                    break;
+                }
+            }
+        }
+
+        if ($matches) {
+            $minX = $minY = 1.0;
+            $maxX = $maxY = 0.0;
+            foreach ($matches as $m) {
+                $minX = min($minX, $m['x']);
+                $minY = min($minY, $m['y']);
+                $maxX = max($maxX, $m['x'] + $m['width']);
+                $maxY = max($maxY, $m['y'] + $m['height']);
+            }
+
+            return [
+                'x' => $minX,
+                'y' => $minY,
+                'width' => $maxX - $minX,
+                'height' => $maxY - $minY,
+            ];
+        }
+
         return null;
     }
 
