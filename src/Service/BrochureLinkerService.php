@@ -161,7 +161,7 @@ class BrochureLinkerService
         $products = [];
         foreach ($pages as $page) {
             $prompt = sprintf(
-                "List all products from this brochure page. Provide JSON array of objects with keys page and product. Text:\n%s",
+                "From the following brochure page text extract only items that represent actual purchasable products. Ignore section titles, categories or promotional slogans. Provide a JSON array of objects with keys `page` and `product`. Text:\n%s",
                 substr($page['text'], 0, 2000)
             );
             $res = $this->chatGpt($prompt);
@@ -321,14 +321,29 @@ class BrochureLinkerService
                         throw new \RuntimeException('Google API error: ' . ($data['error']['message'] ?? 'unknown'));
                     }
 
-                    if (isset($data['items'][0]['link'])) {
-                        $p['url'] = $data['items'][0]['link'];
+                    $p['url'] = null;
+                    if (isset($data['items'])) {
+                        foreach ($data['items'] as $item) {
+                            if (!isset($item['link'], $item['title'])) {
+                                continue;
+                            }
+                            $title = $item['title'];
+                            $promptCheck = sprintf(
+                                "Product name: %s\nSearch result title: %s\nIs this search result likely the official product page and not a recipe or unrelated article? Answer yes or no.",
+                                $p['product'],
+                                $title
+                            );
+                            $answer = strtolower(trim($this->chatGpt($promptCheck)));
+                            if (str_starts_with($answer, 'yes')) {
+                                $p['url'] = $item['link'];
+                                break;
+                            }
+                        }
                     } else {
                         $this->logger->warning('No search results', [
                             'query' => $query,
                             'response' => $data,
                         ]);
-                        $p['url'] = null;
                     }
 
                     break; // success
