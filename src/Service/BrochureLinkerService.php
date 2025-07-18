@@ -372,6 +372,7 @@ class BrochureLinkerService
 
     private function chatGpt(string $prompt): string
     {
+        $prompt = $this->sanitizeUtf8($prompt);
         $response = $this->httpClient->request('POST', 'https://api.openai.com/v1/chat/completions', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->openaiApiKey,
@@ -386,5 +387,17 @@ class BrochureLinkerService
         ]);
         $data = $response->toArray(false);
         return $data['choices'][0]['message']['content'] ?? '';
+    }
+
+    /**
+     * Ensure the given string is valid UTF-8 for JSON encoding.
+     */
+    private function sanitizeUtf8(string $text): string
+    {
+        if (!mb_check_encoding($text, 'UTF-8')) {
+            $text = mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+        }
+
+        return iconv('UTF-8', 'UTF-8//IGNORE', $text);
     }
 }
