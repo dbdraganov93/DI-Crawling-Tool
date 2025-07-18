@@ -280,7 +280,8 @@ class BrochureLinkerService
         $domain = preg_replace('/^www\./', '', $domain);
 
         foreach ($products as &$p) {
-            $query = trim(sprintf('site:%s %s', $domain, $p['product']));
+            $nameForSearch = $this->sanitizeProductName($p['product']);
+            $query = trim(sprintf('site:%s %s', $domain, $nameForSearch));
             $url = sprintf(
                 'https://www.googleapis.com/customsearch/v1?key=%s&cx=%s&q=%s',
                 $this->googleApiKey,
@@ -368,6 +369,20 @@ class BrochureLinkerService
         }
 
         return $products;
+    }
+
+    /**
+     * Remove price information from the product name so Google search
+     * focuses on the actual product description.
+     */
+    private function sanitizeProductName(string $name): string
+    {
+        // Drop currency symbols
+        $name = str_replace(['€', 'EUR', 'eur', 'euro', 'EURO'], '', $name);
+        // Remove typical price patterns like "1.99" or "3,49"
+        $name = preg_replace('/\d+[,.]\d{1,2}/', '', $name);
+        // Collapse whitespace
+        return trim(preg_replace('/\s+/', ' ', $name));
     }
 
     private function chatGpt(string $prompt): string
