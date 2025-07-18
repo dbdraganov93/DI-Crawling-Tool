@@ -97,21 +97,13 @@ class ShopfullyController extends AbstractController
         }
 
         try {
-            $data = $this->shopfullyService->fetchBrochureData($brochureNumber, $locale);
-
-            $flyers = $data['data'] ?? [];
-            $response = [];
-
-            foreach ($flyers as $entry) {
-                if (isset($entry['Flyer'])) {
-                    $clickouts = $this->shopfullyService->fetchBrochureClickouts($brochureNumber, $locale);
-                    $response[] = [
-                        'start_date' => $entry['Flyer']['start_date'] ?? null,
-                        'end_date' => $entry['Flyer']['end_date'] ?? null,
-                        'clickouts_count' => count($clickouts),
-                    ];
-                }
-            }
+            $brochureData = $this->shopfullyService->fetchBrochureData($brochureNumber, $locale);
+            $clickouts = $this->shopfullyService->fetchBrochureClickouts($brochureNumber, $locale);
+            $response[] = [
+                'start_date' => $brochureData['start_date'] ?? null,
+                'end_date' => $brochureData['end_date'] ?? null,
+                'clickouts_count' => count($clickouts),
+            ];
 
             return new JsonResponse($response);
         } catch (\Throwable $e) {
@@ -135,7 +127,7 @@ class ShopfullyController extends AbstractController
             $brochureData = $this->shopfullyService->fetchBrochureData($brochureNumber, $locale);
             $publicationId = $brochureData['publication_id'] ?? null;
             $publicationData = $publicationId ? $this->shopfullyService->fetchPublicationData($publicationId, $locale) : [];
-            $pdfUrl = $publicationData['data'][0]['Publication']['pdf_url'] ?? null;
+            $pdfUrl = $publicationData['pdf_url'] ?? null;
             $clickouts = $this->shopfullyService->fetchBrochureClickouts($brochureNumber, $locale);
 
             return new JsonResponse([

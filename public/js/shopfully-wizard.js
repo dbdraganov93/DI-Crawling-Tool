@@ -50,7 +50,52 @@
             }, 50);
         }
 
+        function validateBrochureDates() {
+            const blocks = document.querySelectorAll('#numbers-wrapper .number-entry[data-real="true"]');
+            let valid = true;
+            blocks.forEach(block => {
+                const numberVal = block.querySelector('input[name$="[number]"]')?.value.trim();
+                const pixelVal = block.querySelector('input[name$="[tracking_pixel]"]')?.value.trim();
+                const startInput = block.querySelector('input[name$="[validity_start]"]');
+                const endInput = block.querySelector('input[name$="[validity_end]"]');
+                const visInput = block.querySelector('input[name$="[visibility_start]"]');
 
+                if (!startInput || !endInput || !visInput) return;
+
+                const hasContent = numberVal || pixelVal || startInput.value || endInput.value || visInput.value;
+                if (!hasContent) return;
+
+                [startInput, endInput, visInput].forEach(i => {
+                    i.classList.remove('is-invalid');
+                    i.setCustomValidity('');
+                });
+
+                if (!startInput.value) {
+                    startInput.classList.add('is-invalid');
+                    startInput.setCustomValidity('Please fill out this field');
+                    startInput.reportValidity();
+                    if (valid) startInput.focus();
+                    valid = false;
+                }
+
+                if (!endInput.value) {
+                    endInput.classList.add('is-invalid');
+                    endInput.setCustomValidity('Please fill out this field');
+                    endInput.reportValidity();
+                    if (valid) endInput.focus();
+                    valid = false;
+                }
+
+                if (!visInput.value) {
+                    visInput.classList.add('is-invalid');
+                    visInput.setCustomValidity('Please fill out this field');
+                    visInput.reportValidity();
+                    if (valid) visInput.focus();
+                    valid = false;
+                }
+            });
+            return valid;
+        }
 
         function nextStep(step = currentStep + 1) {
             const currentStepElement = document.getElementById(`step-${currentStep}`);
@@ -85,6 +130,12 @@
             });
 
             if (!isValid) return;
+
+            if (currentStep === 2 && step === 3) {
+                if (!validateBrochureDates()) {
+                    return;
+                }
+            }
 
             if (step === 3) fillPreview();
             showStep(step);
