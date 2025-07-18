@@ -45,7 +45,7 @@ UnitTest:
 build_container:
     stage: build
     image:
-        name: docker:latest
+        name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:latest
         entrypoint: [""]
     before_script:
         - docker login --username $CI_REGISTRY_USER --password $CI_REGISTRY_PASSWORD $CI_REGISTRY
@@ -61,7 +61,7 @@ build_container:
     tags:
         - docker
     image:
-        name: docker:26.1.3-dind-alpine3.19 
+        name: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:26.1.3-dind-alpine3.19 
         entrypoint: [""]
     before_script:
         # Log in on GitLab's registry:
