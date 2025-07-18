@@ -59,6 +59,10 @@ class BrochureController extends AbstractController
             $em->flush();
 
             $console = $this->getParameter('kernel.project_dir') . '/bin/console';
+            $logDir = $this->getParameter('kernel.project_dir') . '/var/log';
+            if (!is_dir($logDir)) {
+                mkdir($logDir, 0777, true);
+            }
             $cmd = sprintf('php %s app:brochure:worker %d >> var/log/brochure-job.log 2>&1', $console, $job->getId());
             $process = Process::fromShellCommandline($cmd, $this->getParameter('kernel.project_dir'));
             $process->disableOutput();
