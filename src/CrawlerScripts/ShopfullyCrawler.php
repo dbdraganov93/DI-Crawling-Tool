@@ -55,7 +55,6 @@ class ShopfullyCrawler
             $stores = array_merge($stores, $this->createStores($sfBrochure['brochureStores']));
 
             $brochureData = $this->prepareBrochureData($sfBrochure['brochureData'], $brochureDetail);
-            dd($brochureData);
             $brochures[] = $this->createBrochure($brochureData);
 
             if (!empty($requestData['prefix']) || !empty($requestData['suffix'])) {
