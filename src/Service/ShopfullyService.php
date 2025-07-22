@@ -149,13 +149,8 @@ class ShopfullyService
             throw new \RuntimeException('Failed to fetch brochure data');
         }
         $arrayResponse = $response->toArray();
-        $brochureData = $arrayResponse['data'][0]['Flyer'] ?? [];
-        if (!empty($brochureData['publication_url'])) {
-            $publicationArray = explode('_', $brochureData['publication_url']);
-            $brochureData['publication_id'] = end($publicationArray);
-        }
 
-        return $brochureData;
+        return $arrayResponse['data'][0]['Flyer'] ?? [];
     }
 
     public function fetchPublicationData(string $brochureId, string $locale = 'it_it'): array

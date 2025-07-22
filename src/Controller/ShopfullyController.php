@@ -124,9 +124,7 @@ class ShopfullyController extends AbstractController
         }
 
         try {
-            $brochureData = $this->shopfullyService->fetchBrochureData($brochureNumber, $locale);
-            $publicationId = $brochureData['publication_id'] ?? null;
-            $publicationData = $publicationId ? $this->shopfullyService->fetchPublicationData($publicationId, $locale) : [];
+            $publicationData = $this->shopfullyService->fetchPublicationData($brochureNumber, $locale);
             $pdfUrl = $publicationData['pdf_url'] ?? null;
             $clickouts = $this->shopfullyService->fetchBrochureClickouts($brochureNumber, $locale);
 
