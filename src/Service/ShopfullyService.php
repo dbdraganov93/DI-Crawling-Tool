@@ -53,7 +53,7 @@ class ShopfullyService
     public function getBrochure(string $brochureId, string $locale): array
     {
         $response['brochureData'] = $this->fetchBrochureData($brochureId, $locale);
-        $response['publicationData'] = $this->fetchPublicationData($response['brochureData']['publication_id'], $locale);
+        $response['publicationData'] = $this->fetchPublicationData($brochureId, $locale);
         $response['brochureStores'] = $this->fetchStoresByBrochureId($brochureId, $locale);
         $response['brochureData']['stores'] = $this->getBrochureStoresAsString($response['brochureStores']);
         $response['brochureClickouts'] = $this->fetchBrochureClickouts($brochureId, $locale);
@@ -160,7 +160,7 @@ class ShopfullyService
 
     public function fetchPublicationData(string $brochureId, string $locale = 'it_it'): array
     {
-        $url = self::SHOPFULLY_HOST . $locale . '/publications/' . $brochureId . '.json?modifiers=pdf_url';
+        $url = self::SHOPFULLY_HOST . $locale . '/flyers/' . $brochureId . '/publications.json?modifiers=pdf_url';
 
         $response = $this->httpClient->request('GET', $url, [
             'headers' => [
