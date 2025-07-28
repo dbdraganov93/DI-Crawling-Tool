@@ -15,6 +15,8 @@ use Psr\Log\LoggerInterface;
 class BrochureLinkerService
 {
     private string $projectDir;
+    private string $openaiModel;
+    private string $ocrLang;
 
     public function __construct(
         KernelInterface $kernel,
@@ -24,8 +26,12 @@ class BrochureLinkerService
         private string $googleApiKey,
         private string $googleCx,
         private LoggerInterface $logger,
+        ?string $openaiModel = null,
+        string $ocrLang = 'eng',
     ) {
         $this->projectDir = $kernel->getProjectDir();
+        $this->openaiModel = $openaiModel ?: 'gpt-3.5-turbo';
+        $this->ocrLang = $ocrLang;
     }
 
     /**
@@ -120,7 +126,7 @@ class BrochureLinkerService
     private function extractText(string $pdfPath): array
     {
         $script = $this->projectDir . '/scripts/extract_text.py';
-        $process = new Process(['python3', $script, $pdfPath]);
+        $process = new Process(['python3', $script, $pdfPath, '--lang', $this->ocrLang]);
         $process->run();
         if (!$process->isSuccessful()) {
             throw new \RuntimeException('Text extraction failed: ' . $process->getErrorOutput());
@@ -135,10 +141,10 @@ class BrochureLinkerService
      */
     private function detectCompany(string $text): array
     {
-        $prompt = "Extract the retailer/company name, country code and official website from the following brochure text. Return JSON with keys company, country and website.";
+        $prompt = "Extract the retailer/company name, country code and official website from the following brochure text. Respond only with JSON object {\"company\":\"\",\"country\":\"\",\"website\":\"\"}.";
         $response = $this->chatGpt($prompt . "\n" . $text);
-        $data = json_decode($response, true);
-        return is_array($data) ? $data : [];
+        $data = $this->decodeJson($response);
+        return $data;
     }
 
     /**
@@ -161,11 +167,11 @@ class BrochureLinkerService
         $products = [];
         foreach ($pages as $page) {
             $prompt = sprintf(
-                "From the following brochure page text extract product names. Return a JSON array of objects with keys `page` and `product`. Text:\n%s",
+                "From the following brochure page text extract product names. Respond only with a JSON array of objects having keys `page` and `product`. Text:\n%s",
                 substr($page['text'], 0, 2000)
             );
             $res = $this->chatGpt($prompt);
-            $pageProducts = json_decode($res, true);
+            $pageProducts = $this->decodeJson($res);
             if (is_array($pageProducts)) {
                 foreach ($pageProducts as $p) {
                     $p['page'] = $page['page'];
@@ -215,6 +221,9 @@ class BrochureLinkerService
             // also consider overall similarity
             similar_text($needle, $hay, $similarity);
             $score = max($score, $similarity / 100);
+
+            // fuzzy score ignoring spaces and hyphens
+            $score = max($score, $this->fuzzyScore($needle, $hay));
 
             if ($score > $bestScore) {
                 $bestScore = $score;
@@ -323,8 +332,26 @@ class BrochureLinkerService
                     }
 
                     $p['url'] = null;
-                    if (isset($data['items'][0]['link'])) {
-                        $p['url'] = $data['items'][0]['link'];
+                    $p['details'] = '';
+                    if (!empty($data['items'])) {
+                        $bestItem = null;
+                        $bestScore = 0.0;
+                        foreach ($data['items'] as $item) {
+                            $text = strtolower(($item['title'] ?? '') . ' ' . ($item['snippet'] ?? ''));
+                            similar_text(strtolower($nameForSearch), $text, $score);
+                            if ($score > $bestScore) {
+                                $bestScore = $score;
+                                $bestItem = $item;
+                            }
+                        }
+
+                        if ($bestItem) {
+                            $p['url'] = $bestItem['link'] ?? null;
+                            $p['details'] = $bestItem['snippet'] ?? '';
+                        } else {
+                            $p['url'] = $data['items'][0]['link'] ?? null;
+                            $p['details'] = $data['items'][0]['snippet'] ?? '';
+                        }
                     } else {
                         $this->logger->warning('No search results', [
                             'query' => $query,
@@ -370,6 +397,35 @@ class BrochureLinkerService
         return trim(preg_replace('/\s+/', ' ', $name));
     }
 
+    /**
+     * Levenshtein-based fuzzy score for partial matches.
+     */
+    private function fuzzyScore(string $needle, string $hay): float
+    {
+        $n = preg_replace('/[^a-z0-9]/i', '', $needle);
+        $h = preg_replace('/[^a-z0-9]/i', '', $hay);
+        $lenN = strlen($n);
+        $lenH = strlen($h);
+        if ($lenN === 0 || $lenH === 0) {
+            return 0.0;
+        }
+        $best = 0.0;
+        if ($lenH >= $lenN) {
+            for ($i = 0; $i <= $lenH - $lenN; $i++) {
+                $part = substr($h, $i, $lenN);
+                $dist = levenshtein($n, $part);
+                $best = max($best, 1 - $dist / $lenN);
+                if ($best >= 0.9) {
+                    break;
+                }
+            }
+        } else {
+            $dist = levenshtein($n, $h);
+            $best = 1 - $dist / $lenN;
+        }
+        return $best;
+    }
+
     private function chatGpt(string $prompt): string
     {
         $prompt = $this->sanitizeUtf8($prompt);
@@ -378,7 +434,7 @@ class BrochureLinkerService
                 'Authorization' => 'Bearer ' . $this->openaiApiKey,
             ],
             'json' => [
-                'model' => 'gpt-3.5-turbo',
+                'model' => $this->openaiModel,
                 'messages' => [
                     ['role' => 'user', 'content' => $prompt],
                 ],
@@ -387,6 +443,24 @@ class BrochureLinkerService
         ]);
         $data = $response->toArray(false);
         return $data['choices'][0]['message']['content'] ?? '';
+    }
+
+    /**
+     * Extract JSON object or array from an API response that may include code fences.
+     */
+    private function decodeJson(string $response): array
+    {
+        $response = trim($response);
+        if (str_starts_with($response, '```')) {
+            $response = preg_replace('/^```(?:json)?|```$/m', '', $response);
+        }
+        if (preg_match('/\{.*\}/s', $response, $m)) {
+            $response = $m[0];
+        } elseif (preg_match('/\[.*\]/s', $response, $m)) {
+            $response = $m[0];
+        }
+        $data = json_decode($response, true);
+        return is_array($data) ? $data : [];
     }
 
     /**

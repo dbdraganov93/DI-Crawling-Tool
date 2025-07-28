@@ -1,11 +1,12 @@
 import fitz
 import sys
+import argparse
 import json
 import pytesseract
 from PIL import Image
 
 
-def extract(pdf_path: str) -> None:
+def extract(pdf_path: str, lang: str = "eng") -> None:
     """Extract text blocks with normalized coordinates from the PDF."""
 
     doc = fitz.open(pdf_path)
@@ -33,7 +34,7 @@ def extract(pdf_path: str) -> None:
             # Fallback to OCR when the page contains no text blocks
             pix = page.get_pixmap()
             img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-            ocr = pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT)
+            ocr = pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT, lang=lang)
             n = len(ocr.get("text", []))
             for i in range(n):
                 text = ocr["text"][i].strip()
@@ -59,7 +60,8 @@ def extract(pdf_path: str) -> None:
     print(json.dumps(pages))
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print('Usage: extract_text.py input.pdf', file=sys.stderr)
-        sys.exit(1)
-    extract(sys.argv[1])
+    parser = argparse.ArgumentParser(description='Extract text from PDF')
+    parser.add_argument('pdf', help='input PDF')
+    parser.add_argument('--lang', default='eng', help='OCR language')
+    args = parser.parse_args()
+    extract(args.pdf, args.lang)

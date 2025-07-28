@@ -32,6 +32,8 @@ services:
             $iprotoClientId: '%env(IPROTO_CLIENT_ID)%'
             $iprotoClientSecret: '%env(IPROTO_CLIENT_SECRET)%'
             $openaiApiKey: '%env(OPENAI_API_KEY)%'
+            $openaiModel: '%env(OPENAI_MODEL)%'
+            $ocrLang: '%env(OCR_LANG)%'
             $googleApiKey: '%env(GOOGLE_SEARCH_API_KEY)%'
             $googleCx: '%env(GOOGLE_SEARCH_CX)%'
     # Makes classes in src/ available to be used as services
