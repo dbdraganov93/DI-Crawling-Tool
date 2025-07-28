@@ -53,35 +53,29 @@ class ShopfullyService
     public function getBrochure(string $brochureId, string $locale): array
     {
         $response['brochureData'] = $this->fetchBrochureData($brochureId, $locale);
-        $response['publicationData'] = $this->fetchPublicationData($response['brochureData']['publication_id'], $locale);
+        $response['publicationData'] = $this->fetchPublicationData($brochureId, $locale);
         $response['brochureStores'] = $this->fetchStoresByBrochureId($brochureId, $locale);
-        $response['brochureData']['data'][0]['Flyer']['stores'] = $this->getBrochureStoresAsString($response['brochureStores']);
+        $response['brochureData']['stores'] = $this->getBrochureStoresAsString($response['brochureStores']);
         $response['brochureClickouts'] = $this->fetchBrochureClickouts($brochureId, $locale);
         $response['clickoutsCount'] = count($response['brochureClickouts']);
 
-
-
-        $pdfLocal = null;
         try {
-            $pdfLocal = $this->pdfDownloaderService->download(
-                $response['publicationData']['data'][0]['Publication']['pdf_url'],
+            $response['brochureData']['pdf_url'] = $this->pdfDownloaderService->download(
+                $response['publicationData']['pdf_url'],
                 self::API_KEY
             );
-            $response['brochureData']['data'][0]['Publication']['pdf_local'] = $pdfLocal;
         } catch (\Exception $e) {
             $this->logger->error('Download failed: ' . $e->getMessage());
         }
 
-        if ($pdfLocal && array_key_exists('Publication', $response['brochureData']['data'][0])) {
+        if (!empty($response['brochureData']['pdf_url'])) {
             $this->pdfLinkAnnotatorService->annotate(
-                $pdfLocal,
-                $pdfLocal,
+                $response['brochureData']['pdf_url'],
+                $response['brochureData']['pdf_url'],
                 $response['brochureClickouts']
             );
-            $response['publicationData']['data'][0]['Publication']['pdf_url'] = $this->s3Service->upload($pdfLocal);
+            $response['brochureData']['pdf_url'] = $this->s3Service->upload($response['brochureData']['pdf_url']);
         }
-
-
 
         return $response;
     }
@@ -155,15 +149,13 @@ class ShopfullyService
             throw new \RuntimeException('Failed to fetch brochure data');
         }
         $arrayResponse = $response->toArray();
-        $publicationArray = explode('_', $arrayResponse['data'][0]['Flyer']['publication_url']);
-        $arrayResponse['publication_id'] = end($publicationArray);
-        return $arrayResponse;
+
+        return $arrayResponse['data'][0]['Flyer'] ?? [];
     }
 
     public function fetchPublicationData(string $brochureId, string $locale = 'it_it'): array
     {
-        $url = self::SHOPFULLY_HOST . $locale . '/publications/' . $brochureId . '.json?modifiers=pdf_url';
-
+        $url = self::SHOPFULLY_HOST . $locale . '/flyers/' . $brochureId . '/publications.json?modifiers=pdf_url';
 
         $response = $this->httpClient->request('GET', $url, [
             'headers' => [
@@ -178,6 +170,8 @@ class ShopfullyService
             throw new \RuntimeException('Failed to fetch flyer data');
         }
 
-        return $response->toArray();
+        $arrayResponse = $response->toArray();
+
+        return $arrayResponse['data'][0]['Publication'] ?? [];
     }
 }

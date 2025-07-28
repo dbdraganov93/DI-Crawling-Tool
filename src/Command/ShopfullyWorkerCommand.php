@@ -77,6 +77,7 @@ class ShopfullyWorkerCommand extends Command
         $this->em->flush();
 
         try {
+            $this->crawler->setAuthor($preset->getAuthor());
             $this->crawler->crawl($preset->getData());
             $preset->setStatus('finished');
             $preset->setErrorMessage(null);

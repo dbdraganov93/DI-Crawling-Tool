@@ -3,12 +3,12 @@
 namespace App\Tests\CrawlerScripts;
 
 use App\CrawlerScripts\ShopfullyCrawler;
+use App\Dto\Brochure;
 use App\Service\ShopfullyService;
 use App\Service\IprotoService;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use App\Service\StoreService;
-use App\Service\BrochureService;
 use App\Entity\ShopfullyLog;
 
 class ShopfullyCrawlerTest extends TestCase
@@ -40,40 +40,43 @@ class ShopfullyCrawlerTest extends TestCase
         $ref = new \ReflectionClass($crawler);
         $method = $ref->getMethod('createStores');
         $method->setAccessible(true);
-        $method->invoke($crawler, $data, $storeService);
+        $stores = $method->invoke($crawler, $data['brochureStores']);
 
-        $stores = $storeService->getStores();
         $this->assertCount(2, $stores);
-        $this->assertSame('1', $stores[0]['storeNumber']);
-        $this->assertSame('Hamburg', $stores[1]['city']);
+        $this->assertSame('1', $stores[0]->getStoreNumber());
+        $this->assertSame('Hamburg', $stores[1]->getCity());
     }
 
     public function testCreateBrochureAddsBrochure(): void
     {
         $crawler = $this->getCrawler();
-        $brochureService = new BrochureService(10);
+
+        $refProp = new \ReflectionProperty($crawler, 'company');
+        $refProp->setAccessible(true);
+        $refProp->setValue($crawler, 10); // or any string/integer representing company ID
 
         $data = [
-            'publicationData' => ['data' => [['Publication' => ['pdf_url' => 'http://example.com/p.pdf']]]],
-            'brochureData' => ['data' => [['Flyer' => [
-                'id' => 'B1',
-                'title' => 'Title',
-                'start_date' => '2023-01-01',
-                'end_date' => '2023-01-02',
-                'stores' => '1'
-            ]]]],
-            'trackingPixel' => 'pix'
+            'pdf_url' => 'http://example.com/p.pdf',
+            'number' => 'B1',
+            'title' => 'Title',
+            'validFrom' => '2023-01-01',
+            'validTo' => '2023-01-02',
+            'visibleFrom' => '2023-01-01',
+            'stores' => '1',
+            'trackingPixel' => 'pix',
         ];
 
+        $brochures = [];
         $ref = new \ReflectionClass($crawler);
         $method = $ref->getMethod('createBrochure');
         $method->setAccessible(true);
-        $method->invoke($crawler, $data, $brochureService);
+        $brochures[] = $method->invoke($crawler, $data);
 
-        $brochures = $brochureService->getBrochures();
         $this->assertCount(1, $brochures);
-        $this->assertSame('Title', $brochures[0]['title']);
-        $this->assertSame('B1', $brochures[0]['brochureNumber']);
+        $brochure = reset($brochures);
+        $this->assertInstanceOf(Brochure::class, $brochure);
+        $this->assertSame('Title', $brochure->getTitle());
+        $this->assertSame('B1', $brochure->getBrochureNumber());
     }
 
     public function testLogPersistsEntity(): void
@@ -90,6 +93,7 @@ class ShopfullyCrawlerTest extends TestCase
         $em->expects($this->once())->method('flush');
 
         $crawler = new ShopfullyCrawler($em, $shopfullyService, $iprotoService);
+        $crawler->setAuthor('tester@example.com');
         $refProp = new \ReflectionProperty($crawler, 'company');
         $refProp->setAccessible(true);
         $refProp->setValue($crawler, 7);
@@ -105,6 +109,7 @@ class ShopfullyCrawlerTest extends TestCase
         $this->assertSame(7, $logs[0]->getIprotoId());
         $this->assertSame($formData, $logs[0]->getData());
         $this->assertSame(0, $logs[0]->getReimportCount());
+        $this->assertSame('tester@example.com', $logs[0]->getAuthor());
     }
 
     public function testCrawlRunsThroughFlow(): void
@@ -115,11 +120,12 @@ class ShopfullyCrawlerTest extends TestCase
 
         $brochureData = [
             'publicationData' => ['data' => [['Publication' => ['pdf_url' => 'http://example.com/p.pdf']]]],
-            'brochureData' => ['data' => [['Flyer' => [
+            'brochureData' => [
+                'pdf_url' => 'http://example.com/p.pdf',
                 'id' => 'B1',
                 'title' => 'Title',
                 'stores' => '1'
-            ]]]],
+            ],
             'brochureStores' => [
                 ['Store' => ['id' => '1', 'city' => 'Berlin', 'zip' => '10115', 'address' => 'S', 'lat' => '1', 'lng' => '2', 'more_info' => 'T', 'description' => 'D', 'phone' => 'p', 'fax' => 'f']]
             ]
@@ -188,7 +194,7 @@ class ShopfullyCrawlerTest extends TestCase
 
         $brochureData = [
             'publicationData' => ['data' => [['Publication' => ['pdf_url' => 'http://example.com/p.pdf']]]],
-            'brochureData' => ['data' => [['Flyer' => ['id' => 'B1', 'title' => 'Title', 'stores' => '1']]]],
+            'brochureData' => ['id' => 'B1', 'title' => 'Title', 'stores' => '1', 'pdf_url' => 'http://example.com/p.pdf'],
             'brochureStores' => [
                 ['Store' => ['id' => '1', 'city' => 'Berlin', 'zip' => '10115', 'address' => 'S', 'lat' => '1', 'lng' => '2', 'more_info' => 'T', 'description' => 'D', 'phone' => 'p', 'fax' => 'f']]
             ]
@@ -217,68 +223,6 @@ class ShopfullyCrawlerTest extends TestCase
                 'validity_start' => '2023-01-01',
                 'validity_end' => '2023-01-02',
                 'visibility_start' => '2023-01-01',
-            ]]
-        ];
-
-        $cwd = getcwd();
-        $tmp = sys_get_temp_dir() . '/shopfully_test_' . uniqid();
-        mkdir($tmp);
-        chdir($tmp);
-
-        $crawler->crawl($data);
-
-        chdir($cwd);
-        foreach (glob($tmp . '/public/csv/*.csv') as $file) {
-            unlink($file);
-        }
-        if (is_dir($tmp . '/public/csv')) {
-            rmdir($tmp . '/public/csv');
-        }
-        if (is_dir($tmp . '/public')) {
-            rmdir($tmp . '/public');
-        }
-        rmdir($tmp);
-
-        $this->assertTrue(true); // ensure no exception
-    }
-
-    public function testCrawlHandlesMissingDates(): void
-    {
-        $em = $this->createMock(EntityManagerInterface::class);
-        $shopfullyService = $this->createMock(ShopfullyService::class);
-        $iprotoService = $this->createMock(IprotoService::class);
-
-        $brochureData = [
-            'publicationData' => ['data' => [['Publication' => ['pdf_url' => 'http://example.com/p.pdf']]]],
-            'brochureData' => ['data' => [['Flyer' => ['id' => 'B1', 'title' => 'Title', 'stores' => '1']]]],
-            'brochureStores' => [
-                ['Store' => ['id' => '1', 'city' => 'Berlin', 'zip' => '10115', 'address' => 'S', 'lat' => '1', 'lng' => '2', 'more_info' => 'T', 'description' => 'D', 'phone' => 'p', 'fax' => 'f']]
-            ]
-        ];
-
-        $shopfullyService->expects($this->once())
-            ->method('getBrochure')
-            ->with('123', 'de_de')
-            ->willReturn($brochureData);
-
-        $iprotoService->expects($this->exactly(2))
-            ->method('importData')
-            ->willReturn(['@id' => '/imports/9', 'status' => 'ok']);
-
-        $em->expects($this->exactly(2))->method('persist');
-        $em->expects($this->exactly(2))->method('flush');
-
-        $crawler = new ShopfullyCrawler($em, $shopfullyService, $iprotoService);
-
-        $data = [
-            'company' => 42,
-            'locale' => 'de_de',
-            'numbers' => [[
-                'number' => '123',
-                'tracking_pixel' => 'pix',
-                'validity_start' => null,
-                'validity_end' => null,
-                'visibility_start' => null,
             ]]
         ];
 

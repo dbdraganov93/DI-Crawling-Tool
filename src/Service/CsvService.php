@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Dto\Store;
 use League\Csv\Writer;
 use SplTempFileObject;
+use App\Dto\Brochure;
 
 class CsvService
 {
@@ -16,52 +18,83 @@ class CsvService
         $this->csvDir = rtrim($csvDir, '/');
     }
 
-    public function createCsvFromStores(StoreService $storeService): array
+    public function createCsvFromStores(array $stores, string $companyId): array
     {
-        $stores = $storeService->getStores();
 
         if (empty($stores)) {
             throw new \RuntimeException('No stores to export.');
         }
 
         $headers = [
-            'store_number', 'city', 'zipcode', 'street', 'street_number',
-            'latitude', 'longitude', 'title', 'subtitle', 'text', 'phone',
-            'fax', 'email', 'store_hours', 'store_hours_notes', 'payment',
-            'website', 'distribution', 'parking', 'barrier_free', 'bonus_card',
-            'section', 'service', 'toilet', 'default_radius'
+            'store_number',
+            'city',
+            'zipcode',
+            'street',
+            'street_number',
+            'latitude',
+            'longitude',
+            'title',
+            'subtitle',
+            'text',
+            'phone',
+            'fax',
+            'email',
+            'store_hours',
+            'store_hours_notes',
+            'payment',
+            'website',
+            'distribution',
+            'parking',
+            'barrier_free',
+            'bonus_card',
+            'section',
+            'service',
+            'toilet',
+            'default_radius'
         ];
 
         $csv = Writer::createFromFileObject(new SplTempFileObject());
         $csv->insertOne($headers);
 
+        $storeNumbers = [];
         foreach ($stores as $store) {
+            if (!$store instanceof Store) {
+                throw new \InvalidArgumentException('Expected array of Dto\Store objects.');
+            }
+
+            $storeNumber = $store->getStoreNumber();
+            if (in_array($storeNumber, $storeNumbers)) {
+                continue; // Skip duplicate store numbers
+            }
+
+            $storeNumbers[] = $storeNumber;
+
             $row = [
-                $store['storeNumber'] ?? '',
-                $store['city'] ?? '',
-                $store['postalCode'] ?? '',
-                $store['street'] ?? '',
-                $store['street_number'] ?? '',
-                $store['latitude'] ?? '',
-                $store['longitude'] ?? '',
-                $store['title'] ?? '',
-                $store['subtitle'] ?? '',
-                $store['text'] ?? '',
-                $store['phone'] ?? '',
-                $store['fax'] ?? '',
-                $store['email'] ?? '',
-                $store['store_hours'] ?? '',
-                $store['store_hours_notes'] ?? '',
-                $store['payment'] ?? '',
-                $store['website'] ?? '',
-                $store['distribution'] ?? '',
-                $store['parking'] ?? '',
-                $store['barrier_free'] ?? '',
-                $store['bonus_card'] ?? '',
-                $store['section'] ?? '',
-                $store['service'] ?? '',
-                $store['toilet'] ?? '',
-                $store['default_radius'] ?? '',
+                $storeNumber,
+                $store->getCity() ?? '',
+                $store->getZipcode() ?? '',
+                $store->getStreet() ?? '',
+                $store->getStreetNumber() ?? '',
+                $store->getLatitude() ?? '',
+                $store->getLongitude() ?? '',
+                $store->getTitle() ?? '',
+                $store->getSubtitle() ?? '',
+                $store->getText() ?? '',
+                $store->getPhone() ?? '',
+                $store->getFax() ?? '',
+                $store->getEmail() ?? '',
+                $store->getStoreHours() ?? '',
+                $store->getStoreHoursNotes() ?? '',
+                $store->getPayment() ?? '',
+                $store->getWebsite() ?? '',
+                $store->getDistribution() ?? '',
+                $store->getParking() ?? '',
+                $store->getBarrierFree() ?? '',
+                $store->getBonusCard() ?? '',
+                $store->getSection() ?? '',
+                $store->getService() ?? '',
+                $store->getToilet() ?? '',
+                $store->getDefaultRadius() ?? '',
             ];
 
             $csv->insertOne($row);
@@ -69,7 +102,7 @@ class CsvService
 
 
         $timestamp = round(microtime(true) * 1000);
-        $fileName = sprintf('stores_%d_%d.csv', $timestamp, $storeService->getCompanyId());
+        $fileName = sprintf('stores_%d_%d.csv', $timestamp, $companyId);
         // $csvDir already points to the CSV directory, just append the filename
         $filePath = rtrim($this->csvDir, '/') . '/' . $fileName;
 
@@ -87,7 +120,7 @@ class CsvService
         $domain = getenv('APP_DOMAIN');
 
         return [
-            'companyId' => $storeService->getCompanyId(),
+            'companyId' => $companyId,
             'type' => 'stores',
             'filePath' => $filePath,
             'message' => "CSV created successfully: {$fileName}. \n Download at http://127.0.0.1:8000/csv/{$fileName}",
@@ -96,15 +129,8 @@ class CsvService
         ];
     }
 
-    public function createCsvFromBrochure(BrochureService $brochureService): array
+    public function createCsvFromBrochure(array $brochures, string $companyId): array
     {
-        $brochures = $brochureService->getBrochures(); // ← THIS WAS MISSING
-
-        if (empty($brochures)) {
-            throw new \RuntimeException('No brochures to export.');
-        }
-        $companyId = $brochureService->getCompanyId();
-
         $headers = [
             'brochure_number',
             'type',
@@ -131,26 +157,30 @@ class CsvService
         $csv->insertOne($headers);
 
         foreach ($brochures as $brochure) {
+            if (!$brochure instanceof Brochure) {
+                throw new \InvalidArgumentException('Expected array of Dto\Brochure objects.');
+            }
+
             $csv->insertOne([
-                $brochure['brochureNumber'] ?? '',
-                $brochure['type'] ?? 'default',
-                $brochure['pdfUrl'] ?? '',
-                $brochure['title'] ?? '',
-                $brochure['tags'] ?? '', // tags
-                $brochure['validFrom'] ?? '',
-                $brochure['validTo'] ?? '',
-                $brochure['visibleFrom'] ?? '',
-                $brochure['storeNumber'] ?? '',
-                $brochure['distribution'] ?? '', // distribution
-                $brochure['variety'] ?? '',
-                $brochure['national'] ?? '', // national
-                $brochure['gender'] ?? '',
-                $brochure['ageRange'] ?? '',
-                $brochure['trackingPixels'] ?? '',
-                isset($brochure['pdf_processing_options']) ? json_encode($brochure['pdf_processing_options']) : '',
-                '', // lang_code
-                '', // zipcode
-                $brochure['layout'] ?? '',
+                $brochure->getBrochureNumber() ?? '',
+                $brochure->getType() ?? '',
+                $brochure->getPdfUrl() ?? '',
+                $brochure->getTitle() ?? '',
+                $brochure->getTags() ?? '',
+                $brochure->getValidFrom() ?? '',
+                $brochure->getValidTo() ?? '',
+                $brochure->getVisibleFrom() ?? '',
+                $brochure->getStoreNumber() ?? '',
+                $brochure->getSalesRegion() ?? '',
+                $brochure->getVariety() ?? '',
+                $brochure->getNational() ?? '', // leave empty if it's not set
+                $brochure->getGender() ?? '',
+                $brochure->getAgeRange() ?? '',
+                $brochure->getTrackingPixels() ?? '',
+                !empty($brochure->getPdfProcessingOptions()) ? json_encode($brochure->getPdfProcessingOptions()) : '',
+                $brochure->getLangCode() ?? '',
+                $brochure->getZipcode() ?? '',
+                $brochure->getLayout() ?? '',
             ]);
         }
 

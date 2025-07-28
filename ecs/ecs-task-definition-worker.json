@@ -1,100 +1,133 @@
 {
-"family": "dicrawler-di-worker-${env}",
-    "taskRoleArn": "arn:aws:iam::385750204895:role/dicrawler.ecs-task.di-${env}",
-    "executionRoleArn": "arn:aws:iam::385750204895:role/dicrawler.ecs-task.di-${env}",
-    "networkMode": "awsvpc",
-    "containerDefinitions": [
+  "family": "dicrawler-di-worker-${env}",
+  "taskRoleArn": "arn:aws:iam::385750204895:role/dicrawler.ecs-task.di-${env}",
+  "executionRoleArn": "arn:aws:iam::385750204895:role/dicrawler.ecs-task.di-${env}",
+  "networkMode": "awsvpc",
+  "containerDefinitions": [
+    {
+      "name": "Worker",
+      "image": "${dicrawler_image}",
+      "portMappings": [
         {
-            "name": "Worker",
-            "image": "${dicrawler_image}",
-            "portMappings": [
-                {
-                    "containerPort": 80,
-                    "hostPort": 80,
-                    "protocol": "tcp"
-                }
-            ],
-            "essential": true,
-            "entryPoint": [],
-            "command":   ["php", "bin/console", "app:shopfully:worker"],
-            "environment": [
-                {
-                    "name": "APP_ENV",
-                    "value": "${env}"
-                },
-                {
-                    "name": "WEBSERVER",
-                    "value": "false"
-                },
-                {
-                    
-                   "name": "APP_DEBUG",
-                   "value": "0"
-                },
-                {
-                    "name": "AWS_REGION",
-                    "value": "eu-west-1"
-                },
-                {
-                    "name": "AWS_BUCKET",
-                    "value": "content.di-${env}.offerista"
-                },
-                {
-                   "name": "IPROTO_AUTH_HOST",
-                   "value": "https://og-prod.eu.auth0.com/oauth/token"
-                }
-            ],
-            "secrets": [                  
-                {
-                    "name": "DATABASE_URL",
-                    "valueFrom": "arn:aws:ssm:eu-west-1:385750204895:parameter/di/dicrawler/${env}/database_url"
-                },
-                {
-                    "name": "APP_SECRET",
-                    "valueFrom": "${APP_SECRET}"
-                },
-                {
-                    "name": "IPROTO_CLIENT_ID",
-                    "valueFrom": "${IPROTO_CLIENT_ID}"
-                },
-                {
-                   "name": "IPROTO_CLIENT_SECRET",
-                   "valueFrom": "${IPROTO_CLIENT_SECRET}"
-                }
-          ],
-            "readonlyRootFilesystem": false,
-            "interactive": true,
-            "pseudoTerminal": true,
-            "logConfiguration": {
-                "logDriver": "awslogs",
-                "options": {
-                    "awslogs-group": "dicrawler.worker.ecs.di-${env}",
-                    "awslogs-region": "eu-west-1",
-                    "awslogs-stream-prefix": "ecs"
-                }
-            },
-            "healthCheck": {
-                "command": [
-                    "CMD-SHELL",
-                    "pgrep -f 'php bin/console app:shopfully:worker' || exit 1"
-                ],
-                "interval": 10,
-                "timeout": 10,
-                "retries": 5,
-                "startPeriod": 5
-            }
+          "containerPort": 80,
+          "hostPort": 80,
+          "protocol": "tcp"
         }
-    ],
-    "volumes": [],
-    "requiresCompatibilities": [
-        "FARGATE"
-    ],
-    "cpu": "2048",
-    "memory": "4096",
-    "tags": [
+      ],
+      "essential": true,
+      "entryPoint": [],
+      "command": ["php", "bin/console", "app:shopfully:worker"],
+      "environment": [
         {
-            "key": "Service",
-            "value": "dicrawler"
+          "name": "APP_ENV",
+          "value": "${env}"
+        },
+        {
+          "name": "WEBSERVER",
+          "value": "false"
+        },
+        {
+          "name": "APP_DEBUG",
+          "value": "0"
+        },
+        {
+          "name": "AWS_REGION",
+          "value": "eu-west-1"
+        },
+        {
+          "name": "AWS_BUCKET",
+          "value": "content.di-${env}.offerista"
+        },
+        {
+          "name": "IPROTO_AUTH_HOST",
+          "value": "https://og-prod.eu.auth0.com/oauth/token"
         }
-    ]
+      ],
+      "secrets": [
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "arn:aws:ssm:eu-west-1:385750204895:parameter/di/dicrawler/${env}/database_url"
+        },
+        {
+          "name": "APP_SECRET",
+          "valueFrom": "${APP_SECRET}"
+        },
+        {
+          "name": "IPROTO_CLIENT_ID",
+          "valueFrom": "${IPROTO_CLIENT_ID}"
+        },
+        {
+          "name": "IPROTO_CLIENT_SECRET",
+          "valueFrom": "${IPROTO_CLIENT_SECRET}"
+        }
+      ],
+      "readonlyRootFilesystem": false,
+      "interactive": true,
+      "pseudoTerminal": true,
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "dicrawler.worker.ecs.di-${env}",
+          "awslogs-region": "eu-west-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "pgrep -f 'php bin/console app:shopfully:worker' || exit 1"
+        ],
+        "interval": 10,
+        "timeout": 10,
+        "retries": 5,
+        "startPeriod": 5
+      }
+    },
+    {
+      "name": "datadog-agent",
+      "image": "public.ecr.aws/datadog/agent:latest",
+      "essential": true,
+      "cpu": 128,
+      "memoryReservation": 512,
+      "environment": [
+        {
+          "name": "ECS_FARGATE",
+          "value": "true"
+        },
+        {
+          "name": "DD_SITE",
+          "value": "datadoghq.eu"
+        },
+        {
+          "name": "DD_TAGS",
+          "value": "account:di env:${env}"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DD_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:global-datadog_api_key-6LZFDh"
+        }
+      ],
+      "healthCheck": {
+        "command": ["CMD-SHELL", "agent health"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 10,
+        "startPeriod": 15
+      }
+    }
+  ],
+  "volumes": [],
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "2048",
+  "memory": "4096",
+  "tags": [
+    {
+      "key": "Service",
+      "value": "dicrawler"
+    }
+  ]
 }
