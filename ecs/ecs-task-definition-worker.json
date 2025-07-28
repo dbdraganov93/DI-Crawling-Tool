@@ -110,10 +110,7 @@
         }
       ],
       "healthCheck": {
-        "command": [
-          "CMD-SHELL",
-          "agent health"
-        ],
+        "command": ["CMD-SHELL", "agent health"],
         "interval": 30,
         "timeout": 5,
         "retries": 10,

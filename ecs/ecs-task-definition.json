@@ -1,3 +1,4 @@
+
 {
   "family": "dicrawler-di-${env}",
   "taskRoleArn": "arn:aws:iam::385750204895:role/dicrawler.ecs-task.di-${env}",
@@ -125,6 +126,43 @@
           "awslogs-region": "eu-west-1",
           "awslogs-stream-prefix": "ecs-migrations"
         }
+      }
+    },
+    {
+      "name": "datadog-agent",
+      "image": "public.ecr.aws/datadog/agent:latest",
+      "essential": true,
+      "cpu": 128,
+      "memoryReservation": 512,
+      "environment": [
+        {
+          "name": "ECS_FARGATE",
+          "value": "true"
+        },
+        {
+          "name": "DD_SITE",
+          "value": "datadoghq.eu"
+        },
+        {
+          "name": "DD_TAGS",
+          "value": "account:di env:${env}"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DD_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:eu-west-1:385750204895:secret:global-datadog_api_key-6LZFDh"
+        }
+      ],
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "agent health"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 10,
+        "startPeriod": 15
       }
     }
   ],
