@@ -34,6 +34,8 @@ UnitTest:
   image: php:8.2
   before_script:
     - apt-get update && apt-get install -y git unzip libzip-dev libpng-dev libjpeg-dev libfreetype6-dev
+    - pecl install xdebug
+    - docker-php-ext-enable xdebug
     - docker-php-ext-install zip ftp gd
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
     - composer install --prefer-dist --no-scripts --no-progress
