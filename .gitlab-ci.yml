@@ -68,7 +68,7 @@ sonarscan:
         -Dsonar.tests=tests \
         -Dsonar.php.coverage.reportPaths=build/coverage.xml \
         -Dsonar.sourceEncoding=UTF-8 \
-        -Dsonar.login="${SONAR_TOKEN}" \
+        -Dsonar.token="${SONAR_TOKEN}" \
         -Dsonar.host.url="${SONAR_HOST_URL}" \
         -Dsonar.projectVersion="${CI_COMMIT_REF_NAME}"
    # Needs report coverage artifact from UnitTest stage
