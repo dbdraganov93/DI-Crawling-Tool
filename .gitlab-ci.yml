@@ -29,9 +29,6 @@ Codestyle:
   script:
     - vendor/bin/phpcs --standard=PSR12 --report=diff src/
   allow_failure: false
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH'
 UnitTest:
   stage: UnitTest
   image: php:8.2
@@ -53,9 +50,6 @@ UnitTest:
     paths:
       - build/coverage.xml
   allow_failure: false
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH'
 sonarscan:
   stage: sonarscan
   image: sonarsource/sonar-scanner-cli:latest
@@ -81,9 +75,6 @@ sonarscan:
   needs:
     - job: UnitTest
       artifacts: true
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH'
   allow_failure: true  # Won't block pipeline
 build_container:
     stage: build
