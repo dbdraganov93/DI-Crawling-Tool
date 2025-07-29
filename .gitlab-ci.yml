@@ -32,6 +32,8 @@ Codestyle:
 UnitTest:
   stage: UnitTest
   image: php:8.2
+  variables:
+    XDEBUG_MODE: coverage
   before_script:
     - apt-get update && apt-get install -y git unzip libzip-dev libpng-dev libjpeg-dev libfreetype6-dev
     - pecl install xdebug
@@ -59,7 +61,8 @@ sonarscan:
     paths:
       - "${SONAR_USER_HOME}/cache"
   script:
-    - sonar-scanner \
+    - |
+      sonar-scanner \
         -Dsonar.projectKey="offerista-${CI_PROJECT_NAME}" \
         -Dsonar.sources=src \
         -Dsonar.tests=tests \
