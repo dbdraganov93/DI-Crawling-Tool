@@ -10,7 +10,7 @@ variables:
 stages:
   - Codestyle
   - UnitTest
-  - sonar
+  - sonarscan
   - build 
   - push
   - deploy 
@@ -46,8 +46,8 @@ UnitTest:
     paths:
       - build/coverage.xml
   allow_failure: false
-code_analysis:
-  stage: sonar
+sonarscan:
+  stage: sonarscan
   image: sonarsource/sonar-scanner-cli:latest
   variables:
     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
@@ -56,22 +56,24 @@ code_analysis:
     key: "sonar-cache-$CI_COMMIT_REF_SLUG"
     paths:
       - "${SONAR_USER_HOME}/cache"
-      - sonar-scanner/
   script:
     - sonar-scanner \
-        -Dsonar.projectKey="offerista_${CI_PROJECT_NAME}" \
+        -Dsonar.projectKey="offerista-${CI_PROJECT_NAME}" \
         -Dsonar.sources=src \
         -Dsonar.tests=tests \
         -Dsonar.php.coverage.reportPaths=build/coverage.xml \
         -Dsonar.sourceEncoding=UTF-8 \
         -Dsonar.login="${SONAR_TOKEN}" \
-        -Dsonar.host.url="${SONAR_HOST_URL}"
+        -Dsonar.host.url="${SONAR_HOST_URL}" \
         -Dsonar.projectVersion="${CI_COMMIT_REF_NAME}"
-  dependencies:
-    - UnitTest
-  only:
-    - merge_requests
-    - master
+   # Needs report coverage artifact from UnitTest stage
+  needs:
+    - job: UnitTest
+      artifacts: true
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH'
+  allow_failure: true  # Won't block pipeline
 build_container:
     stage: build
     image:
