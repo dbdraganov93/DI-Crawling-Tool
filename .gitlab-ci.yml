@@ -10,6 +10,7 @@ variables:
 stages:
   - Codestyle
   - UnitTest
+  - sonarscan
   - build 
   - push
   - deploy 
@@ -31,17 +32,50 @@ Codestyle:
 UnitTest:
   stage: UnitTest
   image: php:8.2
+  variables:
+    XDEBUG_MODE: coverage
   before_script:
     - apt-get update && apt-get install -y git unzip libzip-dev libpng-dev libjpeg-dev libfreetype6-dev
+    - pecl install xdebug
+    - docker-php-ext-enable xdebug
     - docker-php-ext-install zip ftp gd
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
     - composer install --prefer-dist --no-scripts --no-progress
     - echo "APP_ENV=test" > .env
   script:
-    - php vendor/bin/simple-phpunit -c phpunit.xml.dist --colors=never
+    - php vendor/bin/simple-phpunit -c phpunit.xml.dist --coverage-clover build/coverage.xml --colors=never
   after_script:
     - rm -f .env
+  artifacts:
+    paths:
+      - build/coverage.xml
   allow_failure: false
+sonarscan:
+  stage: sonarscan
+  image: sonarsource/sonar-scanner-cli:latest
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+  cache:
+    policy: pull-push
+    key: "sonar-cache-$CI_COMMIT_REF_SLUG"
+    paths:
+      - "${SONAR_USER_HOME}/cache"
+  script:
+    - |
+      sonar-scanner \
+        -Dsonar.projectKey="offerista-${CI_PROJECT_NAME}" \
+        -Dsonar.sources=src \
+        -Dsonar.tests=tests \
+        -Dsonar.php.coverage.reportPaths=build/coverage.xml \
+        -Dsonar.sourceEncoding=UTF-8 \
+        -Dsonar.token="${SONAR_TOKEN}" \
+        -Dsonar.host.url="${SONAR_HOST_URL}" \
+        -Dsonar.projectVersion="${CI_COMMIT_REF_NAME}"
+   # Needs report coverage artifact from UnitTest stage
+  needs:
+    - job: UnitTest
+      artifacts: true
+  allow_failure: true  # Won't block pipeline
 build_container:
     stage: build
     image:
