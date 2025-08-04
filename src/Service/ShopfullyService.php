@@ -161,7 +161,6 @@ class ShopfullyService
             'headers' => [
                 'x-api-key' => self::API_KEY,
                 'Accept' => '*/*',
-                'Accept-Encoding' => 'gzip, deflate, br',
                 'Connection' => 'keep-alive',
             ],
         ]);
