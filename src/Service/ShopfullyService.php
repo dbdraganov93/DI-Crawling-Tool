@@ -160,9 +160,6 @@ class ShopfullyService
         $response = $this->httpClient->request('GET', $url, [
             'headers' => [
                 'x-api-key' => self::API_KEY,
-                'Accept' => '*/*',
-                'Accept-Encoding' => 'gzip, deflate, br',
-                'Connection' => 'keep-alive',
             ],
         ]);
 
