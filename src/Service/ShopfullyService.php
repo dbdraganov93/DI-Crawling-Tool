@@ -160,6 +160,8 @@ class ShopfullyService
         $response = $this->httpClient->request('GET', $url, [
             'headers' => [
                 'x-api-key' => self::API_KEY,
+                'Accept' => '*/*',
+                'Connection' => 'keep-alive',
             ],
         ]);
 
