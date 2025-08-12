@@ -657,41 +657,49 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.reimport-btn').forEach(button => {
-                button.addEventListener('click', async function () {
-                    const confirmed = await confirmReimport();
-                    if (!confirmed) {
+            const logsTable = document.getElementById('logsTable');
+            if (!logsTable) {
+                return;
+            }
+
+            logsTable.addEventListener('click', async function (event) {
+                const button = event.target.closest('.reimport-btn');
+                if (!button) {
+                    return;
+                }
+
+                const confirmed = await confirmReimport();
+                if (!confirmed) {
+                    return;
+                }
+                const logId = button.dataset.id;
+                button.disabled = true;
+                button.innerHTML = '⏳';
+                try {
+                    const response = await fetch(buildUrl(`/api/logs/${logId}/reimport`), {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    const data = await response.json();
+
+                    if (!response.ok || !data.success) {
+                        const msg = data.message || response.statusText;
+                        alert(`Reimport failed: ${msg}`);
                         return;
                     }
-                    const logId = this.dataset.id;
-                    this.disabled = true;
-                    this.innerHTML = '⏳';
-                    try {
-                        const response = await fetch(buildUrl(`/api/logs/${logId}/reimport`), {
-                            method: 'POST',
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                        });
-                        const data = await response.json();
 
-                        if (!response.ok || !data.success) {
-                            const msg = data.message || response.statusText;
-                            alert(`Reimport failed: ${msg}`);
-                            return;
-                        }
-
-                        const row = this.closest('tr');
-                        const countCell = row.querySelector('.reimport-count');
-                        if (countCell) {
-                            countCell.textContent = data.reimportCount;
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        alert('Error triggering reimport.');
-                    } finally {
-                        this.disabled = false;
-                        this.innerHTML = '⟳';
+                    const row = button.closest('tr');
+                    const countCell = row.querySelector('.reimport-count');
+                    if (countCell) {
+                        countCell.textContent = data.reimportCount;
                     }
-                });
+                } catch (err) {
+                    console.error(err);
+                    alert('Error triggering reimport.');
+                } finally {
+                    button.disabled = false;
+                    button.innerHTML = '⟳';
+                }
             });
         });
 
