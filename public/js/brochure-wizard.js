@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const result = document.getElementById('result');
     const downloadPdf = document.getElementById('downloadPdf');
     const downloadJson = document.getElementById('downloadJson');
+    const editPdf = document.getElementById('editPdf');
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -40,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
             progress.style.display = 'none';
             downloadPdf.href = buildUrl('/brochure/download/' + id + '/pdf');
             downloadJson.href = buildUrl('/brochure/download/' + id + '/json');
+             editPdf.href = buildUrl('/brochure/edit/' + id);
             result.style.display = 'block';
         } else if (json.status === 'failed') {
             progress.innerHTML = '<p class="text-danger">' + (json.error || 'Failed') + '</p>';

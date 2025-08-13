@@ -114,4 +114,22 @@ class BrochureController extends AbstractController
         $jobs = $repo->findBy([], ['createdAt' => 'DESC']);
         return $this->render('brochure/wizard.html.twig', ['jobs' => $jobs]);
     }
+
+    #[Route('/brochure/edit/{id}', name: 'brochure_edit', methods: ['GET'])]
+    public function edit(int $id, BrochureJobRepository $repo): Response
+    {
+        $job = $repo->find($id);
+        if (!$job || !$job->getResultPdf()) {
+            throw $this->createNotFoundException('Job not found');
+        }
+
+        $publicDir = $this->getParameter('kernel.project_dir') . '/public';
+        $pdfUrl = str_replace($publicDir, '', $job->getResultPdf());
+        $jsonUrl = $job->getResultJson() ? str_replace($publicDir, '', $job->getResultJson()) : null;
+
+        return $this->render('brochure/editor.html.twig', [
+            'pdfUrl' => $pdfUrl,
+            'jsonUrl' => $jsonUrl,
+        ]);
+    }
 }

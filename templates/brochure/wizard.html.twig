@@ -24,7 +24,8 @@
         </div>
         <div id="result" class="mt-4" style="display:none;">
             <a id="downloadPdf" class="btn btn-success mb-2" href="#">Download Annotated PDF</a>
-            <a id="downloadJson" class="btn btn-secondary" href="#">Download JSON</a>
+            <a id="downloadJson" class="btn btn-secondary mb-2" href="#">Download JSON</a>
+            <a id="editPdf" class="btn btn-warning" href="#">Edit PDF</a>
         </div>
     </div>
 </div>
@@ -42,6 +43,7 @@
                 {% if j.resultPdf %}
                     <a href="{{ path('brochure_download', {id:j.id, type:'pdf'}) }}" class="btn btn-sm btn-primary">PDF</a>
                     <a href="{{ path('brochure_download', {id:j.id, type:'json'}) }}" class="btn btn-sm btn-secondary">JSON</a>
+                    <a href="{{ path('brochure_edit', {id:j.id}) }}" class="btn btn-sm btn-warning">Edit</a>
                 {% endif %}
             </td>
         </tr>
