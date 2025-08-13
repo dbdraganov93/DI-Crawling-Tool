@@ -179,12 +179,18 @@ class BrochureLinkerService
 
             if (is_array($pageProducts)) {
                 foreach ($pageProducts as $p) {
-                    if (!is_array($p) || empty($p['product'])) {
+                    if (!is_array($p)) {
                         continue;
                     }
 
+                    $name = $p['product'] ?? $p['name'] ?? null;
+                    if (empty($name)) {
+                        continue;
+                    }
+
+                    $p['product'] = $name;
                     $p['page'] = $page['page'];
-                    $p['position'] = $this->findPosition($page['blocks'], $p['product']);
+                    $p['position'] = $this->findPosition($page['blocks'], $name);
                     $products[] = $p;
                 }
             }
