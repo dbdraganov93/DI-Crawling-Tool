@@ -172,8 +172,17 @@ class BrochureLinkerService
             );
             $res = $this->chatGpt($prompt);
             $pageProducts = $this->decodeJson($res);
+
+            if (isset($pageProducts['products']) && is_array($pageProducts['products'])) {
+                $pageProducts = $pageProducts['products'];
+            }
+
             if (is_array($pageProducts)) {
                 foreach ($pageProducts as $p) {
+                    if (!is_array($p) || empty($p['product'])) {
+                        continue;
+                    }
+
                     $p['page'] = $page['page'];
                     $p['position'] = $this->findPosition($page['blocks'], $p['product']);
                     $products[] = $p;

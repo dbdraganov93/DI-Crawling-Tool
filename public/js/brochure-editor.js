@@ -3,11 +3,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('pdfContainer');
     const addBtn = document.getElementById('addLink');
     const saveBtn = document.getElementById('savePdf');
+    const prevBtn = document.getElementById('prevPage');
+    const nextBtn = document.getElementById('nextPage');
+    const pageIndicator = document.getElementById('pageIndicator');
 
     const pdfjsLib = window['pdfjsLib'];
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
     const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
+
+    const pageDivs = [];
+    let currentPage = 1;
 
     let links = [];
     if (jsonUrl) {
@@ -31,7 +37,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const viewport = page.getViewport({ scale: 1.5 });
         const pageDiv = document.createElement('div');
         pageDiv.className = 'page';
+        pageDiv.style.display = 'none';
         container.appendChild(pageDiv);
+        pageDivs.push(pageDiv);
 
         const canvas = document.createElement('canvas');
         canvas.width = viewport.width;
@@ -52,12 +60,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         links.filter(l => l.page === i).forEach(l => {
             overlay.appendChild(createRect(l, overlay));
         });
+        refreshNumbers(overlay);
     }
 
+    function showPage(num) {
+        pageDivs.forEach((div, idx) => {
+            div.style.display = (idx === num - 1) ? 'block' : 'none';
+        });
+        pageIndicator.textContent = `Page ${num}/${pdf.numPages}`;
+    }
+
+    showPage(currentPage);
+
+    prevBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            showPage(currentPage);
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentPage < pdf.numPages) {
+            currentPage++;
+            showPage(currentPage);
+        }
+    });
+
     addBtn.addEventListener('click', () => {
-        const overlay = container.querySelector('.page .overlay');
+        const overlay = pageDivs[currentPage - 1]?.querySelector('.overlay');
         if (overlay) {
-            overlay.appendChild(createRect({ x:0.1, y:0.1, width:0.2, height:0.1, url:'', page:1 }, overlay));
+            overlay.appendChild(createRect({ x:0.1, y:0.1, width:0.2, height:0.1, url:'', page:currentPage }, overlay));
+            refreshNumbers(overlay);
         }
     });
 
@@ -126,6 +159,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         div.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             div.remove();
+            refreshNumbers(overlay);
         });
 
         interact(div).draggable({
@@ -140,6 +174,19 @@ document.addEventListener('DOMContentLoaded', async () => {
           });
 
         return div;
+    }
+
+    function refreshNumbers(overlay) {
+        const rects = overlay.querySelectorAll('.link-rect');
+        rects.forEach((r, idx) => {
+            let label = r.querySelector('.link-label');
+            if (!label) {
+                label = document.createElement('span');
+                label.className = 'link-label';
+                r.appendChild(label);
+            }
+            label.textContent = idx + 1;
+        });
     }
 
     function dragMoveListener (event) {
