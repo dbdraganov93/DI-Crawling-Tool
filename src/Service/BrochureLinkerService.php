@@ -179,23 +179,41 @@ class BrochureLinkerService
 
             if (is_array($pageProducts)) {
                 foreach ($pageProducts as $p) {
-                    if (!is_array($p)) {
-                        continue;
+                    $normalized = $this->normalizeProduct($p, $page['page'], $page['blocks']);
+                    if ($normalized !== null) {
+                        $products[] = $normalized;
                     }
-
-                    $name = $p['product'] ?? $p['name'] ?? null;
-                    if (empty($name)) {
-                        continue;
-                    }
-
-                    $p['product'] = $name;
-                    $p['page'] = $page['page'];
-                    $p['position'] = $this->findPosition($page['blocks'], $name);
-                    $products[] = $p;
                 }
             }
         }
         return $products;
+    }
+
+    /**
+     * Normalize a product entry returned by ChatGPT into a consistent structure.
+     *
+     * @param mixed $item
+     * @param int   $page
+     * @param array $blocks
+     */
+    private function normalizeProduct(mixed $item, int $page, array $blocks): ?array
+    {
+        if (is_string($item)) {
+            $item = ['product' => $item];
+        } elseif (!is_array($item)) {
+            return null;
+        }
+
+        $name = $item['product'] ?? $item['name'] ?? null;
+        if (empty($name)) {
+            return null;
+        }
+
+        $item['product'] = $name;
+        $item['page'] = $page;
+        $item['position'] = $this->findPosition($blocks, $name);
+
+        return $item;
     }
 
     /**
