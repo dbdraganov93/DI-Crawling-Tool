@@ -28,7 +28,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (json.job_id) {
             pollStatus(json.job_id);
         } else if (json.error) {
-            progress.innerHTML = '<p class="text-danger">' + json.error + '</p>';
+            let msg = json.error;
+            if (/quota/i.test(msg)) {
+                msg = 'OpenAI API quota exhausted. Please check your plan.';
+            } else if (/api key/i.test(msg) || /authentication/i.test(msg)) {
+                msg = 'OpenAI API authentication failed. Verify API key.';
+            }
+            progress.innerHTML = '<p class="text-danger">' + msg + '</p>';
         } else {
             progress.innerHTML = '<p class="text-danger">Upload failed</p>';
         }
@@ -44,7 +50,13 @@ document.addEventListener('DOMContentLoaded', () => {
              editPdf.href = buildUrl('/brochure/edit/' + id);
             result.style.display = 'block';
         } else if (json.status === 'failed') {
-            progress.innerHTML = '<p class="text-danger">' + (json.error || 'Failed') + '</p>';
+            let msg = json.error || 'Failed';
+            if (/quota/i.test(msg)) {
+                msg = 'OpenAI API quota exhausted. Please check your plan.';
+            } else if (/api key/i.test(msg) || /authentication/i.test(msg)) {
+                msg = 'OpenAI API authentication failed. Verify API key.';
+            }
+            progress.innerHTML = '<p class="text-danger">' + msg + '</p>';
         } else {
             setTimeout(() => pollStatus(id), 3000);
         }

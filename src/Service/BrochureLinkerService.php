@@ -472,6 +472,11 @@ class BrochureLinkerService
     {
         $prompt = $this->sanitizeUtf8($prompt);
 
+        if (empty($this->openaiApiKey)) {
+            $this->logger->error('OpenAI API key missing');
+            throw new \RuntimeException('OpenAI API key not configured');
+        }
+
         try {
             $response = $this->httpClient->request('POST', 'https://api.openai.com/v1/chat/completions', [
                 'headers' => [
@@ -496,6 +501,9 @@ class BrochureLinkerService
                 if ($status === 429) {
                     throw new \RuntimeException('OpenAI API quota exhausted');
                 }
+                if ($status === 401 || $status === 403) {
+                    throw new \RuntimeException('OpenAI API authentication failed');
+                }
                 throw new \RuntimeException('OpenAI API status ' . $status);
             }
 
@@ -504,8 +512,12 @@ class BrochureLinkerService
                 $this->logger->error('OpenAI API error', ['response' => $data]);
                 $message = $data['error']['message'] ?? 'unknown';
                 $type = $data['error']['type'] ?? '';
+                $code = $data['error']['code'] ?? '';
                 if ($type === 'insufficient_quota' || str_contains(strtolower($message), 'quota')) {
                     throw new \RuntimeException('OpenAI API quota exhausted');
+                }
+                if ($code === 'invalid_api_key' || str_contains(strtolower($message), 'api key')) {
+                    throw new \RuntimeException('OpenAI API authentication failed');
                 }
                 throw new \RuntimeException('OpenAI API error: ' . $message);
             }
