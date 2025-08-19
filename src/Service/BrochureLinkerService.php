@@ -179,12 +179,18 @@ class BrochureLinkerService
 
             if (is_array($pageProducts)) {
                 foreach ($pageProducts as $p) {
-                    if (!is_array($p) || empty($p['product'])) {
+                    if (!is_array($p)) {
                         continue;
                     }
 
+                    $name = $p['product'] ?? $p['name'] ?? null;
+                    if (empty($name)) {
+                        continue;
+                    }
+
+                    $p['product'] = $name;
                     $p['page'] = $page['page'];
-                    $p['position'] = $this->findPosition($page['blocks'], $p['product']);
+                    $p['position'] = $this->findPosition($page['blocks'], $name);
                     $products[] = $p;
                 }
             }
@@ -325,6 +331,9 @@ class BrochureLinkerService
                             'status' => $status,
                             'body' => $body,
                         ]);
+                        if (in_array($status, [403, 429], true)) {
+                            throw new \RuntimeException('Google API quota exhausted');
+                        }
                         if ($status >= 500 && $attempt < 2) {
                             $attempt++;
                             sleep(1);
@@ -337,7 +346,13 @@ class BrochureLinkerService
 
                     if (isset($data['error'])) {
                         $this->logger->error('Google API error', ['response' => $data]);
-                        throw new \RuntimeException('Google API error: ' . ($data['error']['message'] ?? 'unknown'));
+                        $message = $data['error']['message'] ?? 'unknown';
+                        $reason = $data['error']['errors'][0]['reason'] ?? '';
+                        $code = $data['error']['code'] ?? 0;
+                        if (in_array($code, [403, 429], true) || $reason === 'dailyLimitExceeded' || str_contains(strtolower($message), 'quota')) {
+                            throw new \RuntimeException('Google API quota exhausted');
+                        }
+                        throw new \RuntimeException('Google API error: ' . $message);
                     }
 
                     $p['url'] = null;
@@ -438,20 +453,54 @@ class BrochureLinkerService
     private function chatGpt(string $prompt): string
     {
         $prompt = $this->sanitizeUtf8($prompt);
-        $response = $this->httpClient->request('POST', 'https://api.openai.com/v1/chat/completions', [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $this->openaiApiKey,
-            ],
-            'json' => [
-                'model' => $this->openaiModel,
-                'messages' => [
-                    ['role' => 'user', 'content' => $prompt],
+
+        try {
+            $response = $this->httpClient->request('POST', 'https://api.openai.com/v1/chat/completions', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->openaiApiKey,
                 ],
-                'temperature' => 0.2,
-            ],
-        ]);
-        $data = $response->toArray(false);
-        return $data['choices'][0]['message']['content'] ?? '';
+                'json' => [
+                    'model' => $this->openaiModel,
+                    'messages' => [
+                        ['role' => 'user', 'content' => $prompt],
+                    ],
+                    'temperature' => 0.2,
+                ],
+            ]);
+
+            $status = $response->getStatusCode();
+            if ($status !== 200) {
+                $body = $response->getContent(false);
+                $this->logger->error('OpenAI API non-200', [
+                    'status' => $status,
+                    'body' => $body,
+                ]);
+                if ($status === 429) {
+                    throw new \RuntimeException('OpenAI API quota exhausted');
+                }
+                throw new \RuntimeException('OpenAI API status ' . $status);
+            }
+
+            $data = $response->toArray(false);
+            if (isset($data['error'])) {
+                $this->logger->error('OpenAI API error', ['response' => $data]);
+                $message = $data['error']['message'] ?? 'unknown';
+                $type = $data['error']['type'] ?? '';
+                if ($type === 'insufficient_quota' || str_contains(strtolower($message), 'quota')) {
+                    throw new \RuntimeException('OpenAI API quota exhausted');
+                }
+                throw new \RuntimeException('OpenAI API error: ' . $message);
+            }
+
+            return $data['choices'][0]['message']['content'] ?? '';
+        } catch (\Throwable $e) {
+            $this->logger->error('OpenAI request failed', ['error' => $e->getMessage()]);
+            if ($e instanceof \RuntimeException) {
+                throw $e;
+            }
+
+            throw new \RuntimeException('OpenAI request failed: ' . $e->getMessage(), 0, $e);
+        }
     }
 
     /**
