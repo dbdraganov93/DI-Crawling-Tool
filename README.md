@@ -47,6 +47,10 @@ composer install
 
 Create .env file by copying .env.example to .env and filling in the necessary values
 
+### OpenAI configuration
+Set `OPENAI_API_KEY` with your key and optionally `OPENAI_MODEL` (e.g. `gpt-4`).
+The OCR step uses `pytesseract`; configure its language with `OCR_LANG` (default `eng`).
+
 Configure DB in .env
 
 Generate migration with command

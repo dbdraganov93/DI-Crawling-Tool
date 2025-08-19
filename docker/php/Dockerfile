@@ -4,15 +4,15 @@ RUN apt-get update && apt-get install -y \
     unzip git curl libzip-dev zip libonig-dev \
     libxml2-dev libpq-dev libcurl4-openssl-dev \
     libicu-dev libpng-dev libjpeg-dev libfreetype6-dev \
-    default-mysql-client cron python3 python3-pip \
- && docker-php-ext-install pdo pdo_mysql intl zip ftp gd opcache \
- && apt-get clean && rm -rf /var/lib/apt/lists/*
+    default-mysql-client cron python3 python3-pip python3-pil tesseract-ocr \
+&& docker-php-ext-install pdo pdo_mysql intl zip ftp gd opcache \
+&& apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 COPY docker/php-overrides.ini "$PHP_INI_DIR/conf.d/custom.ini"
 
-RUN pip3 install --break-system-packages PyMuPDF
+RUN pip3 install --break-system-packages PyMuPDF pytesseract
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -33,6 +33,8 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts
 RUN mkdir -p /var/www/html/public/csv /var/www/html/public/pdf \
  && chown -R www-data:www-data /var/www/html/public/csv /var/www/html/public/pdf \
  && chmod -R 775 /var/www/html/public/csv /var/www/html/public/pdf
+
+# Ensure brochure upload directories exist with permissive rights
 
 EXPOSE 80
 CMD ["apache2-foreground"]
