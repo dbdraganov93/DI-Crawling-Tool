@@ -73,7 +73,9 @@ services:
     # Ensure ShopfullyService is properly autowired
     App\Service\ShopfullyService: ~
 
-    App\Service\BrochureLinkerService: ~
+    App\Service\BrochureLinkerService:
+        arguments:
+            $debug: '%env(bool:BROCHURE_LINKER_DEBUG)%'
 
     App\Service\FileLogger:
         arguments:

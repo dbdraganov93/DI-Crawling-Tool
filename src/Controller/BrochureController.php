@@ -40,6 +40,7 @@ class BrochureController extends AbstractController
             $website = $request->request->get('website');
             $prefix = $request->request->get('prefix');
             $suffix = $request->request->get('suffix');
+            $debug = $request->request->getBoolean('debug');
 
             $dir = $this->getParameter('kernel.project_dir') . '/public/pdf';
             if (!is_dir($dir)) {
@@ -63,7 +64,8 @@ class BrochureController extends AbstractController
             if (!is_dir($logDir)) {
                 mkdir($logDir, 0777, true);
             }
-            $cmd = sprintf('php %s app:brochure:worker %d >> var/log/brochure-job.log 2>&1', $console, $job->getId());
+            $env = $debug ? 'BROCHURE_LINKER_DEBUG=1 ' : '';
+            $cmd = sprintf('%sphp %s app:brochure:worker %d >> var/log/brochure-job.log 2>&1', $env, $console, $job->getId());
             $process = Process::fromShellCommandline($cmd, $this->getParameter('kernel.project_dir'));
             $process->disableOutput();
             $process->setTimeout(null);
