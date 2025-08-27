@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Brochure Linker{% endblock %}
+
+{% block body %}
+<div class="container py-5" style="max-width:600px;">
+    <h1 class="mb-4 text-center">Brochure Linker</h1>
+    <form id="linker-form" action="{{ path('brochure_linker_process') }}" method="post" enctype="multipart/form-data" class="bg-white p-4 rounded shadow-sm">
+        <div class="mb-3">
+            <label class="form-label">Brochure PDF</label>
+            <input type="file" name="pdf" accept="application/pdf" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Website to search</label>
+            <input type="text" name="website" class="form-control" placeholder="example.com" required>
+        </div>
+        <div class="row">
+            <div class="col mb-3">
+                <label class="form-label">Link prefix</label>
+                <input type="text" name="prefix" class="form-control" placeholder="https://shop.example.com/">
+            </div>
+            <div class="col mb-3">
+                <label class="form-label">Link suffix</label>
+                <input type="text" name="suffix" class="form-control" placeholder="?ref=brochure">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Link brochure</button>
+    </form>
+    <div id="result" class="alert alert-success mt-4 d-none">
+        Brochure processed:
+        <a id="download-pdf" href="#" class="alert-link">Download PDF</a>
+        |
+        <a id="download-json" href="#" class="alert-link">JSON</a>
+    </div>
+</div>
+<script src="{{ asset('js/brochure-linker.js') }}"></script>
+{% endblock %}

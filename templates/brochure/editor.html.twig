@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Brochure{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .page { margin-bottom:20px; position:relative; }
+        .link-rect { border:2px solid red; position:absolute; cursor:move; }
+        .link-label { position:absolute; top:0; left:0; background:rgba(255,0,0,.7); color:#fff; font-size:12px; padding:0 2px; }
+        .pagination-controls { margin-bottom:10px; }
+    </style>
+{% endblock %}
+
+{% block body %}
+<h1 class="mb-3">Edit PDF Links</h1>
+<div class="pagination-controls d-flex align-items-center mb-2">
+    <button id="prevPage" class="btn btn-secondary btn-sm me-2">Prev</button>
+    <span id="pageIndicator" class="me-2">Page 1/1</span>
+    <button id="nextPage" class="btn btn-secondary btn-sm">Next</button>
+</div>
+<div id="pdfContainer"></div>
+<button id="addLink" class="btn btn-primary mt-3">Add Link</button>
+<button id="savePdf" class="btn btn-success mt-3">Save & Download</button>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <script>
+        window.editorData = { pdfUrl: '{{ pdfUrl }}', jsonUrl: '{{ jsonUrl }}' };
+    </script>
+    <script src="{{ asset('js/brochure-editor.js') }}"></script>
+{% endblock %}
