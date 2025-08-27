@@ -22,6 +22,7 @@ class BrochureLinkerService
     private string $projectDir;
     private string $openaiModel;
     private string $ocrLang;
+    private bool $debug;
 
     public function __construct(
         KernelInterface $kernel,
@@ -33,10 +34,12 @@ class BrochureLinkerService
         private string $googleCx,
         ?string $openaiModel = null,
         string $ocrLang = 'eng',
+        bool $debug = false,
     ) {
         $this->projectDir = $kernel->getProjectDir();
         $this->openaiModel = $openaiModel ?: 'gpt-4o-mini';
         $this->ocrLang = $ocrLang;
+        $this->debug = $debug;
     }
 
     /**
@@ -144,6 +147,9 @@ class BrochureLinkerService
             return null;
         }
         try {
+            if ($this->debug) {
+                $this->logger->debug('Google search query', ['query' => $query]);
+            }
             $response = $this->httpClient->request('GET', 'https://www.googleapis.com/customsearch/v1', [
                 'query' => [
                     'key' => $this->googleApiKey,
@@ -151,8 +157,16 @@ class BrochureLinkerService
                     'q' => $query,
                 ],
             ]);
-            $data = $response->toArray(false);
-            return $data['items'][0]['link'] ?? null;
+            $raw = $response->getContent(false);
+            if ($this->debug) {
+                $this->logger->debug('Google raw response', ['body' => $raw]);
+            }
+            $data = json_decode($raw, true);
+            $link = $data['items'][0]['link'] ?? null;
+            if ($this->debug) {
+                $this->logger->debug('Google first result', ['url' => $link]);
+            }
+            return $link;
         } catch (\Throwable $e) {
             $this->logger->error('Google search failed', ['error' => $e->getMessage()]);
             return null;
@@ -166,6 +180,9 @@ class BrochureLinkerService
             throw new \RuntimeException('OpenAI API key not configured');
         }
         try {
+            if ($this->debug) {
+                $this->logger->debug('ChatGPT prompt', ['prompt' => $prompt]);
+            }
             $response = $this->httpClient->request('POST', 'https://api.openai.com/v1/chat/completions', [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->openaiApiKey,
@@ -179,11 +196,14 @@ class BrochureLinkerService
                 ],
             ]);
             $status = $response->getStatusCode();
+            $body = $response->getContent(false);
+            if ($this->debug) {
+                $this->logger->debug('ChatGPT raw response', ['status' => $status, 'body' => $body]);
+            }
             if ($status !== 200) {
-                $body = $response->getContent(false);
                 throw new \RuntimeException('OpenAI API status ' . $status . ': ' . $body);
             }
-            $data = $response->toArray(false);
+            $data = json_decode($body, true);
             return $data['choices'][0]['message']['content'] ?? '';
         } catch (\Throwable $e) {
             $this->logger->error('OpenAI request failed', ['error' => $e->getMessage()]);

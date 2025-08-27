@@ -51,6 +51,9 @@ Create .env file by copying .env.example to .env and filling in the necessary va
 Set `OPENAI_API_KEY` with your key and optionally `OPENAI_MODEL` (e.g. `gpt-4`).
 The OCR step uses `pytesseract`; configure its language with `OCR_LANG` (default `eng`).
 
+### Debug mode
+Set `BROCHURE_LINKER_DEBUG=1` to log ChatGPT prompts, raw responses, and Google search queries to the application log for troubleshooting.
+
 Configure DB in .env
 
 Generate migration with command
