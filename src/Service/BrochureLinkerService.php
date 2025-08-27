@@ -204,7 +204,12 @@ class BrochureLinkerService
             return null;
         }
 
-        $name = $item['product'] ?? $item['name'] ?? null;
+        $name = $item['product']
+            ?? $item['name']
+            ?? $item['title']
+            ?? $item['product_name']
+            ?? $item['productName']
+            ?? null;
         if (empty($name)) {
             return null;
         }

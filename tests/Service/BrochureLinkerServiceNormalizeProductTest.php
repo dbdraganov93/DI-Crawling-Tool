@@ -23,4 +23,26 @@ class BrochureLinkerServiceNormalizeProductTest extends TestCase
         $this->assertSame('Milk', $result['product']);
         $this->assertSame(1, $result['page']);
     }
+
+    /**
+     * @dataProvider productNameProvider
+     */
+    public function testHandlesArrayWithVariousNameKeys(array $input): void
+    {
+        $result = $this->invokeNormalize($input);
+        $this->assertNotNull($result);
+        $this->assertSame('Bread', $result['product']);
+        $this->assertSame(1, $result['page']);
+    }
+
+    public function productNameProvider(): array
+    {
+        return [
+            [['product' => 'Bread']],
+            [['name' => 'Bread']],
+            [['title' => 'Bread']],
+            [['product_name' => 'Bread']],
+            [['productName' => 'Bread']],
+        ];
+    }
 }
