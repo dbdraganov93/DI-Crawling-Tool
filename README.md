@@ -88,6 +88,11 @@ php bin/console messenger:consume async --time-limit=3600
 
 Restart the worker whenever you deploy new code so it picks up the latest changes.
 
+When using the bundled Docker environment, the `dicrawler_worker` service already waits
+for MySQL, installs Composer dependencies, ensures the Flipify schema exists, sets up
+the Messenger transports, and simultaneously runs both the Flipify queue consumer and
+the legacy `app:shopfully:worker` loop via `docker/worker/start.sh`.
+
 # MySQL Setup on Ubuntu
 
 This guide provides steps to install, secure, and configure a MySQL database on Ubuntu, including creating a UTF8 `diCrawlers` database and a dedicated user.
