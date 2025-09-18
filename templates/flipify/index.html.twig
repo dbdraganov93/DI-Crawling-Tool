@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Flipify{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <h1 class="mb-4 text-center">Flipify</h1>
+
+            {% for message in app.flashes('success') %}
+                <div class="alert alert-success">{{ message }}</div>
+            {% endfor %}
+            {% for message in app.flashes('error') %}
+                <div class="alert alert-danger">{{ message }}</div>
+            {% endfor %}
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <p class="text-muted">Upload a PDF file to store it in the application. The company website field is optional.</p>
+                    {{ form_start(form) }}
+                        <div class="mb-3">
+                            {{ form_label(form.companyWebsite) }}
+                            {{ form_widget(form.companyWebsite, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.companyWebsite) }}
+                        </div>
+                        <div class="mb-3">
+                            {{ form_label(form.pdfFile) }}
+                            {{ form_widget(form.pdfFile, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.pdfFile) }}
+                        </div>
+                        <div class="d-grid">
+                            {{ form_widget(form.submit) }}
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
