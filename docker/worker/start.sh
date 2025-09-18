@@ -57,6 +57,9 @@ php bin/console messenger:setup-transports --no-interaction
 php bin/console messenger:consume async --time-limit=0 --sleep=1 --memory-limit=256M &
 pids+=($!)
 
+php bin/console app:flipify:worker --sleep=5 &
+pids+=($!)
+
 php bin/console app:shopfully:worker &
 pids+=($!)
 

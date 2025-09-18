@@ -78,20 +78,22 @@ symfony serve -d
 
 ## Flipify brochure analysis worker
 
-Flipify PDF analyses are processed asynchronously through Symfony Messenger. Ensure the
-message queue tables exist and start a worker in a long-running process:
+Flipify PDF analyses are processed asynchronously. Ensure the message queue tables
+exist and start a worker in a long-running process:
 
 ```
 php bin/console messenger:setup-transports
 php bin/console messenger:consume async --time-limit=3600
+php bin/console app:flipify:worker --sleep=5
 ```
 
-Restart the worker whenever you deploy new code so it picks up the latest changes.
+Restart the workers whenever you deploy new code so they pick up the latest changes.
 
 When using the bundled Docker environment, the `dicrawler_worker` service already waits
 for MySQL, installs Composer dependencies, ensures the Flipify schema exists, sets up
-the Messenger transports, and simultaneously runs both the Flipify queue consumer and
-the legacy `app:shopfully:worker` loop via `docker/worker/start.sh`.
+the Messenger transports, and simultaneously runs both the Flipify queue consumer,
+the dedicated Flipify worker loop, and the legacy `app:shopfully:worker` via
+`docker/worker/start.sh`.
 
 # MySQL Setup on Ubuntu
 
