@@ -53,6 +53,7 @@
                                     <th scope="col">Uploaded at</th>
                                     <th scope="col">File</th>
                                     <th scope="col">Company website</th>
+                                    <th scope="col">Status</th>
                                     <th scope="col">Detected products</th>
                                     <th scope="col" class="text-end">Actions</th>
                                 </tr>
@@ -72,57 +73,90 @@
                                                 <span class="text-muted">—</span>
                                             {% endif %}
                                         </td>
-                                        <td>
-                                            {% if import.products is empty %}
-                                                <span class="text-muted">No products detected.</span>
-                                            {% else %}
-                                                <div class="flipify-product-list">
-                                                    {% for product in import.products %}
-                                                        <div class="border-start border-3 border-primary ps-3 mb-3">
-                                                            <div class="fw-semibold">{{ product.name ?? 'Unknown product' }}</div>
-                                                            <ul class="list-unstyled mb-2 small">
-                                                                <li><strong>Page:</strong> {{ product.page ?? '—' }}</li>
-                                                                {% if product.position is defined and product.position is not null %}
-                                                                    <li><strong>Position:</strong> {{ product.position }}</li>
-                                                                {% endif %}
-                                                                {% if product.category %}
-                                                                    <li><strong>Category:</strong> {{ product.category }}</li>
-                                                                {% endif %}
-                                                                {% if product.price is not null %}
-                                                                    <li>
-                                                                        <strong>Price:</strong>
-                                                                        {{ product.price|number_format(2, '.', ' ') }}{% if product.currency %} {{ product.currency }}{% endif %}
-                                                                    </li>
-                                                                {% endif %}
-                                                                {% if product.discount_price is not null %}
-                                                                    <li>
-                                                                        <strong>Discount price:</strong>
-                                                                        {{ product.discount_price|number_format(2, '.', ' ') }}{% if product.currency %} {{ product.currency }}{% endif %}
-                                                                    </li>
-                                                                {% endif %}
-                                                                {% set box = product.bounding_box ?? {} %}
-                                                                {% if (box.x ?? null) is not null or (box.y ?? null) is not null or (box.width ?? null) is not null or (box.height ?? null) is not null %}
-                                                                    <li>
-                                                                        <strong>Coordinates:</strong>
-                                                                        x={{ box.x is not null ? box.x|number_format(1, '.', ' ') : '—' }},
-                                                                        y={{ box.y is not null ? box.y|number_format(1, '.', ' ') : '—' }},
-                                                                        w={{ box.width is not null ? box.width|number_format(1, '.', ' ') : '—' }},
-                                                                        h={{ box.height is not null ? box.height|number_format(1, '.', ' ') : '—' }}
-                                                                    </li>
-                                                                {% endif %}
-                                                            </ul>
-                                                            {% if product.description %}
-                                                                <p class="text-muted small mb-0">{{ product.description }}</p>
-                                                            {% endif %}
-                                                        </div>
-                                                    {% endfor %}
+                                        <td data-order="{{ import.status }}">
+                                            {% set statusClasses = {
+                                                'pending': 'bg-secondary',
+                                                'processing': 'bg-info text-dark',
+                                                'completed': 'bg-success',
+                                                'failed': 'bg-danger'
+                                            } %}
+                                            {% set badgeClass = statusClasses[import.status] ?? 'bg-secondary' %}
+                                            <span class="badge {{ badgeClass }}">{{ import.statusLabel }}</span>
+                                            {% if import.isProcessing %}
+                                                <div class="text-muted small mt-2">Analysis in progress…</div>
+                                            {% elseif import.isPending %}
+                                                <div class="text-muted small mt-2">Queued for analysis.</div>
+                                            {% elseif import.isFailed %}
+                                                <div class="text-danger small mt-2">
+                                                    {{ import.errorMessage ?: 'Analysis failed. Please upload the brochure again.' }}
                                                 </div>
+                                            {% elseif import.isCompleted and import.processedAt %}
+                                                <div class="text-muted small mt-2">Finished on {{ import.processedAt|date('Y-m-d H:i') }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if import.isCompleted %}
+                                                {% if import.products is empty %}
+                                                    <span class="text-muted">No products detected.</span>
+                                                {% else %}
+                                                    <div class="flipify-product-list">
+                                                        {% for product in import.products %}
+                                                            <div class="border-start border-3 border-primary ps-3 mb-3">
+                                                                <div class="fw-semibold">{{ product.name ?? 'Unknown product' }}</div>
+                                                                <ul class="list-unstyled mb-2 small">
+                                                                    <li><strong>Page:</strong> {{ product.page ?? '—' }}</li>
+                                                                    {% if product.position is defined and product.position is not null %}
+                                                                        <li><strong>Position:</strong> {{ product.position }}</li>
+                                                                    {% endif %}
+                                                                    {% if product.category %}
+                                                                        <li><strong>Category:</strong> {{ product.category }}</li>
+                                                                    {% endif %}
+                                                                    {% if product.price is not null %}
+                                                                        <li>
+                                                                            <strong>Price:</strong>
+                                                                            {{ product.price|number_format(2, '.', ' ') }}{% if product.currency %} {{ product.currency }}{% endif %}
+                                                                        </li>
+                                                                    {% endif %}
+                                                                    {% if product.discount_price is not null %}
+                                                                        <li>
+                                                                            <strong>Discount price:</strong>
+                                                                            {{ product.discount_price|number_format(2, '.', ' ') }}{% if product.currency %} {{ product.currency }}{% endif %}
+                                                                        </li>
+                                                                    {% endif %}
+                                                                    {% set box = product.bounding_box ?? {} %}
+                                                                    {% if (box.x ?? null) is not null or (box.y ?? null) is not null or (box.width ?? null) is not null or (box.height ?? null) is not null %}
+                                                                        <li>
+                                                                            <strong>Coordinates:</strong>
+                                                                            x={{ box.x is not null ? box.x|number_format(1, '.', ' ') : '—' }},
+                                                                            y={{ box.y is not null ? box.y|number_format(1, '.', ' ') : '—' }},
+                                                                            w={{ box.width is not null ? box.width|number_format(1, '.', ' ') : '—' }},
+                                                                            h={{ box.height is not null ? box.height|number_format(1, '.', ' ') : '—' }}
+                                                                        </li>
+                                                                    {% endif %}
+                                                                </ul>
+                                                                {% if product.description %}
+                                                                    <p class="text-muted small mb-0">{{ product.description }}</p>
+                                                                {% endif %}
+                                                            </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            {% elseif import.isFailed %}
+                                                <span class="text-danger">Analysis failed. Please upload the brochure again.</span>
+                                            {% elseif import.isProcessing %}
+                                                <span class="text-info">Processing…</span>
+                                            {% else %}
+                                                <span class="text-muted">Waiting to be processed.</span>
                                             {% endif %}
                                         </td>
                                         <td class="text-end">
-                                            <a class="btn btn-outline-secondary btn-sm" href="{{ path('app_flipify_export', {id: import.id}) }}">
-                                                Export JSON
-                                            </a>
+                                            {% if import.isCompleted %}
+                                                <a class="btn btn-outline-secondary btn-sm" href="{{ path('app_flipify_export', {id: import.id}) }}">
+                                                    Export JSON
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted small">Export available after analysis.</span>
+                                            {% endif %}
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -158,7 +192,7 @@
                     zeroRecords: 'No analyses found',
                 },
                 columnDefs: [
-                    { orderable: false, targets: [3, 4] },
+                    { orderable: false, targets: [4, 5] },
                 ],
             });
         });

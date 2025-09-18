@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Entity\FlipifyImport;
 use App\Repository\FlipifyImportRepository;
-use App\Service\Flipify\FlipifyAnalyzer;
+use App\Message\FlipifyImportMessage;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
@@ -13,6 +13,7 @@ use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Constraints\File;
 use Throwable;
@@ -22,9 +23,9 @@ final class FlipifyController extends AbstractController
     #[Route('/flipify', name: 'app_flipify', methods: ['GET', 'POST'])]
     public function index(
         Request $request,
-        FlipifyAnalyzer $flipifyAnalyzer,
         EntityManagerInterface $entityManager,
         FlipifyImportRepository $repository,
+        MessageBusInterface $messageBus,
     ): Response {
         $form = $this->createFormBuilder()
             ->add('companyWebsite', UrlType::class, [
@@ -76,23 +77,25 @@ final class FlipifyController extends AbstractController
                     return $this->redirectToRoute('app_flipify');
                 }
 
-                $storedPath = sprintf('%s/%s', $uploadDirectory, $storedFilename);
                 $originalName = $pdfFile->getClientOriginalName() ?: $storedFilename;
 
+                $import = new FlipifyImport($originalName, $storedFilename, $companyWebsite ?: null);
+                $entityManager->persist($import);
+                $entityManager->flush();
+
                 try {
-                    $products = $flipifyAnalyzer->analyze($storedPath);
+                    $messageBus->dispatch(new FlipifyImportMessage($import->getId()));
                 } catch (Throwable $exception) {
-                    @unlink($storedPath);
-                    $this->addFlash('error', 'Unable to analyse the PDF: ' . $exception->getMessage());
+                    $import->markFailed('Failed to queue analysis: ' . $exception->getMessage());
+                    $entityManager->flush();
+                    @unlink(sprintf('%s/%s', $uploadDirectory, $storedFilename));
+
+                    $this->addFlash('error', 'The PDF was uploaded but could not be queued for analysis. Please try again.');
 
                     return $this->redirectToRoute('app_flipify');
                 }
 
-                $import = new FlipifyImport($originalName, $storedFilename, $companyWebsite ?: null, $products);
-                $entityManager->persist($import);
-                $entityManager->flush();
-
-                $this->addFlash('success', sprintf('PDF processed successfully. %d product(s) detected.', \count($products)));
+                $this->addFlash('success', 'PDF uploaded successfully. Analysis has been queued and will run shortly.');
 
                 return $this->redirectToRoute('app_flipify');
             }

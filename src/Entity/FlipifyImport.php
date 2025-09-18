@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\FlipifyImportRepository;
+use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -10,6 +11,11 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'flipify_import')]
 class FlipifyImport
 {
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_PROCESSING = 'processing';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_FAILED = 'failed';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -27,8 +33,17 @@ class FlipifyImport
     #[ORM\Column(type: Types::JSON)]
     private array $products = [];
 
+    #[ORM\Column(length: 32)]
+    private string $status = self::STATUS_PENDING;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $errorMessage = null;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    private \DateTimeImmutable $createdAt;
+    private DateTimeImmutable $createdAt;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?DateTimeImmutable $processedAt = null;
 
     public function __construct(string $originalFilename, string $storedFilename, ?string $companyWebsite = null, array $products = [])
     {
@@ -36,7 +51,11 @@ class FlipifyImport
         $this->storedFilename = $storedFilename;
         $this->companyWebsite = $companyWebsite;
         $this->products = array_values($products);
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = new DateTimeImmutable();
+        $this->status = $products === [] ? self::STATUS_PENDING : self::STATUS_COMPLETED;
+        if ($products !== []) {
+            $this->processedAt = $this->createdAt;
+        }
     }
 
     public function getId(): ?int
@@ -85,9 +104,84 @@ class FlipifyImport
         $this->products[] = $product;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function getProcessedAt(): ?DateTimeImmutable
+    {
+        return $this->processedAt;
+    }
+
+    public function markProcessing(): void
+    {
+        $this->status = self::STATUS_PROCESSING;
+        $this->errorMessage = null;
+        $this->processedAt = null;
+        $this->products = [];
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $products
+     */
+    public function markCompleted(array $products): void
+    {
+        $this->status = self::STATUS_COMPLETED;
+        $this->setProducts($products);
+        $this->processedAt = new DateTimeImmutable();
+        $this->errorMessage = null;
+    }
+
+    public function markFailed(string $errorMessage): void
+    {
+        $this->status = self::STATUS_FAILED;
+        $this->products = [];
+        $this->processedAt = new DateTimeImmutable();
+        $this->errorMessage = function_exists('mb_substr')
+            ? mb_substr($errorMessage, 0, 1000)
+            : substr($errorMessage, 0, 1000);
+    }
+
+    public function getStatus(): string
+    {
+        return $this->status;
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
+    }
+
+    public function isProcessing(): bool
+    {
+        return $this->status === self::STATUS_PROCESSING;
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->status === self::STATUS_COMPLETED;
+    }
+
+    public function isFailed(): bool
+    {
+        return $this->status === self::STATUS_FAILED;
+    }
+
+    public function getErrorMessage(): ?string
+    {
+        return $this->errorMessage;
+    }
+
+    public function getStatusLabel(): string
+    {
+        return match ($this->status) {
+            self::STATUS_PENDING => 'Pending',
+            self::STATUS_PROCESSING => 'Processing',
+            self::STATUS_COMPLETED => 'Completed',
+            self::STATUS_FAILED => 'Failed',
+            default => ucfirst($this->status),
+        };
     }
 
     public function getProductCount(): int

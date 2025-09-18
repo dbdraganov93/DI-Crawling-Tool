@@ -76,6 +76,18 @@ Run the server
 symfony serve -d
 ```
 
+## Flipify brochure analysis worker
+
+Flipify PDF analyses are processed asynchronously through Symfony Messenger. Ensure the
+message queue tables exist and start a worker in a long-running process:
+
+```
+php bin/console messenger:setup-transports
+php bin/console messenger:consume async --time-limit=3600
+```
+
+Restart the worker whenever you deploy new code so it picks up the latest changes.
+
 # MySQL Setup on Ubuntu
 
 This guide provides steps to install, secure, and configure a MySQL database on Ubuntu, including creating a UTF8 `diCrawlers` database and a dedicated user.
