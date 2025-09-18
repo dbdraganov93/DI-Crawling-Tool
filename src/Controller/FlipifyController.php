@@ -2,6 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\FlipifyImport;
+use App\Repository\FlipifyImportRepository;
+use App\Service\Flipify\FlipifyAnalyzer;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -11,12 +15,17 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Constraints\File;
+use Throwable;
 
 final class FlipifyController extends AbstractController
 {
     #[Route('/flipify', name: 'app_flipify', methods: ['GET', 'POST'])]
-    public function __invoke(Request $request): Response
-    {
+    public function index(
+        Request $request,
+        FlipifyAnalyzer $flipifyAnalyzer,
+        EntityManagerInterface $entityManager,
+        FlipifyImportRepository $repository,
+    ): Response {
         $form = $this->createFormBuilder()
             ->add('companyWebsite', UrlType::class, [
                 'label' => 'Company website',
@@ -37,7 +46,7 @@ final class FlipifyController extends AbstractController
                 ],
             ])
             ->add('submit', SubmitType::class, [
-                'label' => 'Upload PDF',
+                'label' => 'Upload and analyse',
                 'attr' => ['class' => 'btn btn-primary'],
             ])
             ->getForm();
@@ -45,10 +54,13 @@ final class FlipifyController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            /** @var \Symfony\Component\HttpFoundation\File\UploadedFile|null $pdfFile */
             $pdfFile = $form->get('pdfFile')->getData();
+            $companyWebsite = $form->get('companyWebsite')->getData();
+
             if ($pdfFile) {
                 $uploadDirectory = $this->getParameter('kernel.project_dir') . '/public/pdf';
-                $newFilename = sprintf('flipify-%s.%s', uniqid('', true), $pdfFile->guessExtension() ?: 'pdf');
+                $storedFilename = sprintf('flipify-%s.%s', uniqid('', true), $pdfFile->guessExtension() ?: 'pdf');
 
                 if (!is_dir($uploadDirectory) && !mkdir($uploadDirectory, 0775, true) && !is_dir($uploadDirectory)) {
                     $this->addFlash('error', 'Unable to access the upload directory.');
@@ -57,19 +69,30 @@ final class FlipifyController extends AbstractController
                 }
 
                 try {
-                    $pdfFile->move($uploadDirectory, $newFilename);
+                    $pdfFile->move($uploadDirectory, $storedFilename);
                 } catch (FileException) {
                     $this->addFlash('error', 'There was an error while uploading the file. Please try again.');
 
                     return $this->redirectToRoute('app_flipify');
                 }
 
-                $website = $form->get('companyWebsite')->getData();
-                $message = 'PDF uploaded successfully.';
-                if ($website) {
-                    $message .= sprintf(' Company website: %s', $website);
+                $storedPath = sprintf('%s/%s', $uploadDirectory, $storedFilename);
+                $originalName = $pdfFile->getClientOriginalName() ?: $storedFilename;
+
+                try {
+                    $products = $flipifyAnalyzer->analyze($storedPath);
+                } catch (Throwable $exception) {
+                    @unlink($storedPath);
+                    $this->addFlash('error', 'Unable to analyse the PDF: ' . $exception->getMessage());
+
+                    return $this->redirectToRoute('app_flipify');
                 }
-                $this->addFlash('success', $message);
+
+                $import = new FlipifyImport($originalName, $storedFilename, $companyWebsite ?: null, $products);
+                $entityManager->persist($import);
+                $entityManager->flush();
+
+                $this->addFlash('success', sprintf('PDF processed successfully. %d product(s) detected.', \count($products)));
 
                 return $this->redirectToRoute('app_flipify');
             }
@@ -77,6 +100,26 @@ final class FlipifyController extends AbstractController
 
         return $this->render('flipify/index.html.twig', [
             'form' => $form->createView(),
+            'imports' => $repository->findLatest(),
         ]);
+    }
+
+    #[Route('/flipify/export/{id}', name: 'app_flipify_export', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function export(FlipifyImport $import): Response
+    {
+        $payload = [
+            'uploaded_at' => $import->getCreatedAt()->format(DATE_ATOM),
+            'original_filename' => $import->getOriginalFilename(),
+            'company_website' => $import->getCompanyWebsite(),
+            'products' => $import->getProducts(),
+        ];
+
+        $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+
+        $response = new Response($json);
+        $response->headers->set('Content-Type', 'application/json');
+        $response->headers->set('Content-Disposition', sprintf('attachment; filename="%s.json"', pathinfo($import->getStoredFilename(), PATHINFO_FILENAME)));
+
+        return $response;
     }
 }
