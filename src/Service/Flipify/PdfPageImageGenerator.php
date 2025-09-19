@@ -5,10 +5,14 @@ namespace App\Service\Flipify;
 use Imagick;
 use ImagickException;
 use RuntimeException;
+use Throwable;
 
 final class PdfPageImageGenerator
 {
-    public function __construct(private readonly int $resolution = 220)
+    public function __construct(
+        private readonly int $resolution = 220,
+        private readonly int $compressionQuality = 90,
+    )
     {
     }
 
@@ -32,47 +36,119 @@ final class PdfPageImageGenerator
             throw new RuntimeException(sprintf('Unable to prepare working directory "%s".', $tempDirectory));
         }
 
-        $imagick = new Imagick();
-        $imagick->setResolution($this->resolution, $this->resolution);
-
         try {
-            $imagick->readImage($pdfPath);
+            $pageCount = $this->detectPageCount($pdfPath);
         } catch (ImagickException $exception) {
             throw new RuntimeException('Failed to read the brochure PDF: ' . $exception->getMessage(), 0, $exception);
         }
 
-        $paths = [];
-        foreach ($imagick as $index => $page) {
-            \assert($page instanceof Imagick);
-            $page->setImageFormat('png');
-            $page->setImageBackgroundColor('white');
-            if (defined('Imagick::ALPHACHANNEL_REMOVE')) {
-                $page->setImageAlphaChannel(Imagick::ALPHACHANNEL_REMOVE);
-            }
-            if (method_exists($page, 'mergeImageLayers')) {
-                $page->mergeImageLayers(Imagick::LAYERMETHOD_FLATTEN);
-            }
-
-            $filePath = sprintf('%s/page-%03d.png', $tempDirectory, $index + 1);
-
-            try {
-                $page->writeImage($filePath);
-            } catch (ImagickException $exception) {
-                $imagick->clear();
-                $imagick->destroy();
-                throw new RuntimeException('Failed to convert a PDF page into an image: ' . $exception->getMessage(), 0, $exception);
-            }
-
-            $paths[] = $filePath;
+        if ($pageCount === 0) {
+            throw new RuntimeException('No pages were found in the provided PDF.');
         }
 
-        $imagick->clear();
-        $imagick->destroy();
+        $paths = [];
+        try {
+            for ($index = 0; $index < $pageCount; ++$index) {
+                $paths[] = $this->renderPage($pdfPath, $index, $tempDirectory);
+            }
+        } catch (Throwable $exception) {
+            $this->cleanupDirectory($tempDirectory);
+
+            if ($exception instanceof RuntimeException) {
+                throw $exception;
+            }
+
+            throw new RuntimeException('Failed to convert a PDF page into an image: ' . $exception->getMessage(), 0, $exception);
+        }
 
         if ($paths === []) {
             throw new RuntimeException('No pages were found in the provided PDF.');
         }
 
         return new PdfImageSet($tempDirectory, $paths);
+    }
+
+    private function detectPageCount(string $pdfPath): int
+    {
+        $imagick = new Imagick();
+
+        try {
+            $imagick->pingImage($pdfPath);
+
+            return (int) max(0, $imagick->getNumberImages());
+        } finally {
+            $imagick->clear();
+            $imagick->destroy();
+        }
+    }
+
+    private function renderPage(string $pdfPath, int $index, string $tempDirectory): string
+    {
+        $page = new Imagick();
+        $page->setResolution($this->resolution, $this->resolution);
+
+        try {
+            $page->readImage(sprintf('%s[%d]', $pdfPath, $index));
+        } catch (ImagickException $exception) {
+            throw new RuntimeException('Failed to read a page from the PDF: ' . $exception->getMessage(), 0, $exception);
+        }
+
+        $page->setImageFormat('jpeg');
+        $page->setImageBackgroundColor('white');
+
+        if (method_exists($page, 'setImageCompressionQuality')) {
+            $page->setImageCompressionQuality($this->compressionQuality);
+        }
+
+        if (method_exists($page, 'stripImage')) {
+            $page->stripImage();
+        }
+
+        if (defined('Imagick::ALPHACHANNEL_REMOVE')) {
+            $page->setImageAlphaChannel(Imagick::ALPHACHANNEL_REMOVE);
+        }
+
+        if (method_exists($page, 'mergeImageLayers')) {
+            try {
+                $page->mergeImageLayers(Imagick::LAYERMETHOD_FLATTEN);
+            } catch (ImagickException $exception) {
+                $page->clear();
+                $page->destroy();
+                throw new RuntimeException('Failed to flatten a PDF page: ' . $exception->getMessage(), 0, $exception);
+            }
+        }
+
+        $filePath = sprintf('%s/page-%03d.jpg', $tempDirectory, $index + 1);
+
+        try {
+            $page->writeImage($filePath);
+        } catch (ImagickException $exception) {
+            $page->clear();
+            $page->destroy();
+            throw new RuntimeException('Failed to convert a PDF page into an image: ' . $exception->getMessage(), 0, $exception);
+        }
+
+        $page->clear();
+        $page->destroy();
+
+        return $filePath;
+    }
+
+    private function cleanupDirectory(string $directory): void
+    {
+        if (!is_dir($directory)) {
+            return;
+        }
+
+        $paths = glob($directory . '/*');
+        if ($paths !== false) {
+            foreach ($paths as $path) {
+                if (is_file($path)) {
+                    @unlink($path);
+                }
+            }
+        }
+
+        @rmdir($directory);
     }
 }

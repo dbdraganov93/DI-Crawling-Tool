@@ -81,6 +81,7 @@ final class OpenAiProductExtractor
             return [];
         }
 
+        $mimeType = @mime_content_type($imagePath) ?: 'image/jpeg';
         $sizeInfo = @getimagesize($imagePath);
         $width = $sizeInfo[0] ?? null;
         $height = $sizeInfo[1] ?? null;
@@ -119,7 +120,7 @@ final class OpenAiProductExtractor
                     [
                         'type' => 'image_url',
                         'image_url' => [
-                            'url' => sprintf('data:image/png;base64,%s', $base64Image),
+                            'url' => sprintf('data:%s;base64,%s', $mimeType, $base64Image),
                             'detail' => 'high',
                         ],
                     ],
