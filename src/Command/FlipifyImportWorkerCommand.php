@@ -5,6 +5,7 @@ namespace App\Command;
 use App\Repository\FlipifyImportRepository;
 use App\Service\Flipify\FlipifyImportProcessor;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -24,6 +25,7 @@ final class FlipifyImportWorkerCommand extends Command implements SignalableComm
     public function __construct(
         private readonly FlipifyImportRepository $repository,
         private readonly FlipifyImportProcessor $processor,
+        #[Autowire(service: 'monolog.logger.flipify')]
         private readonly LoggerInterface $logger,
     ) {
         parent::__construct();
@@ -41,29 +43,57 @@ final class FlipifyImportWorkerCommand extends Command implements SignalableComm
         $sleepSeconds = max(1, (int) $input->getOption('sleep'));
         $id = $input->getArgument('id');
 
+        $this->logger->info('Flipify worker initialised.', [
+            'mode' => $id !== null ? 'single' : 'daemon',
+            'sleepSeconds' => $sleepSeconds,
+        ]);
+
         if ($id !== null) {
             $importId = (int) $id;
             $output->writeln(sprintf('<info>Processing Flipify import %d...</info>', $importId));
 
-            return $this->processor->process($importId) ? Command::SUCCESS : Command::FAILURE;
+            $result = $this->processor->process($importId);
+
+            $this->logger->info('Flipify worker finished single-run execution.', [
+                'importId' => $importId,
+                'result' => $result ? 'processed' : 'skipped',
+            ]);
+
+            return $result ? Command::SUCCESS : Command::FAILURE;
         }
 
         $output->writeln('<info>Flipify worker started. Press Ctrl+C to stop.</info>');
+
+        $this->logger->info('Flipify worker entering processing loop.');
 
         while (!$this->shouldStop) {
             $importId = $this->repository->findNextPendingId();
 
             if ($importId === null) {
                 $output->writeln('<comment>No pending Flipify imports. Sleeping...</comment>');
+                $this->logger->debug('No pending Flipify imports found.', [
+                    'sleepSeconds' => $sleepSeconds,
+                ]);
                 sleep($sleepSeconds);
                 continue;
             }
 
             $output->writeln(sprintf('<info>Processing Flipify import %d...</info>', $importId));
-            $this->processor->process($importId);
+            $this->logger->info('Flipify worker picked up import.', [
+                'importId' => $importId,
+            ]);
+
+            $result = $this->processor->process($importId);
+
+            $this->logger->info('Flipify worker finished processing import.', [
+                'importId' => $importId,
+                'result' => $result ? 'processed' : 'skipped',
+            ]);
         }
 
         $output->writeln('<info>Flipify worker stopped.</info>');
+
+        $this->logger->info('Flipify worker stopped gracefully.');
 
         return Command::SUCCESS;
     }

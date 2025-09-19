@@ -68,8 +68,3 @@ services:
     # Ensure ShopfullyService is properly autowired
     App\Service\ShopfullyService: ~
 
-    App\Service\FileLogger:
-        arguments:
-            $logFile: '%kernel.logs_dir%/%kernel.environment%.log'
-
-    Psr\Log\LoggerInterface: '@App\Service\FileLogger'

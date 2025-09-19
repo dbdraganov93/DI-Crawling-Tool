@@ -16,6 +16,7 @@ final class OpenAiProductExtractor
         private readonly HttpClientInterface $httpClient,
         #[Autowire(env: 'OPENAI_API_KEY')]
         private readonly string $openAiApiKey,
+        #[Autowire(service: 'monolog.logger.flipify')]
         private readonly LoggerInterface $logger,
     ) {
         if ($this->openAiApiKey === '') {
@@ -28,16 +29,37 @@ final class OpenAiProductExtractor
      */
     public function extractFromImages(PdfImageSet $imageSet): array
     {
+        $paths = $imageSet->getPaths();
+        $pageCount = \count($paths);
+
+        $this->logger->info('Submitting brochure pages to OpenAI.', [
+            'pageCount' => $pageCount,
+        ]);
+
         $products = [];
 
-        foreach ($imageSet->getPaths() as $index => $path) {
+        foreach ($paths as $index => $path) {
             $pageNumber = $index + 1;
+            $this->logger->debug('Calling OpenAI for brochure page.', [
+                'page' => $pageNumber,
+                'imagePath' => $path,
+            ]);
+
             $pageProducts = $this->analyseSinglePage($path, $pageNumber);
+
+            $this->logger->info('OpenAI returned products for brochure page.', [
+                'page' => $pageNumber,
+                'productCount' => \count($pageProducts),
+            ]);
 
             foreach ($pageProducts as $product) {
                 $products[] = $product;
             }
         }
+
+        $this->logger->info('Completed OpenAI extraction for brochure.', [
+            'totalProducts' => \count($products),
+        ]);
 
         return $products;
     }
@@ -54,7 +76,7 @@ final class OpenAiProductExtractor
 
         $base64Image = base64_encode($imageContents);
         if ($base64Image === '') {
-            $this->logger->warning('Generated brochure image was empty.', ['image' => $imagePath]);
+            $this->logger->warning('Generated brochure image was empty.', ['image' => $imagePath, 'page' => $pageNumber]);
 
             return [];
         }
@@ -169,6 +191,7 @@ final class OpenAiProductExtractor
             $this->logger->error('OpenAI API returned an error for Flipify analysis.', [
                 'status' => $statusCode,
                 'body' => $rawBody,
+                'page' => $pageNumber,
             ]);
 
             throw new RuntimeException('OpenAI API error while analysing the brochure.');
@@ -177,6 +200,10 @@ final class OpenAiProductExtractor
         try {
             $decoded = json_decode($rawBody, true, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException $exception) {
+            $this->logger->error('Failed to decode OpenAI JSON response.', [
+                'page' => $pageNumber,
+                'error' => $exception->getMessage(),
+            ]);
             throw new RuntimeException('Failed to decode the OpenAI API response.', 0, $exception);
         }
 
@@ -186,6 +213,10 @@ final class OpenAiProductExtractor
         try {
             $structured = json_decode($jsonPayload, true, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException $exception) {
+            $this->logger->error('OpenAI returned malformed JSON payload.', [
+                'page' => $pageNumber,
+                'error' => $exception->getMessage(),
+            ]);
             throw new RuntimeException('The JSON returned by OpenAI could not be parsed.', 0, $exception);
         }
 

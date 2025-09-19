@@ -95,6 +95,20 @@ the Messenger transports, and simultaneously runs both the Flipify queue consume
 the dedicated Flipify worker loop, and the legacy `app:shopfully:worker` via
 `docker/worker/start.sh`.
 
+### Observing Flipify logs
+
+Flipify background processing emits structured logs to a dedicated `flipify` channel.
+You can review the most recent events via the Symfony log file or directly from the
+Docker worker output:
+
+```
+tail -f var/log/flipify.log
+docker logs -f dicrawler_worker
+```
+
+Each import life-cycle step (queue dequeue, worker claim, OpenAI call, success/failure)
+is logged with the import identifier so issues can be correlated across components.
+
 # MySQL Setup on Ubuntu
 
 This guide provides steps to install, secure, and configure a MySQL database on Ubuntu, including creating a UTF8 `diCrawlers` database and a dedicated user.
