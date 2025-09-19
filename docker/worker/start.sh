@@ -39,26 +39,45 @@ done
 echo "✅ MySQL is up"
 
 export COMPOSER_ALLOW_SUPERUSER=1
+echo "📦 Installing Composer dependencies..."
 composer install --no-interaction --no-progress --prefer-dist
 
+echo "📁 Ensuring Flipify storage directories are writable..."
 mkdir -p /var/www/html/public/pdf
 chown -R www-data:www-data /var/www/html/public/pdf
 chmod -R 775 /var/www/html/public/pdf
 
-until php bin/console doctrine:query:sql "SELECT 1 FROM flipify_import LIMIT 1" >/dev/null 2>&1; do
-    echo "⏳ Waiting for database schema..."
-    sleep 2
-done
+echo "🗄️ Creating database if needed..."
 
-echo "✅ Database schema is ready"
+php bin/console doctrine:database:create --if-not-exists --no-interaction
+
+echo "🧱 Generating database migrations (if needed)..."
+
+php bin/console doctrine:migrations:diff --no-interaction --allow-empty-diff
+
+echo "🚀 Running database migrations..."
+
+php bin/console doctrine:migrations:migrate --no-interaction
+
+echo "🌱 Loading data fixtures..."
+
+php bin/console doctrine:fixtures:load --no-interaction
+
+echo "🪢 Preparing messenger transports..."
 
 php bin/console messenger:setup-transports --no-interaction
 
-php bin/console messenger:consume async --time-limit=0 --sleep=1 --memory-limit=256M &
+echo "▶️ Starting async messenger consumer..."
+
+php bin/console messenger:consume async --time-limit=3600 --sleep=1 --memory-limit=256M --no-interaction &
 pids+=($!)
+
+echo "▶️ Starting Flipify import worker..."
 
 php bin/console app:flipify:worker --sleep=5 &
 pids+=($!)
+
+echo "▶️ Starting legacy Shopfully worker..."
 
 php bin/console app:shopfully:worker &
 pids+=($!)
