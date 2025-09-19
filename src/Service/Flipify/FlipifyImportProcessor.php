@@ -3,6 +3,7 @@
 namespace App\Service\Flipify;
 
 use App\Entity\FlipifyImport;
+use DateTimeImmutable;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -17,6 +18,8 @@ final class FlipifyImportProcessor
         private readonly FlipifyAnalyzer $analyzer,
         #[Autowire(service: 'monolog.logger.flipify')]
         private readonly LoggerInterface $logger,
+        #[Autowire('%flipify.processing_timeout_seconds%')]
+        private readonly int $processingTimeoutSeconds,
         #[Autowire('%kernel.project_dir%')] private readonly string $projectDir,
     ) {
     }
@@ -29,8 +32,10 @@ final class FlipifyImportProcessor
 
         $import = null;
         $shouldProcess = false;
+        $skipReason = null;
+        $claimedAt = new DateTimeImmutable();
 
-        $this->entityManager->wrapInTransaction(function () use ($importId, &$import, &$shouldProcess): void {
+        $this->entityManager->wrapInTransaction(function () use ($importId, &$import, &$shouldProcess, &$skipReason, $claimedAt): void {
             $import = $this->entityManager->find(FlipifyImport::class, $importId, LockMode::PESSIMISTIC_WRITE);
 
             if (!$import instanceof FlipifyImport) {
@@ -38,30 +43,56 @@ final class FlipifyImportProcessor
                     'importId' => $importId,
                 ]);
 
+                $skipReason = 'missing';
+
                 return;
             }
 
-            if (!$import->isPending()) {
-                $this->logger->info('Flipify import skipped because status no longer pending.', [
+            if ($import->isPending()) {
+                // continue
+            } elseif ($import->isProcessing()) {
+                if (!$import->hasProcessingTimedOut($this->processingTimeoutSeconds, $claimedAt)) {
+                    $this->logger->info('Flipify import skipped because it is already being processed.', [
+                        'importId' => $import->getId(),
+                        'startedAt' => $import->getProcessingStartedAt()?->format(DATE_ATOM),
+                        'timeoutSeconds' => $this->processingTimeoutSeconds,
+                    ]);
+
+                    $skipReason = 'already_processing';
+
+                    return;
+                }
+
+                $this->logger->warning('Flipify import processing appears stalled; retrying.', [
+                    'importId' => $import->getId(),
+                    'startedAt' => $import->getProcessingStartedAt()?->format(DATE_ATOM),
+                    'timeoutSeconds' => $this->processingTimeoutSeconds,
+                ]);
+            } else {
+                $this->logger->info('Flipify import skipped because status is no longer pending.', [
                     'importId' => $import->getId(),
                     'status' => $import->getStatus(),
                 ]);
 
+                $skipReason = sprintf('status_%s', $import->getStatus());
+
                 return;
             }
 
-            $import->markProcessing();
+            $import->markProcessing($claimedAt);
             $this->entityManager->flush();
             $shouldProcess = true;
 
             $this->logger->info('Flipify import marked as processing.', [
                 'importId' => $import->getId(),
+                'startedAt' => $import->getProcessingStartedAt()?->format(DATE_ATOM),
             ]);
         });
 
         if (!$shouldProcess || !$import instanceof FlipifyImport) {
             $this->logger->debug('Flipify import processing skipped after transactional claim.', [
                 'importId' => $importId,
+                'reason' => $skipReason,
             ]);
 
             return false;

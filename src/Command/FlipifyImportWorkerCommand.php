@@ -4,6 +4,8 @@ namespace App\Command;
 
 use App\Repository\FlipifyImportRepository;
 use App\Service\Flipify\FlipifyImportProcessor;
+use DateInterval;
+use DateTimeImmutable;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -27,6 +29,8 @@ final class FlipifyImportWorkerCommand extends Command implements SignalableComm
         private readonly FlipifyImportProcessor $processor,
         #[Autowire(service: 'monolog.logger.flipify')]
         private readonly LoggerInterface $logger,
+        #[Autowire('%flipify.processing_timeout_seconds%')]
+        private readonly int $processingTimeoutSeconds,
     ) {
         parent::__construct();
     }
@@ -67,7 +71,7 @@ final class FlipifyImportWorkerCommand extends Command implements SignalableComm
         $this->logger->info('Flipify worker entering processing loop.');
 
         while (!$this->shouldStop) {
-            $importId = $this->repository->findNextPendingId();
+            $importId = $this->repository->findNextPendingId($this->resolveStalledBefore());
 
             if ($importId === null) {
                 $output->writeln('<comment>No pending Flipify imports. Sleeping...</comment>');
@@ -96,6 +100,17 @@ final class FlipifyImportWorkerCommand extends Command implements SignalableComm
         $this->logger->info('Flipify worker stopped gracefully.');
 
         return Command::SUCCESS;
+    }
+
+    private function resolveStalledBefore(): ?DateTimeImmutable
+    {
+        if ($this->processingTimeoutSeconds <= 0) {
+            return null;
+        }
+
+        $seconds = max(1, $this->processingTimeoutSeconds);
+
+        return (new DateTimeImmutable())->sub(new DateInterval(sprintf('PT%dS', $seconds)));
     }
 
     public function getSubscribedSignals(): array

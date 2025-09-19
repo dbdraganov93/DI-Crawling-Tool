@@ -45,6 +45,9 @@ class FlipifyImport
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?DateTimeImmutable $processedAt = null;
 
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?DateTimeImmutable $processingStartedAt = null;
+
     public function __construct(string $originalFilename, string $storedFilename, ?string $companyWebsite = null, array $products = [])
     {
         $this->originalFilename = $originalFilename;
@@ -114,12 +117,13 @@ class FlipifyImport
         return $this->processedAt;
     }
 
-    public function markProcessing(): void
+    public function markProcessing(?DateTimeImmutable $startedAt = null): void
     {
         $this->status = self::STATUS_PROCESSING;
         $this->errorMessage = null;
         $this->processedAt = null;
         $this->products = [];
+        $this->processingStartedAt = $startedAt ?? new DateTimeImmutable();
     }
 
     /**
@@ -131,6 +135,7 @@ class FlipifyImport
         $this->setProducts($products);
         $this->processedAt = new DateTimeImmutable();
         $this->errorMessage = null;
+        $this->processingStartedAt = null;
     }
 
     public function markFailed(string $errorMessage): void
@@ -141,6 +146,7 @@ class FlipifyImport
         $this->errorMessage = function_exists('mb_substr')
             ? mb_substr($errorMessage, 0, 1000)
             : substr($errorMessage, 0, 1000);
+        $this->processingStartedAt = null;
     }
 
     public function getStatus(): string
@@ -187,5 +193,22 @@ class FlipifyImport
     public function getProductCount(): int
     {
         return \count($this->products);
+    }
+
+    public function getProcessingStartedAt(): ?DateTimeImmutable
+    {
+        return $this->processingStartedAt;
+    }
+
+    public function hasProcessingTimedOut(int $timeoutSeconds, ?DateTimeImmutable $now = null): bool
+    {
+        if (!$this->isProcessing() || $this->processingStartedAt === null) {
+            return false;
+        }
+
+        $timeoutSeconds = max(1, $timeoutSeconds);
+        $now ??= new DateTimeImmutable();
+
+        return $this->processingStartedAt->getTimestamp() <= ($now->getTimestamp() - $timeoutSeconds);
     }
 }

@@ -83,7 +83,9 @@
                                             {% set badgeClass = statusClasses[import.status] ?? 'bg-secondary' %}
                                             <span class="badge {{ badgeClass }}">{{ import.statusLabel }}</span>
                                             {% if import.isProcessing %}
-                                                <div class="text-muted small mt-2">Analysis in progress…</div>
+                                                <div class="text-muted small mt-2">
+                                                    Analysis in progress{% if import.processingStartedAt %} since {{ import.processingStartedAt|date('Y-m-d H:i') }}{% endif %}…
+                                                </div>
                                             {% elseif import.isPending %}
                                                 <div class="text-muted small mt-2">Queued for analysis.</div>
                                             {% elseif import.isFailed %}

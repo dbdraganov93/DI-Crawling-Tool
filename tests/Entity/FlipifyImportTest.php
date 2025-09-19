@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Entity;
 
 use App\Entity\FlipifyImport;
+use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
 final class FlipifyImportTest extends TestCase
@@ -16,6 +17,7 @@ final class FlipifyImportTest extends TestCase
         self::assertTrue($import->isPending());
         self::assertFalse($import->isProcessing());
         self::assertNull($import->getProcessedAt());
+        self::assertNull($import->getProcessingStartedAt());
         self::assertSame([], $import->getProducts());
     }
 
@@ -59,5 +61,21 @@ final class FlipifyImportTest extends TestCase
         self::assertSame([], $import->getProducts());
         self::assertNull($import->getProcessedAt());
         self::assertNull($import->getErrorMessage());
+        self::assertNotNull($import->getProcessingStartedAt());
+    }
+
+    public function testProcessingTimeoutDetection(): void
+    {
+        $import = new FlipifyImport('brochure.pdf', 'stored.pdf');
+        $startedAt = new DateTimeImmutable('-15 minutes');
+
+        $import->markProcessing($startedAt);
+
+        self::assertTrue($import->hasProcessingTimedOut(600));
+        self::assertFalse($import->hasProcessingTimedOut(3600));
+
+        $import->markCompleted([]);
+
+        self::assertFalse($import->hasProcessingTimedOut(10));
     }
 }

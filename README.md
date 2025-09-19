@@ -87,6 +87,12 @@ php bin/console messenger:consume async --time-limit=3600
 php bin/console app:flipify:worker --sleep=5
 ```
 
+Set `FLIPIFY_PROCESSING_TIMEOUT_SECONDS` to control how long an import may remain
+in the `processing` state before it is retried. The default is ten minutes. If a
+worker crashes while analysing a brochure, any job whose `processing` timestamp
+is older than this threshold is automatically reclaimed and re-queued by both
+the messenger consumer and the dedicated `app:flipify:worker` loop.
+
 Restart the workers whenever you deploy new code so they pick up the latest changes.
 
 When using the bundled Docker environment, the `dicrawler_worker` service already waits
