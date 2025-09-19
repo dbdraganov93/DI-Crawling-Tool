@@ -1,3 +1,6 @@
+parameters:
+    flipify.processing_timeout_seconds: '%env(default:600:int:FLIPIFY_PROCESSING_TIMEOUT_SECONDS)%'
+
 services:
     App\Service\S3Service:
         arguments:
@@ -68,8 +71,3 @@ services:
     # Ensure ShopfullyService is properly autowired
     App\Service\ShopfullyService: ~
 
-    App\Service\FileLogger:
-        arguments:
-            $logFile: '%kernel.logs_dir%/%kernel.environment%.log'
-
-    Psr\Log\LoggerInterface: '@App\Service\FileLogger'

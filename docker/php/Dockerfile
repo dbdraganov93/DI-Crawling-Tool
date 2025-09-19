@@ -5,8 +5,11 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev libpq-dev libcurl4-openssl-dev \
     libicu-dev libpng-dev libjpeg-dev libfreetype6-dev \
     default-mysql-client cron python3 python3-pip \
+    build-essential pkg-config imagemagick libmagickwand-dev libmagickcore-dev \
+ && pecl install imagick \
  && docker-php-ext-install pdo pdo_mysql intl zip ftp gd opcache \
- && apt-get clean && rm -rf /var/lib/apt/lists/*
+ && docker-php-ext-enable imagick \
+ && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/pear
 
 RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 

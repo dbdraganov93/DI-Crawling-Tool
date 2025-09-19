@@ -76,6 +76,45 @@ Run the server
 symfony serve -d
 ```
 
+## Flipify brochure analysis worker
+
+Flipify PDF analyses are processed asynchronously. Ensure the message queue tables
+exist and start a worker in a long-running process:
+
+```
+php bin/console messenger:setup-transports
+php bin/console messenger:consume async --time-limit=3600
+php bin/console app:flipify:worker --sleep=5
+```
+
+Set `FLIPIFY_PROCESSING_TIMEOUT_SECONDS` to control how long an import may remain
+in the `processing` state before it is retried. The default is ten minutes. If a
+worker crashes while analysing a brochure, any job whose `processing` timestamp
+is older than this threshold is automatically reclaimed and re-queued by both
+the messenger consumer and the dedicated `app:flipify:worker` loop.
+
+Restart the workers whenever you deploy new code so they pick up the latest changes.
+
+When using the bundled Docker environment, the `dicrawler_worker` service already waits
+for MySQL, installs Composer dependencies, ensures the Flipify schema exists, sets up
+the Messenger transports, and simultaneously runs both the Flipify queue consumer,
+the dedicated Flipify worker loop, and the legacy `app:shopfully:worker` via
+`docker/worker/start.sh`.
+
+### Observing Flipify logs
+
+Flipify background processing emits structured logs to a dedicated `flipify` channel.
+You can review the most recent events via the Symfony log file or directly from the
+Docker worker output:
+
+```
+tail -f var/log/flipify.log
+docker logs -f dicrawler_worker
+```
+
+Each import life-cycle step (queue dequeue, worker claim, OpenAI call, success/failure)
+is logged with the import identifier so issues can be correlated across components.
+
 # MySQL Setup on Ubuntu
 
 This guide provides steps to install, secure, and configure a MySQL database on Ubuntu, including creating a UTF8 `diCrawlers` database and a dedicated user.
