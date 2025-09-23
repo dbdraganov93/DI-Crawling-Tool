@@ -170,6 +170,93 @@ class IprotoService
     }
 
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getStoresByCompany(string $companyId, int $itemsPerPage = 30): array
+    {
+        $companyId = trim($companyId);
+
+        if ($companyId === '') {
+            throw new \InvalidArgumentException('Company ID is required to fetch stores.');
+        }
+
+        $itemsPerPage = max(1, min($itemsPerPage, 200));
+        $integrationId = trim((string) ($this->extractIntegrationId($companyId) ?? $companyId));
+
+        if ($integrationId === '') {
+            $integrationId = $companyId;
+        }
+
+        $integrationIri = sprintf('/api/integrations/%s', ltrim($integrationId, '/'));
+
+        $page = 1;
+        $results = [];
+        $remainingIterations = 200;
+
+        do {
+            $params = [
+                'integration' => $integrationIri,
+                'integration.id' => $integrationId,
+                'itemsPerPage' => $itemsPerPage,
+                'page' => $page,
+                'order' => [
+                    'id' => 'asc',
+                    'title' => 'asc',
+                    'storeNumber' => 'asc',
+                    'postalCode' => 'asc',
+                    'city' => 'asc',
+                    'street' => 'asc',
+                    'streetNumber' => 'asc',
+                    'visibilityRadius' => 'asc',
+                    'integration.title' => 'asc',
+                ],
+            ];
+
+            $response = $this->sendRequest(
+                'GET',
+                '/api/stores',
+                $params,
+                null,
+                'application/ld+json',
+                'application/ld+json',
+            );
+
+            $data = $response['body'];
+
+            if (!is_array($data)) {
+                break;
+            }
+
+            $items = $data['hydra:member'] ?? [];
+            if (!is_array($items)) {
+                break;
+            }
+
+            foreach ($items as $store) {
+                if (!is_array($store)) {
+                    continue;
+                }
+
+                if (!$this->storeMatchesIntegration($store, $integrationId)) {
+                    continue;
+                }
+
+                $results[] = $store;
+            }
+
+            $nextPage = $this->extractNextPage($data);
+            if ($nextPage === null || $nextPage <= $page) {
+                break;
+            }
+
+            $page = $nextPage;
+        } while ($remainingIterations-- > 0);
+
+        return $results;
+    }
+
+
 
 
     private function sendRequest(string $method, string $uri, array $params = [], $body = null, string $bodyMediaType = 'application/ld+json', string $acceptType = 'application/json'): array
@@ -282,6 +369,21 @@ class IprotoService
         }
 
         $extracted = $this->extractIntegrationId($brochure['integration'] ?? null);
+
+        if ($extracted === null) {
+            return true;
+        }
+
+        return (string) $extracted === (string) $companyId;
+    }
+
+    private function storeMatchesIntegration(array $store, string $companyId): bool
+    {
+        if ($companyId === '') {
+            return true;
+        }
+
+        $extracted = $this->extractIntegrationId($store['integration'] ?? null);
 
         if ($extracted === null) {
             return true;
