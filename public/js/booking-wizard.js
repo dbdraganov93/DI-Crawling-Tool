@@ -59,6 +59,7 @@
         const brochuresPageSizeSelect = document.getElementById('brochure-results-page-size');
         const brochuresPagination = document.getElementById('brochure-results-pagination');
         const brochuresResultsCount = document.getElementById('brochure-results-count');
+        const brochuresSelectionSummary = document.getElementById('brochure-selection-count');
         const bookingsSubtitle = document.getElementById('booking-results-subtitle');
         const bookingsLoading = document.getElementById('booking-results-loading');
         const bookingsError = document.getElementById('booking-results-error');
@@ -78,6 +79,10 @@
         let lastLoadedBrochuresCompanyId = null;
         let lastLoadedBrochuresOwnerId = null;
         let lastLoadedBrochures = null;
+
+        const selectedBrochureIds = new Set();
+
+        updateBrochureSelectionSummary();
 
         let bookingsAbortController = null;
         let lastLoadedBookingsCompanyId = null;
@@ -207,8 +212,68 @@
             }
         }
 
+        function updateBrochureSelectionSummary() {
+            if (!brochuresSelectionSummary) {
+                return;
+            }
+
+            const count = selectedBrochureIds.size;
+
+            if (count === 0) {
+                brochuresSelectionSummary.textContent = 'No brochures selected';
+                return;
+            }
+
+            brochuresSelectionSummary.textContent = count === 1
+                ? '1 brochure selected'
+                : `${count} brochures selected`;
+        }
+
+        function getBrochureIdentifier(brochure) {
+            if (!brochure || typeof brochure !== 'object') {
+                return null;
+            }
+
+            const { id } = brochure;
+
+            if (id === null || id === undefined) {
+                return null;
+            }
+
+            const normalized = String(id).trim();
+            return normalized === '' ? null : normalized;
+        }
+
+        function pruneSelectedBrochureIds(brochures) {
+            if (selectedBrochureIds.size === 0) {
+                return;
+            }
+
+            if (!Array.isArray(brochures) || brochures.length === 0) {
+                selectedBrochureIds.clear();
+                return;
+            }
+
+            const validIds = new Set();
+            brochures.forEach((brochure) => {
+                const identifier = getBrochureIdentifier(brochure);
+                if (identifier) {
+                    validIds.add(identifier);
+                }
+            });
+
+            Array.from(selectedBrochureIds).forEach((identifier) => {
+                if (!validIds.has(identifier)) {
+                    selectedBrochureIds.delete(identifier);
+                }
+            });
+        }
+
         function resetBrochuresState(options = {}) {
             const { resetLabel = false } = options;
+
+            selectedBrochureIds.clear();
+            updateBrochureSelectionSummary();
 
             if (brochuresAbortController) {
                 brochuresAbortController.abort();
@@ -811,6 +876,67 @@
         function createBrochureRow(brochure) {
             const row = document.createElement('tr');
 
+            const brochureId = getBrochureIdentifier(brochure);
+            if (brochureId) {
+                row.dataset.brochureId = brochureId;
+            }
+
+            const selectionCell = document.createElement('td');
+            selectionCell.className = 'table-selection-cell text-center';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'form-check-input table-selection-checkbox';
+            checkbox.disabled = !brochureId;
+
+            const labelParts = [];
+            if (brochure && typeof brochure.title === 'string' && brochure.title.trim() !== '') {
+                labelParts.push(brochure.title.trim());
+            }
+            if (brochure && brochure.brochureNumber) {
+                labelParts.push(`#${brochure.brochureNumber}`);
+            }
+
+            let accessibleLabel = 'Select brochure';
+            if (labelParts.length > 0) {
+                accessibleLabel = `Select ${labelParts.join(' – ')}`;
+            } else if (brochureId) {
+                accessibleLabel = `Select brochure ${brochureId}`;
+            }
+
+            checkbox.setAttribute('aria-label', accessibleLabel);
+            checkbox.title = accessibleLabel;
+
+            if (brochureId) {
+                checkbox.value = brochureId;
+                const isSelected = selectedBrochureIds.has(brochureId);
+                checkbox.checked = isSelected;
+
+                if (isSelected) {
+                    row.classList.add('table-active');
+                }
+
+                checkbox.addEventListener('change', () => {
+                    if (checkbox.checked) {
+                        selectedBrochureIds.add(brochureId);
+                        row.classList.add('table-active');
+                    } else {
+                        selectedBrochureIds.delete(brochureId);
+                        row.classList.remove('table-active');
+                    }
+
+                    updateBrochureSelectionSummary();
+                });
+            } else {
+                checkbox.checked = false;
+                checkbox.addEventListener('change', () => {
+                    checkbox.checked = false;
+                });
+            }
+
+            selectionCell.appendChild(checkbox);
+            row.appendChild(selectionCell);
+
             appendCell(row, brochure && brochure.id !== undefined ? brochure.id : '—', {
                 className: 'fw-semibold text-secondary',
             });
@@ -855,6 +981,9 @@
             }
 
             const items = Array.isArray(brochures) ? brochures : [];
+
+            pruneSelectedBrochureIds(items);
+            updateBrochureSelectionSummary();
 
             if (items.length === 0) {
                 if (brochuresTableManager) {
