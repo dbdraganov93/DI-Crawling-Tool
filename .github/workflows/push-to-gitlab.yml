@@ -30,16 +30,18 @@ jobs:
       run: |
         git remote add gitlab https://oauth2:${GITLAB_TOKEN}@${GITLAB_URL#https://}
 
-    - name: Pull latest changes from GitLab
+    - name: Pull latest from GitLab branch (rebase)
       env:
         GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        GITLAB_URL: ${{ secrets.GITLAB_URL }}
       run: |
         BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
-        git fetch gitlab "$BRANCH_NAME:$BRANCH_NAME" || true
-        git pull gitlab "$BRANCH_NAME" || true
+        git fetch gitlab "$BRANCH_NAME" || true
+        git rebase "gitlab/$BRANCH_NAME" || true
 
     - name: Push to GitLab
       env:
+        GITLAB_URL: ${{ secrets.GITLAB_URL }}
         GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
       run: |
         BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
