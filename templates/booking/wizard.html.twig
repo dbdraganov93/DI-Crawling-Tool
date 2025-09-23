@@ -79,22 +79,38 @@
                 No brochures found for the selected company.
             </div>
 
-            <div class="table-responsive d-none" id="brochure-results-table-wrapper">
-                <table class="table table-striped table-bordered align-middle" id="brochure-results-table">
-                    <thead>
-                        <tr>
-                            <th scope="col">ID</th>
-                            <th scope="col">Brochure #</th>
-                            <th scope="col">Title</th>
-                            <th scope="col">Type</th>
-                            <th scope="col">Valid Period</th>
-                            <th scope="col">Visible From</th>
-                            <th scope="col">Variety</th>
-                            <th scope="col">Language</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+            <div class="table-card d-none" id="brochure-results-table-wrapper">
+                <div class="table-card-toolbar">
+                    <input type="search" class="form-control table-search" id="brochure-results-search" placeholder="Search brochures" aria-label="Search brochures">
+                    <select class="form-select form-select-sm" id="brochure-results-page-size" aria-label="Brochure results per page">
+                        <option value="5">5 per page</option>
+                        <option value="10" selected>10 per page</option>
+                        <option value="25">25 per page</option>
+                    </select>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="brochure-results-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">Brochure #</th>
+                                <th scope="col">Title</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Valid Period</th>
+                                <th scope="col">Visible From</th>
+                                <th scope="col">Variety</th>
+                                <th scope="col">Language</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="table-card-footer">
+                    <small id="brochure-results-count" aria-live="polite"></small>
+                    <nav aria-label="Brochure pagination">
+                        <ul class="pagination pagination-sm mb-0" id="brochure-results-pagination"></ul>
+                    </nav>
+                </div>
             </div>
 
             <div class="d-flex justify-content-between mt-4">
@@ -115,19 +131,35 @@
                 No CPC bookings found for the selected company.
             </div>
 
-            <div class="table-responsive d-none" id="booking-results-table-wrapper">
-                <table class="table table-striped table-bordered align-middle" id="booking-results-table">
-                    <thead>
-                        <tr>
-                            <th scope="col">ID</th>
-                            <th scope="col">Title</th>
-                            <th scope="col">Type</th>
-                            <th scope="col">Active Period</th>
-                            <th scope="col">Budget</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+            <div class="table-card d-none" id="booking-results-table-wrapper">
+                <div class="table-card-toolbar">
+                    <input type="search" class="form-control table-search" id="booking-results-search" placeholder="Search bookings" aria-label="Search bookings">
+                    <select class="form-select form-select-sm" id="booking-results-page-size" aria-label="Booking results per page">
+                        <option value="5">5 per page</option>
+                        <option value="10" selected>10 per page</option>
+                        <option value="25">25 per page</option>
+                    </select>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="booking-results-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">Title</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Active Period</th>
+                                <th scope="col">Budget</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="table-card-footer">
+                    <small id="booking-results-count" aria-live="polite"></small>
+                    <nav aria-label="Booking pagination">
+                        <ul class="pagination pagination-sm mb-0" id="booking-results-pagination"></ul>
+                    </nav>
+                </div>
             </div>
 
             <div class="d-flex justify-content-between mt-4">

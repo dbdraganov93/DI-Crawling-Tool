@@ -55,13 +55,24 @@
         const brochuresEmpty = document.getElementById('brochure-results-empty');
         const brochuresTableWrapper = document.getElementById('brochure-results-table-wrapper');
         const brochuresTableBody = document.querySelector('#brochure-results-table tbody');
+        const brochuresSearchInput = document.getElementById('brochure-results-search');
+        const brochuresPageSizeSelect = document.getElementById('brochure-results-page-size');
+        const brochuresPagination = document.getElementById('brochure-results-pagination');
+        const brochuresResultsCount = document.getElementById('brochure-results-count');
         const bookingsSubtitle = document.getElementById('booking-results-subtitle');
         const bookingsLoading = document.getElementById('booking-results-loading');
         const bookingsError = document.getElementById('booking-results-error');
         const bookingsEmpty = document.getElementById('booking-results-empty');
         const bookingsTableWrapper = document.getElementById('booking-results-table-wrapper');
         const bookingsTableBody = document.querySelector('#booking-results-table tbody');
+        const bookingsSearchInput = document.getElementById('booking-results-search');
+        const bookingsPageSizeSelect = document.getElementById('booking-results-page-size');
+        const bookingsPagination = document.getElementById('booking-results-pagination');
+        const bookingsResultsCount = document.getElementById('booking-results-count');
         const finishButton = document.querySelector('#booking-step-3 button[type="submit"]');
+
+        let brochuresTableManager = null;
+        let bookingsTableManager = null;
 
         let brochuresAbortController = null;
         let lastLoadedBrochuresCompanyId = null;
@@ -74,6 +85,71 @@
         let lastLoadedBookings = null;
 
         let currentStep = 0;
+
+        brochuresTableManager = createTableManager({
+            wrapper: brochuresTableWrapper,
+            tableBody: brochuresTableBody,
+            searchInput: brochuresSearchInput,
+            pageSizeSelect: brochuresPageSizeSelect,
+            paginationContainer: brochuresPagination,
+            resultsCount: brochuresResultsCount,
+            emptyMessage: 'No brochures to display.',
+            getSearchText: (brochure) => {
+                if (!brochure || typeof brochure !== 'object') {
+                    return '';
+                }
+
+                const values = [
+                    brochure.id,
+                    brochure.brochureNumber,
+                    brochure.title,
+                    brochure.type,
+                    brochure.variety,
+                    brochure.languageCode,
+                    brochure.validFrom,
+                    brochure.validTo,
+                    brochure.visibleFrom,
+                ];
+
+                return values
+                    .filter((value) => value !== undefined && value !== null)
+                    .map((value) => String(value))
+                    .join(' ');
+            },
+            createRow: createBrochureRow,
+        });
+
+        bookingsTableManager = createTableManager({
+            wrapper: bookingsTableWrapper,
+            tableBody: bookingsTableBody,
+            searchInput: bookingsSearchInput,
+            pageSizeSelect: bookingsPageSizeSelect,
+            paginationContainer: bookingsPagination,
+            resultsCount: bookingsResultsCount,
+            emptyMessage: 'No CPC bookings to display.',
+            getSearchText: (booking) => {
+                if (!booking || typeof booking !== 'object') {
+                    return '';
+                }
+
+                const values = [
+                    booking.id,
+                    booking.title,
+                    booking.target,
+                    booking.budgetType,
+                    booking.currency,
+                    booking.costCenter,
+                    booking.activeFrom,
+                    booking.activeTo,
+                ];
+
+                return values
+                    .filter((value) => value !== undefined && value !== null)
+                    .map((value) => String(value))
+                    .join(' ');
+            },
+            createRow: createBookingRow,
+        });
 
         function showStep(step) {
             steps.forEach((element, index) => {
@@ -142,12 +218,10 @@
             hideBrochuresMessages();
             updateBrochuresSubtitle('');
 
-            if (brochuresTableWrapper) {
+            if (brochuresTableManager) {
+                brochuresTableManager.reset();
+            } else if (brochuresTableWrapper) {
                 brochuresTableWrapper.classList.add('d-none');
-            }
-
-            if (brochuresTableBody) {
-                brochuresTableBody.innerHTML = '';
             }
 
             if (resetLabel) {
@@ -162,12 +236,10 @@
             hideBrochuresMessages();
             updateBrochuresSubtitle(companyLabel);
 
-            if (brochuresTableWrapper) {
+            if (brochuresTableManager) {
+                brochuresTableManager.reset();
+            } else if (brochuresTableWrapper) {
                 brochuresTableWrapper.classList.add('d-none');
-            }
-
-            if (brochuresTableBody) {
-                brochuresTableBody.innerHTML = '';
             }
 
             if (brochuresLoading) {
@@ -179,7 +251,9 @@
             hideBrochuresMessages();
             updateBrochuresSubtitle(companyLabel);
 
-            if (brochuresTableWrapper) {
+            if (brochuresTableManager) {
+                brochuresTableManager.reset();
+            } else if (brochuresTableWrapper) {
                 brochuresTableWrapper.classList.add('d-none');
             }
 
@@ -220,12 +294,10 @@
             hideBookingsMessages();
             updateBookingsSubtitle('');
 
-            if (bookingsTableWrapper) {
+            if (bookingsTableManager) {
+                bookingsTableManager.reset();
+            } else if (bookingsTableWrapper) {
                 bookingsTableWrapper.classList.add('d-none');
-            }
-
-            if (bookingsTableBody) {
-                bookingsTableBody.innerHTML = '';
             }
 
             if (finishButton) {
@@ -244,12 +316,10 @@
             hideBookingsMessages();
             updateBookingsSubtitle(companyLabel);
 
-            if (bookingsTableWrapper) {
+            if (bookingsTableManager) {
+                bookingsTableManager.reset();
+            } else if (bookingsTableWrapper) {
                 bookingsTableWrapper.classList.add('d-none');
-            }
-
-            if (bookingsTableBody) {
-                bookingsTableBody.innerHTML = '';
             }
 
             if (bookingsLoading) {
@@ -265,7 +335,9 @@
             hideBookingsMessages();
             updateBookingsSubtitle(companyLabel);
 
-            if (bookingsTableWrapper) {
+            if (bookingsTableManager) {
+                bookingsTableManager.reset();
+            } else if (bookingsTableWrapper) {
                 bookingsTableWrapper.classList.add('d-none');
             }
 
@@ -288,14 +360,340 @@
             return stringValue.trim() === '' ? fallback : stringValue;
         }
 
-        function appendCell(row, value) {
+        function appendCell(row, value, options = {}) {
             if (!row) {
-                return;
+                return null;
             }
 
             const cell = document.createElement('td');
             cell.textContent = asDisplayValue(value);
+
+            if (options && typeof options === 'object' && options.className) {
+                cell.className = options.className;
+            }
+
             row.appendChild(cell);
+            return cell;
+        }
+
+        function parsePositiveInteger(value, fallback) {
+            const parsed = Number.parseInt(value, 10);
+            if (Number.isNaN(parsed) || parsed <= 0) {
+                return fallback;
+            }
+
+            return parsed;
+        }
+
+        function createTableManager(options) {
+            const {
+                wrapper,
+                tableBody,
+                searchInput,
+                pageSizeSelect,
+                paginationContainer,
+                resultsCount,
+                getSearchText,
+                createRow,
+                emptyMessage = 'No results to display.',
+            } = options || {};
+
+            if (!tableBody) {
+                return {
+                    reset() {},
+                    setData() {},
+                    refresh() {},
+                };
+            }
+
+            const computeSearchText = typeof getSearchText === 'function'
+                ? getSearchText
+                : (item) => (item ? String(item) : '');
+
+            const buildRow = typeof createRow === 'function'
+                ? createRow
+                : () => document.createElement('tr');
+
+            let rows = [];
+            let filteredRows = [];
+            let currentPage = 1;
+            let pageSize = parsePositiveInteger(pageSizeSelect ? pageSizeSelect.value : '', 10);
+
+            function updateVisibility() {
+                if (!wrapper) {
+                    return;
+                }
+
+                const hasData = rows.length > 0;
+                wrapper.classList.toggle('d-none', !hasData);
+            }
+
+            function getColumnCount() {
+                const table = tableBody.closest('table');
+                if (!table) {
+                    return 1;
+                }
+
+                const headerCells = table.querySelectorAll('thead th');
+                if (headerCells.length > 0) {
+                    return headerCells.length;
+                }
+
+                const bodyCells = table.querySelectorAll('tbody tr:first-child td');
+                if (bodyCells.length > 0) {
+                    return bodyCells.length;
+                }
+
+                return 1;
+            }
+
+            function renderEmptyRow(message) {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = getColumnCount();
+                cell.className = 'table-card-empty';
+                cell.textContent = message || emptyMessage;
+                row.appendChild(cell);
+                tableBody.appendChild(row);
+            }
+
+            function updateResultsLabel(total) {
+                if (!resultsCount) {
+                    return;
+                }
+
+                if (total === 0) {
+                    if (rows.length > 0) {
+                        resultsCount.textContent = 'No results match your search.';
+                    } else {
+                        resultsCount.textContent = 'No results to display.';
+                    }
+                    return;
+                }
+
+                const startIndex = (currentPage - 1) * pageSize + 1;
+                const endIndex = Math.min(total, startIndex + pageSize - 1);
+                const label = total === 1
+                    ? 'Showing 1 of 1 result'
+                    : `Showing ${startIndex}–${endIndex} of ${total} results`;
+                resultsCount.textContent = label;
+            }
+
+            function computeFilteredRows() {
+                const term = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+                if (!term) {
+                    filteredRows = rows;
+                    return;
+                }
+
+                filteredRows = rows.filter((entry) => entry.search.includes(term));
+            }
+
+            function renderPagination(totalPages) {
+                if (!paginationContainer) {
+                    return;
+                }
+
+                paginationContainer.innerHTML = '';
+
+                if (totalPages <= 1) {
+                    return;
+                }
+
+                const createPageButton = (label, targetPage, options = {}) => {
+                    const { disabled = false, active = false, ariaLabel = null } = options;
+
+                    const listItem = document.createElement('li');
+                    listItem.className = 'page-item';
+
+                    if (disabled) {
+                        listItem.classList.add('disabled');
+                    }
+
+                    if (active) {
+                        listItem.classList.add('active');
+                    }
+
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'page-link';
+                    button.textContent = label;
+
+                    if (ariaLabel) {
+                        button.setAttribute('aria-label', ariaLabel);
+                    }
+
+                    if (!disabled) {
+                        button.addEventListener('click', () => {
+                            if (targetPage === currentPage) {
+                                return;
+                            }
+
+                            currentPage = Math.min(Math.max(targetPage, 1), totalPages);
+                            update();
+                        });
+                    }
+
+                    listItem.appendChild(button);
+                    paginationContainer.appendChild(listItem);
+                };
+
+                const addEllipsis = () => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'page-item disabled';
+                    const span = document.createElement('span');
+                    span.className = 'page-link';
+                    span.textContent = '…';
+                    listItem.appendChild(span);
+                    paginationContainer.appendChild(listItem);
+                };
+
+                createPageButton('‹', currentPage - 1, {
+                    disabled: currentPage === 1,
+                    ariaLabel: 'Previous page',
+                });
+
+                const maxDisplayed = 5;
+                let start = Math.max(1, currentPage - 2);
+                let end = Math.min(totalPages, currentPage + 2);
+
+                if (end - start + 1 < maxDisplayed) {
+                    if (start === 1) {
+                        end = Math.min(totalPages, start + maxDisplayed - 1);
+                    } else if (end === totalPages) {
+                        start = Math.max(1, end - maxDisplayed + 1);
+                    }
+                }
+
+                if (start > 1) {
+                    createPageButton('1', 1, { active: currentPage === 1 });
+                    if (start > 2) {
+                        addEllipsis();
+                    }
+                }
+
+                for (let page = start; page <= end; page += 1) {
+                    createPageButton(String(page), page, { active: page === currentPage });
+                }
+
+                if (end < totalPages) {
+                    if (end < totalPages - 1) {
+                        addEllipsis();
+                    }
+
+                    createPageButton(String(totalPages), totalPages, { active: currentPage === totalPages });
+                }
+
+                createPageButton('›', currentPage + 1, {
+                    disabled: currentPage === totalPages,
+                    ariaLabel: 'Next page',
+                });
+            }
+
+            function renderRows() {
+                tableBody.innerHTML = '';
+
+                if (filteredRows.length === 0) {
+                    if (rows.length === 0) {
+                        renderEmptyRow(emptyMessage);
+                    } else {
+                        renderEmptyRow('No results match your search.');
+                    }
+
+                    return;
+                }
+
+                const startIndex = (currentPage - 1) * pageSize;
+                const pageItems = filteredRows.slice(startIndex, startIndex + pageSize);
+
+                pageItems.forEach((entry) => {
+                    const row = buildRow(entry.item);
+                    tableBody.appendChild(row);
+                });
+            }
+
+            function update() {
+                computeFilteredRows();
+
+                const total = filteredRows.length;
+
+                if (total === 0) {
+                    currentPage = 1;
+                } else {
+                    const totalPages = Math.ceil(total / pageSize);
+                    if (currentPage > totalPages) {
+                        currentPage = totalPages;
+                    }
+                }
+
+                renderRows();
+                updateResultsLabel(total);
+                const totalPages = total === 0 ? 1 : Math.ceil(total / pageSize);
+                renderPagination(totalPages);
+                updateVisibility();
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', () => {
+                    currentPage = 1;
+                    update();
+                });
+            }
+
+            if (pageSizeSelect) {
+                pageSizeSelect.addEventListener('change', () => {
+                    pageSize = parsePositiveInteger(pageSizeSelect.value, pageSize);
+                    currentPage = 1;
+                    update();
+                });
+            }
+
+            return {
+                reset() {
+                    rows = [];
+                    filteredRows = [];
+                    currentPage = 1;
+                    pageSize = parsePositiveInteger(pageSizeSelect ? pageSizeSelect.value : '', pageSize);
+
+                    if (searchInput) {
+                        searchInput.value = '';
+                    }
+
+                    tableBody.innerHTML = '';
+
+                    if (paginationContainer) {
+                        paginationContainer.innerHTML = '';
+                    }
+
+                    if (resultsCount) {
+                        resultsCount.textContent = '';
+                    }
+
+                    if (wrapper) {
+                        wrapper.classList.add('d-none');
+                    }
+                },
+                setData(data) {
+                    const items = Array.isArray(data) ? data : [];
+
+                    rows = items.map((item) => ({
+                        item,
+                        search: computeSearchText(item).toLowerCase(),
+                    }));
+                    filteredRows = rows;
+                    currentPage = 1;
+
+                    if (pageSizeSelect) {
+                        pageSize = parsePositiveInteger(pageSizeSelect.value, pageSize);
+                    }
+
+                    update();
+                },
+                refresh() {
+                    update();
+                },
+            };
         }
 
         function formatDateTime(value) {
@@ -410,42 +808,67 @@
             return trimmed === '' ? '—' : trimmed.toUpperCase();
         }
 
+        function createBrochureRow(brochure) {
+            const row = document.createElement('tr');
+
+            appendCell(row, brochure && brochure.id !== undefined ? brochure.id : '—', {
+                className: 'fw-semibold text-secondary',
+            });
+            appendCell(row, brochure && brochure.brochureNumber ? brochure.brochureNumber : '—', {
+                className: 'text-uppercase text-muted',
+            });
+            appendCell(row, brochure && brochure.title ? brochure.title : '—', {
+                className: 'fw-semibold text-dark',
+            });
+            appendCell(row, brochure && brochure.type ? brochure.type : '—');
+            appendCell(row, formatDateRange(brochure ? brochure.validFrom : '', brochure ? brochure.validTo : ''));
+            const visibleFrom = formatDateTime(brochure ? brochure.visibleFrom : '');
+            appendCell(row, visibleFrom || '—');
+            appendCell(row, brochure && brochure.variety ? brochure.variety : '—');
+            appendCell(row, formatLanguageCode(brochure ? brochure.languageCode : null));
+
+            return row;
+        }
+
+        function createBookingRow(booking) {
+            const row = document.createElement('tr');
+
+            appendCell(row, booking && booking.id !== undefined ? booking.id : '—', {
+                className: 'fw-semibold text-secondary',
+            });
+            appendCell(row, booking && booking.title ? booking.title : '—', {
+                className: 'fw-semibold text-dark',
+            });
+            appendCell(row, getBookingType(booking));
+            appendCell(row, formatDateRange(booking ? booking.activeFrom : '', booking ? booking.activeTo : ''));
+            appendCell(row, formatBudgetValue(booking));
+
+            return row;
+        }
+
         function renderBrochures(brochures, companyLabel) {
             hideBrochuresMessages();
             updateBrochuresSubtitle(companyLabel);
 
-            if (!brochuresTableWrapper || !brochuresTableBody) {
+            if (!brochuresTableWrapper) {
                 return;
             }
-
-            brochuresTableBody.innerHTML = '';
 
             const items = Array.isArray(brochures) ? brochures : [];
 
             if (items.length === 0) {
-                brochuresTableWrapper.classList.add('d-none');
+                if (brochuresTableManager) {
+                    brochuresTableManager.reset();
+                }
                 if (brochuresEmpty) {
                     brochuresEmpty.classList.remove('d-none');
                 }
-
                 return;
             }
 
-            items.forEach((brochure) => {
-                const row = document.createElement('tr');
-
-                appendCell(row, brochure && brochure.id !== undefined ? brochure.id : '—');
-                appendCell(row, brochure && brochure.brochureNumber ? brochure.brochureNumber : '—');
-                appendCell(row, brochure && brochure.title ? brochure.title : '—');
-                appendCell(row, brochure && brochure.type ? brochure.type : '—');
-                appendCell(row, formatDateRange(brochure ? brochure.validFrom : '', brochure ? brochure.validTo : ''));
-                const visibleFrom = formatDateTime(brochure ? brochure.visibleFrom : '');
-                appendCell(row, visibleFrom || '—');
-                appendCell(row, brochure && brochure.variety ? brochure.variety : '—');
-                appendCell(row, formatLanguageCode(brochure ? brochure.languageCode : null));
-
-                brochuresTableBody.appendChild(row);
-            });
+            if (brochuresTableManager) {
+                brochuresTableManager.setData(items);
+            }
 
             brochuresTableWrapper.classList.remove('d-none');
         }
@@ -527,16 +950,18 @@
             hideBookingsMessages();
             updateBookingsSubtitle(companyLabel);
 
-            if (!bookingsTableWrapper || !bookingsTableBody) {
+            if (!bookingsTableWrapper) {
                 return;
             }
-
-            bookingsTableBody.innerHTML = '';
 
             const items = Array.isArray(bookings) ? bookings : [];
 
             if (items.length === 0) {
-                bookingsTableWrapper.classList.add('d-none');
+                if (bookingsTableManager) {
+                    bookingsTableManager.reset();
+                } else {
+                    bookingsTableWrapper.classList.add('d-none');
+                }
                 if (bookingsEmpty) {
                     bookingsEmpty.classList.remove('d-none');
                 }
@@ -548,17 +973,9 @@
                 return;
             }
 
-            items.forEach((booking) => {
-                const row = document.createElement('tr');
-
-                appendCell(row, booking && booking.id !== undefined ? booking.id : '—');
-                appendCell(row, booking && booking.title ? booking.title : '—');
-                appendCell(row, getBookingType(booking));
-                appendCell(row, formatDateRange(booking ? booking.activeFrom : '', booking ? booking.activeTo : ''));
-                appendCell(row, formatBudgetValue(booking));
-
-                bookingsTableBody.appendChild(row);
-            });
+            if (bookingsTableManager) {
+                bookingsTableManager.setData(items);
+            }
 
             bookingsTableWrapper.classList.remove('d-none');
 
