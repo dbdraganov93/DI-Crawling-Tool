@@ -118,13 +118,9 @@
                 const values = [
                     brochure.id,
                     brochure.brochureNumber,
-                    brochure.title,
                     brochure.type,
-                    brochure.variety,
-                    brochure.languageCode,
                     brochure.validFrom,
                     brochure.validTo,
-                    brochure.visibleFrom,
                 ];
 
                 return values
@@ -886,15 +882,6 @@
             return formatCurrencyValue(total, currency);
         }
 
-        function formatLanguageCode(code) {
-            if (typeof code !== 'string') {
-                return '—';
-            }
-
-            const trimmed = code.trim();
-            return trimmed === '' ? '—' : trimmed.toUpperCase();
-        }
-
         function createBrochureRow(brochure) {
             const row = document.createElement('tr');
 
@@ -981,15 +968,8 @@
             appendCell(row, brochure && brochure.brochureNumber ? brochure.brochureNumber : '—', {
                 className: 'text-uppercase text-muted',
             });
-            appendCell(row, brochure && brochure.title ? brochure.title : '—', {
-                className: 'fw-semibold text-dark',
-            });
             appendCell(row, brochure && brochure.type ? brochure.type : '—');
             appendCell(row, formatDateRange(brochure ? brochure.validFrom : '', brochure ? brochure.validTo : ''));
-            const visibleFrom = formatDateTime(brochure ? brochure.visibleFrom : '');
-            appendCell(row, visibleFrom || '—');
-            appendCell(row, brochure && brochure.variety ? brochure.variety : '—');
-            appendCell(row, formatLanguageCode(brochure ? brochure.languageCode : null));
 
             return row;
         }
