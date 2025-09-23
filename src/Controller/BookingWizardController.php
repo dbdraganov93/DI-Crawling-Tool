@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Form\BookingWizardForm;
 use App\Service\BookingManagementService;
+use App\Service\IprotoService;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,6 +27,44 @@ class BookingWizardController extends AbstractController
         return $this->render('booking/wizard.html.twig', [
             'form' => $form->createView(),
         ]);
+    }
+
+    #[Route('/booking-wizard/api/brochures', name: 'app_booking_wizard_brochures', methods: ['GET'])]
+    public function fetchBrochures(
+        Request $request,
+        IprotoService $iprotoService,
+        LoggerInterface $logger,
+    ): JsonResponse {
+        $companyId = trim((string) $request->query->get('companyId', ''));
+        $ownerId = trim((string) $request->query->get('ownerId', ''));
+
+        if ($companyId === '' || $ownerId === '') {
+            return $this->json(['error' => 'Missing or invalid ownerId or companyId parameter.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $brochures = $iprotoService->getBrochuresByOwnerAndCompany($ownerId, $companyId);
+
+            return $this->json($brochures);
+        } catch (\InvalidArgumentException $exception) {
+            return $this->json(['error' => $exception->getMessage()], Response::HTTP_BAD_REQUEST);
+        } catch (\RuntimeException $exception) {
+            $logger->error('Brochure API request failed.', [
+                'companyId' => $companyId,
+                'ownerId' => $ownerId,
+                'exception' => $exception,
+            ]);
+
+            return $this->json(['error' => $exception->getMessage()], Response::HTTP_BAD_GATEWAY);
+        } catch (\Throwable $exception) {
+            $logger->error('Unexpected error while loading brochures.', [
+                'companyId' => $companyId,
+                'ownerId' => $ownerId,
+                'exception' => $exception,
+            ]);
+
+            return $this->json(['error' => 'Unable to load brochures.'], Response::HTTP_BAD_GATEWAY);
+        }
     }
 
     #[Route('/booking-wizard/api/bookings', name: 'app_booking_wizard_bookings', methods: ['GET'])]

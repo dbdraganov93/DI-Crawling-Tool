@@ -73,6 +73,103 @@ class IprotoService
     }
 
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getBrochuresByOwnerAndCompany(string $ownerId, string $companyId, int $itemsPerPage = 100): array
+    {
+        $ownerId = trim($ownerId);
+        $companyId = trim($companyId);
+
+        if ($ownerId === '' || $companyId === '') {
+            throw new \InvalidArgumentException('Owner ID and company ID are required to fetch brochures.');
+        }
+
+        $itemsPerPage = max(1, min($itemsPerPage, 200));
+        $integrationId = trim((string) ($this->extractIntegrationId($companyId) ?? $companyId));
+        if ($integrationId === '') {
+            $integrationId = $companyId;
+        }
+        $integrationIri = sprintf('/api/integrations/%s', ltrim($integrationId, '/'));
+
+        $page = 1;
+        $results = [];
+        $remainingIterations = 200;
+
+        do {
+            $params = [
+                'owner' => $ownerId,
+                'integration' => $integrationIri,
+                'integration.id' => $integrationId,
+                'itemsPerPage' => $itemsPerPage,
+                'page' => $page,
+                'exists' => [
+                    'deletedAt' => false,
+                ],
+                'order' => [
+                    'id' => 'asc',
+                    'title' => 'asc',
+                    'brochureNumber' => 'asc',
+                    'validFrom' => 'asc',
+                    'visibleFrom' => 'asc',
+                    'validTo' => 'asc',
+                ],
+            ];
+
+            $response = $this->sendRequest(
+                'GET',
+                '/api/brochures',
+                $params,
+                null,
+                'application/ld+json',
+                'application/ld+json',
+            );
+
+            $data = $response['body'];
+
+            if (!is_array($data)) {
+                break;
+            }
+
+            $items = $data['hydra:member'] ?? [];
+            if (!is_array($items)) {
+                break;
+            }
+
+            foreach ($items as $brochure) {
+                if (!is_array($brochure)) {
+                    continue;
+                }
+
+                if (!$this->brochureMatchesIntegration($brochure, $integrationId)) {
+                    continue;
+                }
+
+                $results[] = [
+                    'id' => $brochure['id'] ?? null,
+                    'brochureNumber' => $brochure['brochureNumber'] ?? null,
+                    'title' => $brochure['title'] ?? null,
+                    'type' => $brochure['type'] ?? null,
+                    'variety' => $brochure['variety'] ?? null,
+                    'languageCode' => $brochure['languageCode'] ?? null,
+                    'validFrom' => $brochure['validFrom'] ?? null,
+                    'validTo' => $brochure['validTo'] ?? null,
+                    'visibleFrom' => $brochure['visibleFrom'] ?? null,
+                ];
+            }
+
+            $nextPage = $this->extractNextPage($data);
+            if ($nextPage === null || $nextPage <= $page) {
+                break;
+            }
+
+            $page = $nextPage;
+        } while ($remainingIterations-- > 0);
+
+        return $results;
+    }
+
+
 
 
     private function sendRequest(string $method, string $uri, array $params = [], $body = null, string $bodyMediaType = 'application/ld+json', string $acceptType = 'application/json'): array
@@ -153,6 +250,83 @@ class IprotoService
             }
             return $value === true ? 'true' : ($value === false ? 'false' : $value);
         }, $params);
+    }
+
+    private function extractNextPage(array $data): ?int
+    {
+        $view = $data['hydra:view'] ?? null;
+        if (!is_array($view)) {
+            return null;
+        }
+
+        $next = $view['hydra:next'] ?? null;
+        if (!is_string($next) || $next === '') {
+            return null;
+        }
+
+        $query = parse_url($next, PHP_URL_QUERY);
+        if (!is_string($query) || $query === '') {
+            return null;
+        }
+
+        parse_str($query, $params);
+        $page = isset($params['page']) ? (int) $params['page'] : null;
+
+        return $page && $page > 0 ? $page : null;
+    }
+
+    private function brochureMatchesIntegration(array $brochure, string $companyId): bool
+    {
+        if ($companyId === '') {
+            return true;
+        }
+
+        $extracted = $this->extractIntegrationId($brochure['integration'] ?? null);
+
+        if ($extracted === null) {
+            return true;
+        }
+
+        return (string) $extracted === (string) $companyId;
+    }
+
+    private function extractIntegrationId(mixed $integration): ?string
+    {
+        if (is_array($integration)) {
+            if (isset($integration['id'])) {
+                return $this->extractIntegrationId($integration['id']);
+            }
+
+            if (isset($integration['@id'])) {
+                return $this->extractIntegrationId($integration['@id']);
+            }
+
+            return null;
+        }
+
+        if (!is_string($integration)) {
+            return null;
+        }
+
+        $value = trim($integration);
+        if ($value === '') {
+            return null;
+        }
+
+        $path = parse_url($value, PHP_URL_PATH);
+        if (is_string($path) && $path !== '') {
+            $value = $path;
+        }
+
+        $value = trim($value, '/');
+        if ($value === '') {
+            return null;
+        }
+
+        $segments = explode('/', $value);
+        $lastSegment = end($segments);
+
+        return $lastSegment !== false ? $lastSegment : null;
     }
 
     public function importData(array $data): array

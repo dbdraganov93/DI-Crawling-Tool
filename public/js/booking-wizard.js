@@ -49,17 +49,28 @@
         const ownerSelect = $ownerSelect.get(0);
         const companySelect = $companySelect.get(0);
 
+        const brochuresSubtitle = document.getElementById('brochure-results-subtitle');
+        const brochuresLoading = document.getElementById('brochure-results-loading');
+        const brochuresError = document.getElementById('brochure-results-error');
+        const brochuresEmpty = document.getElementById('brochure-results-empty');
+        const brochuresTableWrapper = document.getElementById('brochure-results-table-wrapper');
+        const brochuresTableBody = document.querySelector('#brochure-results-table tbody');
         const bookingsSubtitle = document.getElementById('booking-results-subtitle');
         const bookingsLoading = document.getElementById('booking-results-loading');
         const bookingsError = document.getElementById('booking-results-error');
         const bookingsEmpty = document.getElementById('booking-results-empty');
         const bookingsTableWrapper = document.getElementById('booking-results-table-wrapper');
         const bookingsTableBody = document.querySelector('#booking-results-table tbody');
-        const finishButton = document.querySelector('#booking-step-2 button[type="submit"]');
+        const finishButton = document.querySelector('#booking-step-3 button[type="submit"]');
+
+        let brochuresAbortController = null;
+        let lastLoadedBrochuresCompanyId = null;
+        let lastLoadedBrochuresOwnerId = null;
+        let lastLoadedBrochures = null;
 
         let bookingsAbortController = null;
-        let lastLoadedCompanyId = null;
-        let lastLoadedOwnerId = null;
+        let lastLoadedBookingsCompanyId = null;
+        let lastLoadedBookingsOwnerId = null;
         let lastLoadedBookings = null;
 
         let currentStep = 0;
@@ -98,6 +109,84 @@
             }
 
             label.textContent = stepElement.dataset.defaultLabel || label.textContent;
+        }
+
+        function hideBrochuresMessages() {
+            if (brochuresLoading) {
+                brochuresLoading.classList.add('d-none');
+            }
+
+            if (brochuresError) {
+                brochuresError.classList.add('d-none');
+            }
+
+            if (brochuresEmpty) {
+                brochuresEmpty.classList.add('d-none');
+            }
+        }
+
+        function updateBrochuresSubtitle(companyLabel) {
+            if (brochuresSubtitle) {
+                brochuresSubtitle.textContent = companyLabel ? `Brochures for ${companyLabel}` : '';
+            }
+        }
+
+        function resetBrochuresState(options = {}) {
+            const { resetLabel = false } = options;
+
+            if (brochuresAbortController) {
+                brochuresAbortController.abort();
+                brochuresAbortController = null;
+            }
+
+            hideBrochuresMessages();
+            updateBrochuresSubtitle('');
+
+            if (brochuresTableWrapper) {
+                brochuresTableWrapper.classList.add('d-none');
+            }
+
+            if (brochuresTableBody) {
+                brochuresTableBody.innerHTML = '';
+            }
+
+            if (resetLabel) {
+                setStepLabel(2, null);
+                lastLoadedBrochuresCompanyId = null;
+                lastLoadedBrochuresOwnerId = null;
+                lastLoadedBrochures = null;
+            }
+        }
+
+        function showBrochuresLoading(companyLabel) {
+            hideBrochuresMessages();
+            updateBrochuresSubtitle(companyLabel);
+
+            if (brochuresTableWrapper) {
+                brochuresTableWrapper.classList.add('d-none');
+            }
+
+            if (brochuresTableBody) {
+                brochuresTableBody.innerHTML = '';
+            }
+
+            if (brochuresLoading) {
+                brochuresLoading.classList.remove('d-none');
+            }
+        }
+
+        function showBrochuresError(message, companyLabel) {
+            hideBrochuresMessages();
+            updateBrochuresSubtitle(companyLabel);
+
+            if (brochuresTableWrapper) {
+                brochuresTableWrapper.classList.add('d-none');
+            }
+
+            if (brochuresError) {
+                brochuresError.textContent = message || 'Unable to load brochures.';
+                brochuresError.classList.remove('d-none');
+            }
         }
 
         function hideBookingsMessages() {
@@ -144,9 +233,9 @@
             }
 
             if (resetLabel) {
-                setStepLabel(2, null);
-                lastLoadedCompanyId = null;
-                lastLoadedOwnerId = null;
+                setStepLabel(3, null);
+                lastLoadedBookingsCompanyId = null;
+                lastLoadedBookingsOwnerId = null;
                 lastLoadedBookings = null;
             }
         }
@@ -312,6 +401,128 @@
             return formatCurrencyValue(total, currency);
         }
 
+        function formatLanguageCode(code) {
+            if (typeof code !== 'string') {
+                return '—';
+            }
+
+            const trimmed = code.trim();
+            return trimmed === '' ? '—' : trimmed.toUpperCase();
+        }
+
+        function renderBrochures(brochures, companyLabel) {
+            hideBrochuresMessages();
+            updateBrochuresSubtitle(companyLabel);
+
+            if (!brochuresTableWrapper || !brochuresTableBody) {
+                return;
+            }
+
+            brochuresTableBody.innerHTML = '';
+
+            const items = Array.isArray(brochures) ? brochures : [];
+
+            if (items.length === 0) {
+                brochuresTableWrapper.classList.add('d-none');
+                if (brochuresEmpty) {
+                    brochuresEmpty.classList.remove('d-none');
+                }
+
+                return;
+            }
+
+            items.forEach((brochure) => {
+                const row = document.createElement('tr');
+
+                appendCell(row, brochure && brochure.id !== undefined ? brochure.id : '—');
+                appendCell(row, brochure && brochure.brochureNumber ? brochure.brochureNumber : '—');
+                appendCell(row, brochure && brochure.title ? brochure.title : '—');
+                appendCell(row, brochure && brochure.type ? brochure.type : '—');
+                appendCell(row, formatDateRange(brochure ? brochure.validFrom : '', brochure ? brochure.validTo : ''));
+                const visibleFrom = formatDateTime(brochure ? brochure.visibleFrom : '');
+                appendCell(row, visibleFrom || '—');
+                appendCell(row, brochure && brochure.variety ? brochure.variety : '—');
+                appendCell(row, formatLanguageCode(brochure ? brochure.languageCode : null));
+
+                brochuresTableBody.appendChild(row);
+            });
+
+            brochuresTableWrapper.classList.remove('d-none');
+        }
+
+        function loadBrochures(companyId, companyLabel, ownerId) {
+            const normalizedCompanyId = typeof companyId === 'string' ? companyId.trim() : String(companyId);
+            if (!normalizedCompanyId) {
+                return;
+            }
+
+            const normalizedOwnerId = typeof ownerId === 'string' ? ownerId.trim() : ownerId;
+            const ownerKey = normalizedOwnerId && normalizedOwnerId !== '' ? normalizedOwnerId : null;
+
+            if (brochuresAbortController) {
+                brochuresAbortController.abort();
+                brochuresAbortController = null;
+            }
+
+            const stepLabel = companyLabel ? `Brochures (${companyLabel})` : null;
+
+            if (
+                lastLoadedBrochuresCompanyId === normalizedCompanyId &&
+                lastLoadedBrochuresOwnerId === ownerKey &&
+                Array.isArray(lastLoadedBrochures)
+            ) {
+                setStepLabel(2, stepLabel);
+                renderBrochures(lastLoadedBrochures, companyLabel);
+                return;
+            }
+
+            const controller = new AbortController();
+            brochuresAbortController = controller;
+
+            lastLoadedBrochuresCompanyId = normalizedCompanyId;
+            lastLoadedBrochuresOwnerId = ownerKey;
+            lastLoadedBrochures = null;
+
+            setStepLabel(2, stepLabel);
+            showBrochuresLoading(companyLabel);
+
+            const params = new URLSearchParams({ companyId: normalizedCompanyId });
+            if (ownerKey) {
+                params.append('ownerId', ownerKey);
+            }
+
+            fetchJson(`/booking-wizard/api/brochures?${params.toString()}`, {
+                signal: controller.signal,
+            })
+                .then((brochures) => {
+                    if (brochuresAbortController !== controller) {
+                        return;
+                    }
+
+                    lastLoadedBrochures = Array.isArray(brochures) ? brochures : [];
+                    renderBrochures(lastLoadedBrochures, companyLabel);
+                })
+                .catch((error) => {
+                    if (error && error.name === 'AbortError') {
+                        return;
+                    }
+
+                    if (brochuresAbortController !== controller) {
+                        return;
+                    }
+
+                    lastLoadedBrochuresCompanyId = null;
+                    lastLoadedBrochuresOwnerId = null;
+                    lastLoadedBrochures = null;
+                    showBrochuresError(error && error.message ? error.message : 'Unable to load brochures.', companyLabel);
+                })
+                .finally(() => {
+                    if (brochuresAbortController === controller) {
+                        brochuresAbortController = null;
+                    }
+                });
+        }
+
         function renderBookings(bookings, companyLabel) {
             hideBookingsMessages();
             updateBookingsSubtitle(companyLabel);
@@ -373,11 +584,11 @@
             const stepLabel = companyLabel ? `Bookings (${companyLabel})` : null;
 
             if (
-                lastLoadedCompanyId === normalizedCompanyId &&
-                lastLoadedOwnerId === ownerKey &&
+                lastLoadedBookingsCompanyId === normalizedCompanyId &&
+                lastLoadedBookingsOwnerId === ownerKey &&
                 Array.isArray(lastLoadedBookings)
             ) {
-                setStepLabel(2, stepLabel);
+                setStepLabel(3, stepLabel);
                 renderBookings(lastLoadedBookings, companyLabel);
                 return;
             }
@@ -385,11 +596,11 @@
             const controller = new AbortController();
             bookingsAbortController = controller;
 
-            lastLoadedCompanyId = normalizedCompanyId;
-            lastLoadedOwnerId = ownerKey;
+            lastLoadedBookingsCompanyId = normalizedCompanyId;
+            lastLoadedBookingsOwnerId = ownerKey;
             lastLoadedBookings = null;
 
-            setStepLabel(2, stepLabel);
+            setStepLabel(3, stepLabel);
             showBookingsLoading(companyLabel);
 
             const params = new URLSearchParams({ companyId: normalizedCompanyId });
@@ -417,8 +628,8 @@
                         return;
                     }
 
-                    lastLoadedCompanyId = null;
-                    lastLoadedOwnerId = null;
+                    lastLoadedBookingsCompanyId = null;
+                    lastLoadedBookingsOwnerId = null;
                     lastLoadedBookings = null;
                     showBookingsError(error && error.message ? error.message : 'Unable to load CPC bookings.', companyLabel);
                 })
@@ -476,6 +687,7 @@
 
             setStepLabel(0, ownerId ? selectedText : null);
             setStepLabel(1, null);
+            resetBrochuresState({ resetLabel: true });
             resetBookingsState({ resetLabel: true });
 
             if (!ownerId) {
@@ -507,6 +719,7 @@
             clearSelect2Error($companySelect);
             const selectedText = $(this).find('option:selected').text().trim();
             const value = $(this).val();
+            resetBrochuresState({ resetLabel: true });
             resetBookingsState({ resetLabel: true });
             setStepLabel(1, value ? selectedText : null);
         });
@@ -543,7 +756,13 @@
                 if (step >= 2) {
                     const selectedText = $companySelect.find('option:selected').text().trim();
                     showStep(step);
-                    loadBookings(companySelect.value, selectedText, ownerSelect.value);
+
+                    if (step === 2) {
+                        loadBrochures(companySelect.value, selectedText, ownerSelect.value);
+                    } else if (step >= 3) {
+                        loadBookings(companySelect.value, selectedText, ownerSelect.value);
+                    }
+
                     return;
                 }
 
@@ -556,12 +775,17 @@
                 const targetStep = parseInt(button.getAttribute('data-prev-step') || '', 10);
                 const step = Number.isNaN(targetStep) ? Math.max(0, currentStep - 1) : targetStep;
 
-                if (currentStep === 2 && step < 2 && bookingsAbortController) {
+                if (currentStep === 3 && step < 3 && bookingsAbortController) {
                     bookingsAbortController.abort();
                     bookingsAbortController = null;
                     if (finishButton) {
                         finishButton.disabled = false;
                     }
+                }
+
+                if (currentStep === 2 && step < 2 && brochuresAbortController) {
+                    brochuresAbortController.abort();
+                    brochuresAbortController = null;
                 }
 
                 showStep(step);

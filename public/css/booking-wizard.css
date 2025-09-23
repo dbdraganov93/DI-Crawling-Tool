@@ -99,10 +99,13 @@
     min-width: 120px;
 }
 
+#brochure-results-table-wrapper,
 #booking-results-table-wrapper {
     margin-top: 1.5rem;
 }
 
+#brochure-results-table th,
+#brochure-results-table td,
 #booking-results-table th,
 #booking-results-table td {
     vertical-align: middle;
