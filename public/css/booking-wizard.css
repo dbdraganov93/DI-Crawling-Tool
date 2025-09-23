@@ -282,17 +282,77 @@
     padding-right: 0.5rem;
 }
 
-.table-card .table .table-selection-checkbox {
-    width: 1.05rem;
-    height: 1.05rem;
-    margin: 0;
-    cursor: pointer;
-    box-shadow: none;
+.table-card .table .table-selection-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.table-card .table .table-selection-checkbox:focus {
-    box-shadow: 0 0 0 0.3rem var(--wizard-primary-soft);
+.table-card .table .table-selection-checkbox {
+    appearance: none;
+    width: 1.15rem;
+    height: 1.15rem;
+    margin: 0;
+    border-radius: 0.55rem;
+    border: 1px solid rgba(120, 144, 180, 0.7);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(244, 247, 255, 0.96) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 2px rgba(15, 23, 42, 0.12);
+    cursor: pointer;
+    position: relative;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.table-card .table .table-selection-checkbox::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.35rem;
+    height: 0.65rem;
+    border-right: 2px solid transparent;
+    border-bottom: 2px solid transparent;
+    transform: translate(-50%, -62%) rotate(45deg) scale(0);
+    transform-origin: center;
+    transition: transform 0.16s ease;
+}
+
+.table-card .table .table-selection-checkbox:hover:not(:disabled) {
+    border-color: rgba(10, 132, 255, 0.55);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 4px 9px rgba(15, 23, 42, 0.12);
+}
+
+.table-card .table .table-selection-checkbox:checked {
     border-color: var(--wizard-primary);
+    background: linear-gradient(180deg, rgba(10, 132, 255, 0.95) 0%, rgba(0, 102, 204, 0.95) 100%);
+    box-shadow: 0 0 0 2px var(--wizard-primary-soft);
+}
+
+.table-card .table .table-selection-checkbox:checked::after {
+    border-color: #ffffff;
+    transform: translate(-50%, -62%) rotate(45deg) scale(1);
+}
+
+.table-card .table .table-selection-checkbox:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--wizard-primary-soft);
+}
+
+.table-card .table .table-selection-checkbox:disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
+    border-color: rgba(160, 174, 192, 0.6);
+    background: rgba(241, 245, 255, 0.8);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .table-card .table .table-selection-checkbox {
+        transition: none;
+    }
+
+    .table-card .table .table-selection-checkbox::after {
+        transition: none;
+    }
 }
 
 .table-card-toolbar {

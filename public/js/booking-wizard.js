@@ -60,6 +60,7 @@
         const brochuresPagination = document.getElementById('brochure-results-pagination');
         const brochuresResultsCount = document.getElementById('brochure-results-count');
         const brochuresSelectionSummary = document.getElementById('brochure-selection-count');
+        const brochuresSelectionInput = document.getElementById('booking-wizard-selected-brochures');
         const bookingsSubtitle = document.getElementById('booking-results-subtitle');
         const bookingsLoading = document.getElementById('booking-results-loading');
         const bookingsError = document.getElementById('booking-results-error');
@@ -81,6 +82,16 @@
         let lastLoadedBrochures = null;
 
         const selectedBrochureIds = new Set();
+
+        if (brochuresSelectionInput && typeof brochuresSelectionInput.value === 'string') {
+            brochuresSelectionInput.value
+                .split(',')
+                .map((value) => value.trim())
+                .filter((value) => value !== '')
+                .forEach((value) => {
+                    selectedBrochureIds.add(value);
+                });
+        }
 
         updateBrochureSelectionSummary();
 
@@ -212,7 +223,18 @@
             }
         }
 
+        function syncSelectedBrochureField() {
+            if (!brochuresSelectionInput) {
+                return;
+            }
+
+            const values = Array.from(selectedBrochureIds);
+            brochuresSelectionInput.value = values.join(',');
+        }
+
         function updateBrochureSelectionSummary() {
+            syncSelectedBrochureField();
+
             if (!brochuresSelectionSummary) {
                 return;
             }
@@ -882,11 +904,11 @@
             }
 
             const selectionCell = document.createElement('td');
-            selectionCell.className = 'table-selection-cell text-center';
+            selectionCell.className = 'table-selection-cell';
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
-            checkbox.className = 'form-check-input table-selection-checkbox';
+            checkbox.className = 'table-selection-checkbox';
             checkbox.disabled = !brochureId;
 
             const labelParts = [];
@@ -907,6 +929,24 @@
             checkbox.setAttribute('aria-label', accessibleLabel);
             checkbox.title = accessibleLabel;
 
+            const updateRowSelection = (isSelected) => {
+                if (!brochureId) {
+                    checkbox.checked = false;
+                    row.classList.remove('table-active');
+                    return;
+                }
+
+                if (isSelected) {
+                    selectedBrochureIds.add(brochureId);
+                    row.classList.add('table-active');
+                } else {
+                    selectedBrochureIds.delete(brochureId);
+                    row.classList.remove('table-active');
+                }
+
+                updateBrochureSelectionSummary();
+            };
+
             if (brochureId) {
                 checkbox.value = brochureId;
                 const isSelected = selectedBrochureIds.has(brochureId);
@@ -917,21 +957,19 @@
                 }
 
                 checkbox.addEventListener('change', () => {
-                    if (checkbox.checked) {
-                        selectedBrochureIds.add(brochureId);
-                        row.classList.add('table-active');
-                    } else {
-                        selectedBrochureIds.delete(brochureId);
-                        row.classList.remove('table-active');
+                    updateRowSelection(checkbox.checked);
+                });
+
+                selectionCell.addEventListener('click', (event) => {
+                    if (event.target === checkbox) {
+                        return;
                     }
 
-                    updateBrochureSelectionSummary();
+                    checkbox.checked = !checkbox.checked;
+                    updateRowSelection(checkbox.checked);
                 });
             } else {
                 checkbox.checked = false;
-                checkbox.addEventListener('change', () => {
-                    checkbox.checked = false;
-                });
             }
 
             selectionCell.appendChild(checkbox);

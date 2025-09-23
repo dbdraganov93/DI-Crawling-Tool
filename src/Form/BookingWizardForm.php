@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Service\IprotoService;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
@@ -36,6 +37,13 @@ class BookingWizardForm extends AbstractType
                 'attr' => [
                     'class' => 'form-control',
                     'data-error-message' => 'Please select a company',
+                ],
+            ])
+            ->add('selectedBrochures', HiddenType::class, [
+                'mapped' => false,
+                'required' => false,
+                'attr' => [
+                    'id' => 'booking-wizard-selected-brochures',
                 ],
             ]);
 
