@@ -98,3 +98,18 @@
 .booking-wizard-form .btn-success {
     min-width: 120px;
 }
+
+#booking-results-table-wrapper {
+    margin-top: 1.5rem;
+}
+
+#booking-results-table th,
+#booking-results-table td {
+    vertical-align: middle;
+}
+
+#booking-results-loading,
+#booking-results-error,
+#booking-results-empty {
+    margin-top: 1rem;
+}

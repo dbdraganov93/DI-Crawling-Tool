@@ -25,6 +25,10 @@
                 <div class="booking-stepper-circle">2</div>
                 <div class="booking-stepper-label">Company</div>
             </div>
+            <div class="booking-stepper-step" data-step="2" data-default-label="Bookings">
+                <div class="booking-stepper-circle">3</div>
+                <div class="booking-stepper-label">Bookings</div>
+            </div>
         </div>
 
         {{ form_start(form, {
@@ -55,6 +59,39 @@
             </div>
             <div class="d-flex justify-content-between">
                 <button type="button" class="btn btn-secondary" data-prev-step="0">Previous</button>
+                <button type="button" class="btn btn-success" data-next-step="2">Next</button>
+            </div>
+        </div>
+
+        <div id="booking-step-2" class="booking-step">
+            <h4>Step 3: Review CPC Bookings</h4>
+            <p class="text-muted" id="booking-results-subtitle"></p>
+
+            <div class="alert alert-info d-none" role="status" id="booking-results-loading">
+                Loading CPC bookings...
+            </div>
+            <div class="alert alert-danger d-none" role="alert" id="booking-results-error"></div>
+            <div class="alert alert-warning d-none" role="status" id="booking-results-empty">
+                No CPC bookings found for the selected company.
+            </div>
+
+            <div class="table-responsive d-none" id="booking-results-table-wrapper">
+                <table class="table table-striped table-bordered align-middle" id="booking-results-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Title</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Active Period</th>
+                            <th scope="col">Budget</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <button type="button" class="btn btn-secondary" data-prev-step="1">Previous</button>
                 <button type="submit" class="btn btn-success">Finish</button>
             </div>
         </div>
