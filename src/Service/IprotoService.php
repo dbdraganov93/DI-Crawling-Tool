@@ -170,6 +170,35 @@ class IprotoService
     }
 
 
+    public function getBrochure(string $brochureId): array
+    {
+        $normalized = trim($brochureId);
+
+        if ($normalized === '') {
+            throw new \InvalidArgumentException('Brochure ID is required to load brochure details.');
+        }
+
+        $uri = sprintf('/api/brochures/%s', rawurlencode($normalized));
+
+        $response = $this->sendRequest(
+            'GET',
+            $uri,
+            [],
+            null,
+            'application/ld+json',
+            'application/ld+json',
+        );
+
+        $data = $response['body'];
+
+        if (!is_array($data)) {
+            throw new \RuntimeException(sprintf('Unexpected brochure response for ID "%s".', $normalized));
+        }
+
+        return $data;
+    }
+
+
     /**
      * @return array<int, array<string, mixed>>
      */

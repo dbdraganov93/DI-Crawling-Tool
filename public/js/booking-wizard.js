@@ -61,6 +61,9 @@
         const brochuresResultsCount = document.getElementById('brochure-results-count');
         const brochuresSelectionSummary = document.getElementById('brochure-selection-count');
         const brochuresSelectionInput = document.getElementById('booking-wizard-selected-brochures');
+        const brochureActionSelect = document.getElementById('brochure-action-select');
+        const brochureActionButton = document.getElementById('brochure-action-submit');
+        const brochureActionFeedback = document.getElementById('brochure-action-feedback');
         const bookingsSubtitle = document.getElementById('booking-results-subtitle');
         const bookingsLoading = document.getElementById('booking-results-loading');
         const bookingsError = document.getElementById('booking-results-error');
@@ -247,6 +250,60 @@
                 : `${count} brochures selected`;
         }
 
+        function clearBrochureActionFeedback() {
+            if (!brochureActionFeedback) {
+                return;
+            }
+
+            brochureActionFeedback.classList.add('d-none');
+            brochureActionFeedback.classList.remove('alert-success', 'alert-danger', 'alert-warning', 'alert-info');
+
+            if (typeof brochureActionFeedback.replaceChildren === 'function') {
+                brochureActionFeedback.replaceChildren();
+            } else {
+                brochureActionFeedback.textContent = '';
+            }
+        }
+
+        function showBrochureActionFeedback(type, message, extraNodes = []) {
+            if (!brochureActionFeedback) {
+                return;
+            }
+
+            const normalizedMessage = typeof message === 'string' ? message.trim() : '';
+            const normalizedType = ['success', 'danger', 'warning', 'info'].includes(type)
+                ? type
+                : 'info';
+
+            brochureActionFeedback.classList.remove('alert-success', 'alert-danger', 'alert-warning', 'alert-info');
+            brochureActionFeedback.classList.add(`alert-${normalizedType}`);
+            brochureActionFeedback.classList.remove('d-none');
+
+            if (typeof brochureActionFeedback.replaceChildren === 'function') {
+                brochureActionFeedback.replaceChildren();
+            } else {
+                brochureActionFeedback.textContent = '';
+            }
+
+            if (normalizedMessage !== '') {
+                brochureActionFeedback.appendChild(document.createTextNode(normalizedMessage));
+            }
+
+            if (Array.isArray(extraNodes)) {
+                extraNodes.forEach((node) => {
+                    if (!(node instanceof Node)) {
+                        return;
+                    }
+
+                    if (brochureActionFeedback.childNodes.length > 0) {
+                        brochureActionFeedback.appendChild(document.createTextNode(' '));
+                    }
+
+                    brochureActionFeedback.appendChild(node);
+                });
+            }
+        }
+
         function getBrochureIdentifier(brochure) {
             if (!brochure || typeof brochure !== 'object') {
                 return null;
@@ -292,6 +349,7 @@
 
             selectedBrochureIds.clear();
             updateBrochureSelectionSummary();
+            clearBrochureActionFeedback();
 
             if (brochuresAbortController) {
                 brochuresAbortController.abort();
@@ -318,6 +376,7 @@
         function showBrochuresLoading(companyLabel) {
             hideBrochuresMessages();
             updateBrochuresSubtitle(companyLabel);
+            clearBrochureActionFeedback();
 
             if (brochuresTableManager) {
                 brochuresTableManager.reset();
@@ -344,6 +403,64 @@
                 brochuresError.textContent = message || 'Unable to load brochures.';
                 brochuresError.classList.remove('d-none');
             }
+        }
+
+        function renderBrochureActionSuccess(result) {
+            if (!result || typeof result !== 'object') {
+                showBrochureActionFeedback('info', 'Brochure action completed.');
+                return;
+            }
+
+            const summary = result.summary && typeof result.summary === 'object' ? result.summary : {};
+            const selectedCount = parsePositiveInteger(summary.selectedBrochures, selectedBrochureIds.size);
+            const storesCount = parsePositiveInteger(summary.stores, 0);
+            const generatedCount = parsePositiveInteger(summary.generated, 0);
+
+            const importData = result.import && typeof result.import === 'object' ? result.import : null;
+            const status = importData && typeof importData.status === 'string'
+                ? importData.status
+                : '';
+            const importId = typeof result.importId === 'string' ? result.importId.trim() : '';
+
+            const csvData = result.csv && typeof result.csv === 'object' ? result.csv : null;
+            const downloadLink = csvData && typeof csvData.downloadLink === 'string'
+                ? csvData.downloadLink.trim()
+                : '';
+
+            const parts = [];
+
+            if (generatedCount > 0 && storesCount > 0) {
+                parts.push(`${generatedCount} brochure${generatedCount === 1 ? '' : 's'} duplicated for ${storesCount} store${storesCount === 1 ? '' : 's'}.`);
+            } else if (generatedCount > 0) {
+                parts.push(`${generatedCount} brochure${generatedCount === 1 ? '' : 's'} duplicated.`);
+            } else {
+                parts.push('Brochure action completed.');
+            }
+
+            if (selectedCount > 0) {
+                parts.push(`${selectedCount} original brochure${selectedCount === 1 ? '' : 's'} selected.`);
+            }
+
+            if (status) {
+                parts.push(`Import status: ${status}.`);
+            }
+
+            if (importId) {
+                parts.push(`Import ID: ${importId}.`);
+            }
+
+            const nodes = [];
+
+            if (downloadLink) {
+                const link = document.createElement('a');
+                link.href = downloadLink;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.textContent = 'Download CSV';
+                nodes.push(link);
+            }
+
+            showBrochureActionFeedback('success', parts.join(' '), nodes);
         }
 
         function hideBookingsMessages() {
@@ -1355,6 +1472,75 @@
                 showStep(step);
             });
         });
+
+        if (brochureActionButton) {
+            brochureActionButton.addEventListener('click', () => {
+                clearBrochureActionFeedback();
+                clearSelect2Error($ownerSelect);
+                clearSelect2Error($companySelect);
+
+                if (!ownerSelect.value) {
+                    const message = ownerSelect.dataset.errorMessage || 'Please select an owner';
+                    setSelect2Error($ownerSelect, message);
+                    showBrochureActionFeedback('warning', message);
+                    showStep(0);
+                    return;
+                }
+
+                if (!companySelect.value) {
+                    const message = companySelect.dataset.errorMessage || 'Please select a company';
+                    setSelect2Error($companySelect, message);
+                    showBrochureActionFeedback('warning', message);
+                    showStep(1);
+                    return;
+                }
+
+                if (selectedBrochureIds.size === 0) {
+                    showBrochureActionFeedback('warning', 'Select at least one brochure to duplicate.');
+                    return;
+                }
+
+                const actionValue = brochureActionSelect ? brochureActionSelect.value : 'duplicate_per_store';
+                const normalizedAction = typeof actionValue === 'string' ? actionValue.trim() : '';
+
+                if (normalizedAction === '') {
+                    showBrochureActionFeedback('warning', 'Choose an action before continuing.');
+                    return;
+                }
+
+                const payload = {
+                    action: normalizedAction,
+                    companyId: companySelect.value,
+                    ownerId: ownerSelect.value,
+                    brochureIds: Array.from(selectedBrochureIds),
+                };
+
+                const originalText = brochureActionButton.textContent;
+                brochureActionButton.disabled = true;
+                brochureActionButton.textContent = 'Working...';
+
+                fetchJson('/booking-wizard/api/brochure-actions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                })
+                    .then((result) => {
+                        renderBrochureActionSuccess(result);
+                    })
+                    .catch((error) => {
+                        const message = error && error.message
+                            ? error.message
+                            : 'Unable to process brochure action.';
+                        showBrochureActionFeedback('danger', message);
+                    })
+                    .finally(() => {
+                        brochureActionButton.disabled = false;
+                        brochureActionButton.textContent = originalText;
+                    });
+            });
+        }
 
         form.addEventListener('submit', (event) => {
             let valid = true;

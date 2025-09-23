@@ -390,6 +390,61 @@
     background-position: right 0.85rem center;
 }
 
+.table-card-actions {
+    margin-top: 1.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.table-card-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.table-card-actions .form-select {
+    min-width: 220px;
+    border-radius: 14px;
+    border: 1px solid rgba(205, 214, 231, 0.85);
+    padding: 0.45rem 2.2rem 0.45rem 0.9rem;
+    background: rgba(247, 249, 255, 0.85);
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.table-card-actions .form-select:focus {
+    border-color: rgba(10, 132, 255, 0.5);
+    box-shadow: 0 0 0 0.35rem rgba(10, 132, 255, 0.16);
+}
+
+.table-card-actions .btn {
+    border-radius: 999px;
+    padding: 0.45rem 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow: 0 16px 30px rgba(10, 132, 255, 0.24);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.table-card-actions .btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 10px 20px rgba(10, 132, 255, 0.22);
+}
+
+#brochure-action-feedback {
+    margin-top: 1rem;
+    border-radius: 18px;
+    border: 1px solid rgba(209, 213, 219, 0.6);
+    background: rgba(255, 255, 255, 0.95);
+    color: #1f2937;
+    font-size: 0.92rem;
+    padding: 0.95rem 1.2rem;
+    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.05);
+}
+
 .table-card-footer {
     display: flex;
     align-items: center;
@@ -450,6 +505,21 @@
     }
 
     .table-card-toolbar .form-select {
+        width: 100%;
+    }
+
+    .table-card-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .table-card-actions-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .table-card-actions .form-select,
+    .table-card-actions .btn {
         width: 100%;
     }
 

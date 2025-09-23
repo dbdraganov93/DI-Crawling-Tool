@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Form\BookingWizardForm;
 use App\Service\BookingManagementService;
+use App\Service\BookingWizard\BrochureActionService;
 use App\Service\IprotoService;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -64,6 +65,60 @@ class BookingWizardController extends AbstractController
             ]);
 
             return $this->json(['error' => 'Unable to load brochures.'], Response::HTTP_BAD_GATEWAY);
+        }
+    }
+
+    #[Route('/booking-wizard/api/brochure-actions', name: 'app_booking_wizard_brochure_actions', methods: ['POST'])]
+    public function handleBrochureActions(
+        Request $request,
+        BrochureActionService $brochureActionService,
+        LoggerInterface $logger,
+    ): JsonResponse {
+        $data = json_decode($request->getContent() ?? '', true);
+
+        if (!is_array($data)) {
+            return $this->json(['error' => 'Invalid request payload.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $action = trim((string) ($data['action'] ?? ''));
+        $companyId = trim((string) ($data['companyId'] ?? ''));
+        $ownerId = trim((string) ($data['ownerId'] ?? ''));
+        $brochureIds = $data['brochureIds'] ?? [];
+
+        if (!is_array($brochureIds)) {
+            $brochureIds = [];
+        }
+
+        if ($action !== BrochureActionService::ACTION_DUPLICATE_PER_STORE) {
+            return $this->json(['error' => 'Unsupported brochure action requested.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $result = $brochureActionService->duplicateBrochuresPerStore($companyId, $ownerId, $brochureIds);
+
+            return $this->json($result);
+        } catch (\InvalidArgumentException $exception) {
+            return $this->json(['error' => $exception->getMessage()], Response::HTTP_BAD_REQUEST);
+        } catch (\RuntimeException $exception) {
+            $logger->error('Brochure action failed.', [
+                'action' => $action,
+                'companyId' => $companyId,
+                'ownerId' => $ownerId,
+                'brochureIds' => $brochureIds,
+                'exception' => $exception,
+            ]);
+
+            return $this->json(['error' => $exception->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Throwable $exception) {
+            $logger->error('Unexpected error while processing brochure action.', [
+                'action' => $action,
+                'companyId' => $companyId,
+                'ownerId' => $ownerId,
+                'brochureIds' => $brochureIds,
+                'exception' => $exception,
+            ]);
+
+            return $this->json(['error' => 'Unable to process brochure action.'], Response::HTTP_BAD_GATEWAY);
         }
     }
 

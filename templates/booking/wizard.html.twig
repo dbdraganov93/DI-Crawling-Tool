@@ -90,6 +90,16 @@
                         <option value="25">25 per page</option>
                     </select>
                 </div>
+                <div class="table-card-actions" id="brochure-action-bar">
+                    <div class="table-card-actions-group">
+                        <label for="brochure-action-select" class="visually-hidden">Brochure action</label>
+                        <select class="form-select form-select-sm" id="brochure-action-select" aria-label="Select brochure action">
+                            <option value="duplicate_per_store" selected>Duplicate brochures per store</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="brochure-action-submit">Go baby! Go!</button>
+                </div>
+                <div class="alert d-none" role="alert" id="brochure-action-feedback"></div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle" id="brochure-results-table">
                         <thead>
