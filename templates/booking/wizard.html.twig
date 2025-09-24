@@ -1,0 +1,189 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Booking Wizard{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ asset('css/booking-wizard.css') }}">
+{% endblock %}
+
+{% block body %}
+    <div class="container-fluid mt-5 px-4 booking-wizard-container">
+        <h1 class="text-center mb-4">Booking Wizard</h1>
+
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">{{ message }}</div>
+        {% endfor %}
+
+        <div class="booking-stepper" id="booking-stepper">
+            <div class="booking-stepper-step active" data-step="0" data-default-label="Owner">
+                <div class="booking-stepper-circle">1</div>
+                <div class="booking-stepper-label">Owner</div>
+            </div>
+            <div class="booking-stepper-step" data-step="1" data-default-label="Company">
+                <div class="booking-stepper-circle">2</div>
+                <div class="booking-stepper-label">Company</div>
+            </div>
+            <div class="booking-stepper-step" data-step="2" data-default-label="Brochures">
+                <div class="booking-stepper-circle">3</div>
+                <div class="booking-stepper-label">Brochures</div>
+            </div>
+            <div class="booking-stepper-step" data-step="3" data-default-label="Bookings">
+                <div class="booking-stepper-circle">4</div>
+                <div class="booking-stepper-label">Bookings</div>
+            </div>
+        </div>
+
+        {{ form_start(form, {
+            attr: {
+                class: 'booking-wizard-form',
+                novalidate: 'novalidate'
+            }
+        }) }}
+
+        {{ form_widget(form.selectedBrochures) }}
+
+        <div id="booking-step-0" class="booking-step active">
+            <h4>Step 1: Select Owner</h4>
+            <div class="mb-3">
+                {{ form_label(form.owner) }}
+                {{ form_widget(form.owner) }}
+                {{ form_errors(form.owner) }}
+            </div>
+            <div class="d-flex justify-content-end">
+                <button type="button" class="btn btn-primary" data-next-step="1">Next</button>
+            </div>
+        </div>
+
+        <div id="booking-step-1" class="booking-step">
+            <h4>Step 2: Select Company</h4>
+            <div class="mb-3">
+                {{ form_label(form.company) }}
+                {{ form_widget(form.company) }}
+                {{ form_errors(form.company) }}
+            </div>
+            <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary" data-prev-step="0">Previous</button>
+                <button type="button" class="btn btn-success" data-next-step="2">Next</button>
+            </div>
+        </div>
+
+        <div id="booking-step-2" class="booking-step">
+            <h4>Step 3: Review Brochures</h4>
+            <p class="text-muted" id="brochure-results-subtitle"></p>
+
+            <div class="alert alert-info d-none" role="status" id="brochure-results-loading">
+                Loading brochures...
+            </div>
+            <div class="alert alert-danger d-none" role="alert" id="brochure-results-error"></div>
+            <div class="alert alert-warning d-none" role="status" id="brochure-results-empty">
+                No brochures found for the selected company.
+            </div>
+
+            <div class="table-card d-none" id="brochure-results-table-wrapper">
+                <div class="table-card-toolbar">
+                    <input type="search" class="form-control table-search" id="brochure-results-search" placeholder="Search brochures" aria-label="Search brochures">
+                    <select class="form-select form-select-sm" id="brochure-results-page-size" aria-label="Brochure results per page">
+                        <option value="5">5 per page</option>
+                        <option value="10" selected>10 per page</option>
+                        <option value="25">25 per page</option>
+                    </select>
+                </div>
+                <div class="table-card-actions" id="brochure-action-bar">
+                    <div class="table-card-actions-group">
+                        <label for="brochure-action-select" class="visually-hidden">Brochure action</label>
+                        <select class="form-select form-select-sm" id="brochure-action-select" aria-label="Select brochure action">
+                            <option value="duplicate_per_store" selected>Duplicate brochures per store</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="brochure-action-submit">Go baby! Go!</button>
+                </div>
+                <div class="alert d-none" role="alert" id="brochure-action-feedback"></div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="brochure-results-table">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-center table-selection-header">Select</th>
+                                <th scope="col">ID</th>
+                                <th scope="col">Brochure #</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Valid Period</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="table-card-footer">
+                    <small id="brochure-results-count" aria-live="polite"></small>
+                    <small id="brochure-selection-count" class="text-muted"></small>
+                    <nav aria-label="Brochure pagination">
+                        <ul class="pagination pagination-sm mb-0" id="brochure-results-pagination"></ul>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <button type="button" class="btn btn-secondary" data-prev-step="1">Previous</button>
+                <button type="button" class="btn btn-success" data-next-step="3">Next</button>
+            </div>
+        </div>
+
+        <div id="booking-step-3" class="booking-step">
+            <h4>Step 4: Review CPC Bookings</h4>
+            <p class="text-muted" id="booking-results-subtitle"></p>
+
+            <div class="alert alert-info d-none" role="status" id="booking-results-loading">
+                Loading CPC bookings...
+            </div>
+            <div class="alert alert-danger d-none" role="alert" id="booking-results-error"></div>
+            <div class="alert alert-warning d-none" role="status" id="booking-results-empty">
+                No CPC bookings found for the selected company.
+            </div>
+
+            <div class="table-card d-none" id="booking-results-table-wrapper">
+                <div class="table-card-toolbar">
+                    <input type="search" class="form-control table-search" id="booking-results-search" placeholder="Search bookings" aria-label="Search bookings">
+                    <select class="form-select form-select-sm" id="booking-results-page-size" aria-label="Booking results per page">
+                        <option value="5">5 per page</option>
+                        <option value="10" selected>10 per page</option>
+                        <option value="25">25 per page</option>
+                    </select>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="booking-results-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">Title</th>
+                                <th scope="col">Type</th>
+                                <th scope="col">Active Period</th>
+                                <th scope="col">Budget</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="table-card-footer">
+                    <small id="booking-results-count" aria-live="polite"></small>
+                    <nav aria-label="Booking pagination">
+                        <ul class="pagination pagination-sm mb-0" id="booking-results-pagination"></ul>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <button type="button" class="btn btn-secondary" data-prev-step="2">Previous</button>
+                <button type="submit" class="btn btn-success">Finish</button>
+            </div>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="{{ asset('js/booking-wizard.js') }}"></script>
+{% endblock %}
