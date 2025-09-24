@@ -46,7 +46,7 @@ class BrochureActionServiceTest extends TestCase
 
         $iprotoService
             ->expects($this->once())
-            ->method('getBrochure')
+            ->method('getBrochureDetails')
             ->with('55')
             ->willReturn($brochureDetail);
 

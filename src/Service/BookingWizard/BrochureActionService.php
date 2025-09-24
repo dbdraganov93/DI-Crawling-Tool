@@ -57,7 +57,7 @@ class BrochureActionService
         $duplicatedBrochures = [];
 
         foreach ($normalizedBrochureIds as $brochureId) {
-            $brochureDetail = $this->iprotoService->getBrochure($brochureId);
+            $brochureDetail = $this->iprotoService->getBrochureDetails($brochureId);
             $basePayload = $this->normalizeBrochurePayload($brochureDetail, $normalizedCompanyId, $brochureId);
 
             foreach ($storeNumbers as $storeNumber) {

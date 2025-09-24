@@ -198,6 +198,114 @@ class IprotoService
         return $data;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    public function getBrochureDetails(string $brochureId): array
+    {
+        $normalized = trim($brochureId);
+
+        if ($normalized === '') {
+            throw new \InvalidArgumentException('Brochure ID is required to fetch brochure details.');
+        }
+
+        $baseParams = [
+            'itemsPerPage' => 10,
+            'page' => 1,
+            'order' => [
+                'id' => 'asc',
+                'title' => 'asc',
+                'brochureNumber' => 'asc',
+                'validFrom' => 'asc',
+                'visibleFrom' => 'asc',
+                'validTo' => 'asc',
+            ],
+            'exists' => [
+                'deletedAt' => false,
+            ],
+        ];
+
+        $filters = [
+            ['id' => $normalized],
+            ['id[]' => $normalized],
+            ['brochureNumber' => $normalized],
+            ['brochureNumber[]' => $normalized],
+        ];
+
+        foreach ($filters as $filter) {
+            $items = $this->requestBrochureMembers($baseParams + $filter);
+            $brochure = $this->matchBrochureFromItems($items, $normalized);
+
+            if ($brochure !== null) {
+                return $brochure;
+            }
+        }
+
+        try {
+            return $this->getBrochure($normalized);
+        } catch (\Throwable $exception) {
+            throw new \RuntimeException(
+                sprintf('Brochure details for ID "%s" were not found.', $normalized),
+                0,
+                $exception
+            );
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     * @return array<int, mixed>
+     */
+    private function requestBrochureMembers(array $params): array
+    {
+        $response = $this->sendRequest(
+            'GET',
+            '/api/brochures',
+            $params,
+            null,
+            'application/ld+json',
+            'application/ld+json',
+        );
+
+        $data = $response['body'];
+
+        if (!is_array($data)) {
+            return [];
+        }
+
+        $items = $data['hydra:member'] ?? [];
+
+        return is_array($items) ? $items : [];
+    }
+
+    /**
+     * @param array<int, mixed> $items
+     */
+    private function matchBrochureFromItems(array $items, string $expectedId): ?array
+    {
+        foreach ($items as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $candidateId = $item['id'] ?? null;
+
+            if ($candidateId === null && isset($item['@id'])) {
+                $candidateId = $this->extractIntegrationId($item['@id']);
+            }
+
+            if ($candidateId !== null && (string) $candidateId === $expectedId) {
+                return $item;
+            }
+
+            $brochureNumber = $item['brochureNumber'] ?? $item['number'] ?? null;
+            if ($brochureNumber !== null && (string) $brochureNumber === $expectedId) {
+                return $item;
+            }
+        }
+
+        return null;
+    }
 
     /**
      * @return array<int, array<string, mixed>>
