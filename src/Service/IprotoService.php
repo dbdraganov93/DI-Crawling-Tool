@@ -307,7 +307,6 @@ class IprotoService
         return null;
     }
 
-
     /**
      * @return array<int, array<string, mixed>>
      */

@@ -32,4 +32,6 @@ jobs:
         echo "Pushing branch: $BRANCH_NAME to GitLab"
 
         git remote add gitlab https://oauth2:${GITLAB_TOKEN}@${GITLAB_URL#https://}
+        git fetch gitlab "$BRANCH_NAME" || true
+        git rebase gitlab/"$BRANCH_NAME" || true
         git push gitlab "$BRANCH_NAME:$BRANCH_NAME"
