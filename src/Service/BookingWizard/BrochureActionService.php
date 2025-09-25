@@ -74,7 +74,12 @@ class BrochureActionService
         }
 
         $brochureCsv = $this->csvService->createCsvFromBrochure($duplicatedBrochures, $normalizedCompanyId);
-        $import = $this->iprotoService->importData($brochureCsv);
+
+        try {
+            $import = $this->iprotoService->importData($brochureCsv);
+        } catch (\Throwable $exception) {
+            throw new \RuntimeException('Failed to import duplicated brochures.', 0, $exception);
+        }
 
         return [
             'summary' => [

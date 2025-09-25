@@ -583,8 +583,13 @@ class IprotoService
 
         // Now $data is in the expected format
         $response = $this->sendRequest('POST', '/api/imports', [], $data, 'application/ld+json', 'application/ld+json');
+        $body = $response['body'];
 
-        return $response['body'];
+        if (!is_array($body)) {
+            throw new \RuntimeException('Unexpected import response received from iProto.');
+        }
+
+        return $body;
     }
 
     public function getImportStatus($importId): array

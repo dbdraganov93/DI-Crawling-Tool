@@ -120,4 +120,50 @@ class BrochureActionServiceTest extends TestCase
         $this->expectException(\RuntimeException::class);
         $service->duplicateBrochuresPerStore('42', '9', ['1']);
     }
+
+    public function testDuplicateBrochuresPerStoreWrapsImportFailures(): void
+    {
+        $iprotoService = $this->createMock(IprotoService::class);
+        $csvService = $this->createMock(CsvService::class);
+
+        $service = new BrochureActionService($iprotoService, $csvService);
+
+        $iprotoService
+            ->expects($this->once())
+            ->method('getStoresByCompany')
+            ->with('42')
+            ->willReturn([
+                ['storeNumber' => '100'],
+            ]);
+
+        $iprotoService
+            ->expects($this->once())
+            ->method('getBrochureDetails')
+            ->with('55')
+            ->willReturn([
+                'id' => '55',
+                'brochureNumber' => 'BR-01',
+                'integration' => '/api/integrations/42',
+            ]);
+
+        $csvService
+            ->expects($this->once())
+            ->method('createCsvFromBrochure')
+            ->with($this->isType('array'), '42')
+            ->willReturn([
+                'companyId' => '42',
+                'type' => 'brochures',
+                'base64' => 'ZHVtbXk=',
+            ]);
+
+        $iprotoService
+            ->expects($this->once())
+            ->method('importData')
+            ->willThrowException(new \TypeError('Boom'));
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Failed to import duplicated brochures.');
+
+        $service->duplicateBrochuresPerStore('42', '9', ['55']);
+    }
 }
