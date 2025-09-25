@@ -32,7 +32,10 @@ jobs:
         echo "Pushing branch: $BRANCH_NAME to GitLab"
 
         git remote add gitlab https://oauth2:${GITLAB_TOKEN}@${GITLAB_URL#https://}
-        git fetch gitlab "$BRANCH_NAME" || true
+        git fetch gitlab "$BRANCH_NAME" || echo "No remote branch, proceeding..."
         # Rebase and always resolve conflicts in favor of the GitHub branch
-        git rebase -X theirs gitlab/"$BRANCH_NAME" || true
+        git rebase -X theirs gitlab/"$BRANCH_NAME" || {
+          echo "Rebase failed. Please resolve conflicts manually.";
+          exit 1;
+        }
         git push gitlab "$BRANCH_NAME:$BRANCH_NAME"
