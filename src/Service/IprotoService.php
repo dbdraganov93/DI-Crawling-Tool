@@ -10,14 +10,19 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class IprotoService
 {
     //stage: https://iproto.public-elb.di-stage.offerista.com
-    private const BASE_URL = 'https://iproto.offerista.com';
     private const MAX_ATTEMPTS = 5;
 
     public function __construct(
         private HttpClientInterface $httpClient,
         private LoggerInterface $logger,
         private IprotoTokenService $tokenService,
+        private string $iprotoBaseUrl = 'https://iproto.offerista.com',
     ) {
+        $this->iprotoBaseUrl = rtrim($this->iprotoBaseUrl, '/');
+
+        if ($this->iprotoBaseUrl === '') {
+            throw new \InvalidArgumentException('The iProto base URL must not be empty.');
+        }
     }
 
     public function getAllCompanies(string $owner, bool $includeDeleted = false, int $itemsPerPage = 1000): array
@@ -463,7 +468,7 @@ class IprotoService
     {
         $normalizedParams = $this->normalizeParams($params);
         $query = count($normalizedParams) > 0 ? '?' . http_build_query($normalizedParams) : '';
-        return rtrim(self::BASE_URL, '/') . '/' . ltrim($uri, '/') . $query;
+        return $this->iprotoBaseUrl . '/' . ltrim($uri, '/') . $query;
     }
 
     private function normalizeParams(array $params): array
