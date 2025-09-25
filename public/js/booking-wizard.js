@@ -29,9 +29,10 @@
 
         return data;
     }
-`
+
     const BROCHURE_ACTION_DUPLICATE_PER_STORE = 'duplicate_per_store';
     const BROCHURE_ACTION_DUPLICATE_PER_SELECTED_STORE = 'duplicate_per_selected_store';
+
 
     document.addEventListener('DOMContentLoaded', () => {
         const form = document.querySelector('.booking-wizard-form');
@@ -68,8 +69,10 @@
         const brochureActionButton = document.getElementById('brochure-action-submit');
         const brochureActionFeedback = document.getElementById('brochure-action-feedback');
 
+
         const brochureStoreSelectorWrapper = document.getElementById('brochure-store-selector');
         const $brochureStoreSelect = $('#brochure-store-select');
+
 
         const bookingsSubtitle = document.getElementById('booking-results-subtitle');
         const bookingsLoading = document.getElementById('booking-results-loading');
@@ -95,6 +98,7 @@
 
         const companyStoresCache = new Map();
         let storesAbortController = null;
+
 
         if (brochuresSelectionInput && typeof brochuresSelectionInput.value === 'string') {
             brochuresSelectionInput.value
@@ -595,6 +599,7 @@
             $brochureStoreSelect.trigger('change.select2');
         }
 
+
         function getBrochureIdentifier(brochure) {
             if (!brochure || typeof brochure !== 'object') {
                 return null;
@@ -641,7 +646,9 @@
             selectedBrochureIds.clear();
             updateBrochureSelectionSummary();
             clearBrochureActionFeedback();
+
             resetStoreSelector({ hide: true, clearSelection: true });
+
 
             if (brochuresAbortController) {
                 brochuresAbortController.abort();
@@ -707,6 +714,7 @@
             const selectedCount = parsePositiveInteger(summary.selectedBrochures, selectedBrochureIds.size);
             const storesCount = parsePositiveInteger(summary.stores, 0);
             const generatedCount = parsePositiveInteger(summary.generated, 0);
+
             const storeNumbers = Array.isArray(summary.storeNumbers)
                 ? summary.storeNumbers
                     .map((value) => {
@@ -718,6 +726,7 @@
                     })
                     .filter((value, index, array) => value !== '' && array.indexOf(value) === index)
                 : [];
+
 
             const importData = result.import && typeof result.import === 'object' ? result.import : null;
             const status = importData && typeof importData.status === 'string'
@@ -740,10 +749,12 @@
                 parts.push('Brochure action completed.');
             }
 
+
             if (storeNumbers.length > 0) {
                 const storeLabel = storeNumbers.length === 1 ? 'Store' : 'Stores';
                 parts.push(`${storeLabel}: ${storeNumbers.join(', ')}.`);
             }
+
 
             if (selectedCount > 0) {
                 parts.push(`${selectedCount} original brochure${selectedCount === 1 ? '' : 's'} selected.`);
@@ -1664,6 +1675,7 @@
             width: '100%',
         });
 
+
         if ($brochureStoreSelect.length) {
             $brochureStoreSelect.select2({
                 placeholder: $brochureStoreSelect.data('placeholder') || 'Select stores',
@@ -1692,7 +1704,9 @@
             setStepLabel(1, null);
             resetBrochuresState({ resetLabel: true });
             resetBookingsState({ resetLabel: true });
+
             handleBrochureActionChange(brochureActionSelect ? brochureActionSelect.value : null);
+
 
             if (!ownerId) {
                 $companySelect.prop('disabled', true);
@@ -1726,7 +1740,9 @@
             resetBrochuresState({ resetLabel: true });
             resetBookingsState({ resetLabel: true });
             setStepLabel(1, value ? selectedText : null);
+
             handleBrochureActionChange(brochureActionSelect ? brochureActionSelect.value : null);
+
         });
 
         document.querySelectorAll('[data-next-step]').forEach((button) => {
@@ -1805,6 +1821,7 @@
             handleBrochureActionChange(brochureActionSelect.value);
         }
 
+
         if (brochureActionButton) {
             brochureActionButton.addEventListener('click', () => {
                 clearBrochureActionFeedback();
@@ -1835,6 +1852,7 @@
                 const actionValue = brochureActionSelect
                     ? brochureActionSelect.value
                     : BROCHURE_ACTION_DUPLICATE_PER_STORE;
+
                 const normalizedAction = typeof actionValue === 'string' ? actionValue.trim() : '';
 
                 if (normalizedAction === '') {

@@ -125,6 +125,7 @@ class BookingWizardController extends AbstractController
         }
     }
 
+
     #[Route('/booking-wizard/api/brochure-actions', name: 'app_booking_wizard_brochure_actions', methods: ['POST'])]
     public function handleBrochureActions(
         Request $request,
@@ -141,7 +142,9 @@ class BookingWizardController extends AbstractController
         $companyId = trim((string) ($data['companyId'] ?? ''));
         $ownerId = trim((string) ($data['ownerId'] ?? ''));
         $brochureIds = $data['brochureIds'] ?? [];
+
         $storeNumbersInput = $data['storeNumbers'] ?? [];
+
 
         if (!is_array($brochureIds)) {
             $brochureIds = [];
@@ -181,6 +184,7 @@ class BookingWizardController extends AbstractController
                 default:
                     return $this->json(['error' => 'Unsupported brochure action requested.'], Response::HTTP_BAD_REQUEST);
             }
+
 
 
             return $this->json($result);

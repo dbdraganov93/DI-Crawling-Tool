@@ -164,6 +164,7 @@ class BrochureActionService
                 'selectedBrochures' => count($brochureIds),
                 'stores' => count($storeNumbers),
                 'storeNumbers' => array_values($storeNumbers),
+
                 'generated' => count($duplicatedBrochures),
             ],
             'csv' => $brochureCsv,
