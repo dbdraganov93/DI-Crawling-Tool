@@ -592,7 +592,6 @@
             $brochureStoreSelect.prop('disabled', false);
             $brochureStoreSelect.trigger('change.select2');
         }
-
         function getBrochureIdentifier(brochure) {
             if (!brochure || typeof brochure !== 'object') {
                 return null;
@@ -716,7 +715,6 @@
                     })
                     .filter((value, index, array) => value !== '' && array.indexOf(value) === index)
                 : [];
-
             const importData = result.import && typeof result.import === 'object' ? result.import : null;
             const status = importData && typeof importData.status === 'string'
                 ? importData.status
@@ -737,12 +735,10 @@
             } else {
                 parts.push('Brochure action completed.');
             }
-
             if (storeNumbers.length > 0) {
                 const storeLabel = storeNumbers.length === 1 ? 'Store' : 'Stores';
                 parts.push(`${storeLabel}: ${storeNumbers.join(', ')}.`);
             }
-
             if (selectedCount > 0) {
                 parts.push(`${selectedCount} original brochure${selectedCount === 1 ? '' : 's'} selected.`);
             }
@@ -1691,7 +1687,6 @@
             resetBrochuresState({ resetLabel: true });
             resetBookingsState({ resetLabel: true });
             handleBrochureActionChange(brochureActionSelect ? brochureActionSelect.value : null);
-
             if (!ownerId) {
                 $companySelect.prop('disabled', true);
                 $companySelect.empty().append(new Option('Select an owner first', '', true, true));

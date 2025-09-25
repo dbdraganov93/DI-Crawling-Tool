@@ -91,6 +91,7 @@ class BrochureActionServiceTest extends TestCase
         $this->assertSame(1, $result['summary']['selectedBrochures']);
         $this->assertSame(2, $result['summary']['stores']);
         $this->assertSame(['100', '200'], $result['summary']['storeNumbers']);
+
         $this->assertSame(2, $result['summary']['generated']);
         $this->assertSame('999', $result['importId']);
         $this->assertSame('queued', $result['import']['status']);
