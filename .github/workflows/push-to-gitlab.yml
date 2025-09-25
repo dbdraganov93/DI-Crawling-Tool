@@ -33,5 +33,6 @@ jobs:
 
         git remote add gitlab https://oauth2:${GITLAB_TOKEN}@${GITLAB_URL#https://}
         git fetch gitlab "$BRANCH_NAME" || true
-        git rebase gitlab/"$BRANCH_NAME" || true
+        # Rebase and always resolve conflicts in favor of the GitHub branch
+        git rebase -X theirs gitlab/"$BRANCH_NAME" || true
         git push gitlab "$BRANCH_NAME:$BRANCH_NAME"
