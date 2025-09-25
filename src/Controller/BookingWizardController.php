@@ -68,6 +68,62 @@ class BookingWizardController extends AbstractController
         }
     }
 
+    #[Route('/booking-wizard/api/stores', name: 'app_booking_wizard_stores', methods: ['GET'])]
+    public function fetchStores(
+        Request $request,
+        IprotoService $iprotoService,
+        LoggerInterface $logger,
+    ): JsonResponse {
+        $companyId = trim((string) $request->query->get('companyId', ''));
+
+        if ($companyId === '') {
+            return $this->json(['error' => 'Missing or invalid companyId parameter.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $stores = $iprotoService->getStoresByCompany($companyId);
+            $normalizedStores = [];
+
+            foreach ($stores as $store) {
+                if (!is_array($store)) {
+                    continue;
+                }
+
+                $storeNumber = $this->normalizeValue($store['storeNumber'] ?? $store['store_number'] ?? null);
+                if ($storeNumber === '') {
+                    continue;
+                }
+
+                $normalizedStores[] = [
+                    'id' => $this->normalizeValue($store['id'] ?? null),
+                    'storeNumber' => $storeNumber,
+                    'title' => $this->normalizeValue($store['title'] ?? null),
+                    'city' => $this->normalizeValue($store['city'] ?? null),
+                    'postalCode' => $this->normalizeValue($store['postalCode'] ?? $store['postal_code'] ?? null),
+                    'street' => $this->normalizeValue($store['street'] ?? null),
+                    'streetNumber' => $this->normalizeValue($store['streetNumber'] ?? $store['street_number'] ?? null),
+                ];
+            }
+
+            return $this->json($normalizedStores);
+        } catch (\InvalidArgumentException $exception) {
+            return $this->json(['error' => $exception->getMessage()], Response::HTTP_BAD_REQUEST);
+        } catch (\RuntimeException $exception) {
+            $logger->error('Store API request failed.', [
+                'companyId' => $companyId,
+                'exception' => $exception,
+            ]);
+
+            return $this->json(['error' => $exception->getMessage()], Response::HTTP_BAD_GATEWAY);
+        } catch (\Throwable $exception) {
+            $logger->error('Unexpected error while loading stores.', [
+                'companyId' => $companyId,
+                'exception' => $exception,
+            ]);
+
+            return $this->json(['error' => 'Unable to load stores.'], Response::HTTP_BAD_GATEWAY);
+        }
+    }
     #[Route('/booking-wizard/api/brochure-actions', name: 'app_booking_wizard_brochure_actions', methods: ['POST'])]
     public function handleBrochureActions(
         Request $request,
@@ -84,17 +140,47 @@ class BookingWizardController extends AbstractController
         $companyId = trim((string) ($data['companyId'] ?? ''));
         $ownerId = trim((string) ($data['ownerId'] ?? ''));
         $brochureIds = $data['brochureIds'] ?? [];
+        $storeNumbersInput = $data['storeNumbers'] ?? [];
 
         if (!is_array($brochureIds)) {
             $brochureIds = [];
         }
 
-        if ($action !== BrochureActionService::ACTION_DUPLICATE_PER_STORE) {
-            return $this->json(['error' => 'Unsupported brochure action requested.'], Response::HTTP_BAD_REQUEST);
+        if (is_string($storeNumbersInput)) {
+            $storeNumbers = array_filter(array_map('trim', explode(',', $storeNumbersInput)));
+        } elseif (is_array($storeNumbersInput)) {
+            $storeNumbers = array_values(array_filter(array_map(static function ($value) {
+                if ($value instanceof \Stringable) {
+                    $value = (string) $value;
+                }
+
+                if (is_scalar($value)) {
+                    return trim((string) $value);
+                }
+
+                return '';
+            }, $storeNumbersInput)));
+        } else {
+            $storeNumbers = [];
         }
 
         try {
-            $result = $brochureActionService->duplicateBrochuresPerStore($companyId, $ownerId, $brochureIds);
+            switch ($action) {
+                case BrochureActionService::ACTION_DUPLICATE_PER_STORE:
+                    $result = $brochureActionService->duplicateBrochuresPerStore($companyId, $ownerId, $brochureIds);
+                    break;
+                case BrochureActionService::ACTION_DUPLICATE_PER_SELECTED_STORE:
+                    $result = $brochureActionService->duplicateBrochuresPerSelectedStore(
+                        $companyId,
+                        $ownerId,
+                        $brochureIds,
+                        $storeNumbers,
+                    );
+                    break;
+                default:
+                    return $this->json(['error' => 'Unsupported brochure action requested.'], Response::HTTP_BAD_REQUEST);
+            }
+
 
             return $this->json($result);
         } catch (\InvalidArgumentException $exception) {
@@ -159,5 +245,22 @@ class BookingWizardController extends AbstractController
 
             return $this->json(['error' => 'Unable to load CPC bookings.'], Response::HTTP_BAD_GATEWAY);
         }
+    }
+
+    private function normalizeValue(mixed $value): string
+    {
+        if ($value instanceof \Stringable) {
+            $value = (string) $value;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            $value = (string) $value;
+        }
+
+        if (!is_string($value)) {
+            return '';
+        }
+
+        return trim($value);
     }
 }

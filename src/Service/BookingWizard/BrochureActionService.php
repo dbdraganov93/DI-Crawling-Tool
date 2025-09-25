@@ -12,6 +12,7 @@ use InvalidArgumentException;
 class BrochureActionService
 {
     public const ACTION_DUPLICATE_PER_STORE = 'duplicate_per_store';
+    public const ACTION_DUPLICATE_PER_SELECTED_STORE = 'duplicate_per_selected_store';
 
     public function __construct(
         private IprotoService $iprotoService,
@@ -54,11 +55,135 @@ class BrochureActionService
             throw new \RuntimeException('No stores found for the selected company.');
         }
 
+        return $this->duplicateBrochuresForStores(
+            $normalizedCompanyId,
+            $normalizedBrochureIds,
+            $storeNumbers,
+        );
+    }
+
+    /**
+     * @param array<int, int|string> $brochureIds
+     * @param array<int, int|string> $storeNumbers
+     *
+     * @return array{
+     *     summary: array{
+     *         selectedBrochures: int,
+     *         stores: int,
+     *         storeNumbers: array<int, string>,
+     *         generated: int,
+     *     },
+     *     csv: array<string, mixed>,
+     *     import: array<string, mixed>,
+     *     importId: string|null,
+     * }
+     */
+    public function duplicateBrochuresPerSelectedStore(
+        string $companyId,
+        string $ownerId,
+        array $brochureIds,
+        array $storeNumbers
+    ): array {
+        $normalizedCompanyId = $this->normalizeIdentifier($companyId);
+        $normalizedOwnerId = $this->normalizeIdentifier($ownerId);
+        $normalizedBrochureIds = $this->normalizeIdentifiers($brochureIds);
+        $normalizedStoreNumbers = $this->normalizeIdentifiers($storeNumbers);
+
+        if ($normalizedCompanyId === '') {
+            throw new InvalidArgumentException('A company must be selected to duplicate brochures.');
+        }
+
+        if ($normalizedOwnerId === '') {
+            throw new InvalidArgumentException('An owner must be selected to duplicate brochures.');
+        }
+
+        if ($normalizedBrochureIds === []) {
+            throw new InvalidArgumentException('Select at least one brochure to duplicate.');
+        }
+
+        if ($normalizedStoreNumbers === []) {
+            throw new InvalidArgumentException('Specify at least one store number to duplicate brochures.');
+        }
+
+        $stores = $this->iprotoService->getStoresByCompany($normalizedCompanyId);
+        $availableStoreNumbers = $this->extractStoreNumbers($stores);
+
+        if ($availableStoreNumbers === []) {
+            throw new \RuntimeException('No stores found for the selected company.');
+        }
+
+        $missingStoreNumbers = array_values(array_diff($normalizedStoreNumbers, $availableStoreNumbers));
+
+        if ($missingStoreNumbers !== []) {
+            throw new InvalidArgumentException(sprintf(
+                'Some store numbers are not available for the selected company: %s.',
+                implode(', ', $missingStoreNumbers),
+            ));
+        }
+
+        return $this->duplicateBrochuresForStores(
+            $normalizedCompanyId,
+            $normalizedBrochureIds,
+            $normalizedStoreNumbers,
+        );
+    }
+
+    /**
+     * @param array<int, string> $brochureIds
+     * @param array<int, string> $storeNumbers
+     *
+     * @return array{
+     *     summary: array{
+     *         selectedBrochures: int,
+     *         stores: int,
+     *         storeNumbers: array<int, string>,
+     *         generated: int,
+     *     },
+     *     csv: array<string, mixed>,
+     *     import: array<string, mixed>,
+     *     importId: string|null,
+     * }
+     */
+    private function duplicateBrochuresForStores(
+        string $companyId,
+        array $brochureIds,
+        array $storeNumbers
+    ): array {
+        $duplicatedBrochures = $this->buildBrochureCopies($companyId, $brochureIds, $storeNumbers);
+
+        if ($duplicatedBrochures === []) {
+            throw new \RuntimeException('No brochures were duplicated.');
+        }
+
+        $brochureCsv = $this->csvService->createCsvFromBrochure($duplicatedBrochures, $companyId);
+        $import = $this->iprotoService->importData($brochureCsv);
+
+        return [
+            'summary' => [
+                'selectedBrochures' => count($brochureIds),
+                'stores' => count($storeNumbers),
+                'storeNumbers' => array_values($storeNumbers),
+                'generated' => count($duplicatedBrochures),
+            ],
+            'csv' => $brochureCsv,
+            'import' => $import,
+            'importId' => $this->extractImportId($import),
+        ];
+    }
+
+    /**
+     * @param array<int, string> $brochureIds
+     * @param array<int, string> $storeNumbers
+     *
+     * @return array<int, Brochure>
+     */
+    private function buildBrochureCopies(string $companyId, array $brochureIds, array $storeNumbers): array
+    {
         $duplicatedBrochures = [];
 
-        foreach ($normalizedBrochureIds as $brochureId) {
+        foreach ($brochureIds as $brochureId) {
             $brochureDetail = $this->iprotoService->getBrochureDetails($brochureId);
-            $basePayload = $this->normalizeBrochurePayload($brochureDetail, $normalizedCompanyId, $brochureId);
+            $basePayload = $this->normalizeBrochurePayload($brochureDetail, $companyId, $brochureId);
 
             foreach ($storeNumbers as $storeNumber) {
                 $payload = $basePayload;
@@ -69,23 +194,7 @@ class BrochureActionService
             }
         }
 
-        if ($duplicatedBrochures === []) {
-            throw new \RuntimeException('No brochures were duplicated.');
-        }
-
-        $brochureCsv = $this->csvService->createCsvFromBrochure($duplicatedBrochures, $normalizedCompanyId);
-        $import = $this->iprotoService->importData($brochureCsv);
-
-        return [
-            'summary' => [
-                'selectedBrochures' => count($normalizedBrochureIds),
-                'stores' => count($storeNumbers),
-                'generated' => count($duplicatedBrochures),
-            ],
-            'csv' => $brochureCsv,
-            'import' => $import,
-            'importId' => $this->extractImportId($import),
-        ];
+        return $duplicatedBrochures;
     }
 
     /**

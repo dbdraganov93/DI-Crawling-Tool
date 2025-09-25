@@ -3,35 +3,76 @@ name: Mirror Codex PR branch to GitLab
 on:
   push:
     branches:
-      - 'codex/**'  # only Codex feature branches
+      - 'codex/**'   # only Codex feature branches
   pull_request:
     types: [opened, reopened, synchronize]
+
+concurrency:
+  group: mirror-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   mirror-pr-branch:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout correct branch
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-        ref: ${{ github.head_ref || github.ref }}
+      - name: Checkout correct branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # For PRs, github.head_ref is the branch name; for push, github.ref is refs/heads/<branch>
+          ref: ${{ github.head_ref || github.ref }}
+          # If you use submodules, uncomment:
+          # submodules: recursive
 
-    - name: Setup Git
-      run: |
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
+      - name: Setup Git identity and safe directory
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-    - name: Push to GitLab
-      env:
-        GITLAB_URL: ${{ secrets.GITLAB_URL }}
-        GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-      run: |
-        BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
-        echo "Pushing branch: $BRANCH_NAME to GitLab"
+      - name: Mirror branch to GitLab (force with lease; fallback to force)
+        env:
+          GITLAB_URL: ${{ secrets.GITLAB_URL }}             # e.g. https://gitlab.offerista.com/data-integration/testingcrawlerpipe
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}         # personal/project access token with write perms
+        shell: bash
+        run: |
+          set -euo pipefail
 
-        git remote add gitlab https://oauth2:${GITLAB_TOKEN}@${GITLAB_URL#https://}
-        git fetch gitlab "$BRANCH_NAME" || true
-        git rebase gitlab/"$BRANCH_NAME" || true
-        git push gitlab "$BRANCH_NAME:$BRANCH_NAME"
+          # Determine the branch name for both push and PR events
+          BRANCH_NAME="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+          echo "Mirroring branch: ${BRANCH_NAME}"
+
+          # Build authenticated push URL safely
+          # Turns https://gitlab.example.com/group/repo.git into
+          # https://oauth2:TOKEN@gitlab.example.com/group/repo.git
+          GITLAB_PUSH_URL="${GITLAB_URL/https:\/\//https:\/\/oauth2:${GITLAB_TOKEN}@}"
+
+          # Add or update 'gitlab' remote
+          if git remote get-url gitlab >/dev/null 2>&1; then
+            git remote set-url gitlab "$GITLAB_PUSH_URL"
+          else
+            git remote add gitlab "$GITLAB_PUSH_URL"
+          fi
+
+          # Ensure the local branch exactly matches origin’s branch tip
+          git fetch --prune origin "+refs/heads/${BRANCH_NAME}:refs/remotes/origin/${BRANCH_NAME}"
+          git checkout -B "${BRANCH_NAME}" "origin/${BRANCH_NAME}"
+
+          # Clear any GitHub extraheader that can block pushes
+          if git config --local --get-all "http.https://github.com/.extraheader" >/dev/null 2>&1; then
+            git config --local --unset-all "http.https://github.com/.extraheader" || true
+          fi
+
+          # Fetch the current GitLab ref (best effort; ok if it doesn't exist yet)
+          git fetch --prune gitlab "+refs/heads/${BRANCH_NAME}:refs/remotes/gitlab/${BRANCH_NAME}" || true
+
+          # Push with lease first; if lease fails (e.g., missing remote branch metadata), hard force
+          echo "Pushing to GitLab (with lease)…"
+          if ! git push gitlab "HEAD:${BRANCH_NAME}" --force-with-lease; then
+            echo "Lease push failed; retrying with --force…"
+            git push gitlab "HEAD:${BRANCH_NAME}" --force
+          fi
+
+          echo "Mirror complete: ${BRANCH_NAME} -> ${GITLAB_URL}"
+

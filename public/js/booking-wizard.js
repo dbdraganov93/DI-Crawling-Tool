@@ -30,6 +30,9 @@
         return data;
     }
 
+    const BROCHURE_ACTION_DUPLICATE_PER_STORE = 'duplicate_per_store';
+    const BROCHURE_ACTION_DUPLICATE_PER_SELECTED_STORE = 'duplicate_per_selected_store';
+
     document.addEventListener('DOMContentLoaded', () => {
         const form = document.querySelector('.booking-wizard-form');
         const steps = Array.from(document.querySelectorAll('.booking-step'));
@@ -64,6 +67,8 @@
         const brochureActionSelect = document.getElementById('brochure-action-select');
         const brochureActionButton = document.getElementById('brochure-action-submit');
         const brochureActionFeedback = document.getElementById('brochure-action-feedback');
+        const brochureStoreSelectorWrapper = document.getElementById('brochure-store-selector');
+        const $brochureStoreSelect = $('#brochure-store-select');
         const bookingsSubtitle = document.getElementById('booking-results-subtitle');
         const bookingsLoading = document.getElementById('booking-results-loading');
         const bookingsError = document.getElementById('booking-results-error');
@@ -85,6 +90,9 @@
         let lastLoadedBrochures = null;
 
         const selectedBrochureIds = new Set();
+
+        const companyStoresCache = new Map();
+        let storesAbortController = null;
 
         if (brochuresSelectionInput && typeof brochuresSelectionInput.value === 'string') {
             brochuresSelectionInput.value
@@ -304,6 +312,286 @@
             }
         }
 
+        function setStoreSelectorLoading(isLoading) {
+            if (!$brochureStoreSelect.length) {
+                return;
+            }
+
+            $brochureStoreSelect.prop('disabled', Boolean(isLoading));
+            $brochureStoreSelect.trigger('change.select2');
+
+            if (brochureStoreSelectorWrapper) {
+                brochureStoreSelectorWrapper.classList.toggle('loading', Boolean(isLoading));
+            }
+        }
+
+        function resetStoreSelector(options = {}) {
+            const {
+                hide = false,
+                clearSelection = true,
+                clearOptions = false,
+            } = options;
+
+            if ($brochureStoreSelect.length) {
+                if (clearOptions) {
+                    $brochureStoreSelect.find('option').remove();
+                }
+
+                if (clearSelection) {
+                    $brochureStoreSelect.val(null);
+                }
+
+                $brochureStoreSelect.trigger('change');
+                clearSelect2Error($brochureStoreSelect);
+            }
+
+            if (!brochureStoreSelectorWrapper) {
+                return;
+            }
+
+            brochureStoreSelectorWrapper.classList.toggle('d-none', Boolean(hide));
+            brochureStoreSelectorWrapper.classList.remove('loading');
+        }
+
+        function formatStoreOption(store) {
+            if (!store || typeof store !== 'object') {
+                return null;
+            }
+
+            const rawNumber = store.storeNumber
+                || store.store_number
+                || store.number
+                || store.id;
+
+            if (rawNumber === null || rawNumber === undefined) {
+                return null;
+            }
+
+            const storeNumber = String(rawNumber).trim();
+            if (storeNumber === '') {
+                return null;
+            }
+
+            const title = typeof store.title === 'string' ? store.title.trim() : '';
+            const city = typeof store.city === 'string' ? store.city.trim() : '';
+            const postalCode = typeof store.postalCode === 'string'
+                ? store.postalCode.trim()
+                : typeof store.postal_code === 'string'
+                    ? store.postal_code.trim()
+                    : '';
+
+            const street = typeof store.street === 'string' ? store.street.trim() : '';
+            const streetNumber = typeof store.streetNumber === 'string'
+                ? store.streetNumber.trim()
+                : typeof store.street_number === 'string'
+                    ? store.street_number.trim()
+                    : '';
+
+            const locationParts = [];
+            if (postalCode && city) {
+                locationParts.push(`${postalCode} ${city}`);
+            } else if (postalCode) {
+                locationParts.push(postalCode);
+            } else if (city) {
+                locationParts.push(city);
+            }
+
+            if (street) {
+                locationParts.push(streetNumber ? `${street} ${streetNumber}` : street);
+            }
+
+            const labelParts = [];
+            if (title) {
+                labelParts.push(title);
+            }
+
+            if (locationParts.length > 0) {
+                labelParts.push(locationParts.join(' • '));
+            }
+
+            labelParts.push(`#${storeNumber}`);
+
+            return {
+                value: storeNumber,
+                text: labelParts.join(' • '),
+            };
+        }
+
+        function populateStoreSelectorOptions(stores) {
+            if (!$brochureStoreSelect.length) {
+                return;
+            }
+
+            const previousValues = $brochureStoreSelect.val() || [];
+            const normalizedPrevious = Array.isArray(previousValues)
+                ? previousValues
+                    .map((value) => (value === null || value === undefined ? '' : String(value).trim()))
+                    .filter((value, index, array) => value !== '' && array.indexOf(value) === index)
+                : [];
+
+            $brochureStoreSelect.find('option').remove();
+
+            const seenValues = new Set();
+
+            if (Array.isArray(stores)) {
+                stores.forEach((store) => {
+                    const option = formatStoreOption(store);
+                    if (!option || seenValues.has(option.value)) {
+                        return;
+                    }
+
+                    const isSelected = normalizedPrevious.includes(option.value);
+                    const element = new Option(option.text || option.value, option.value, false, isSelected);
+                    $brochureStoreSelect.append(element);
+                    seenValues.add(option.value);
+                });
+            }
+
+            normalizedPrevious.forEach((value) => {
+                if (seenValues.has(value)) {
+                    return;
+                }
+
+                const element = new Option(value, value, false, true);
+                $brochureStoreSelect.append(element);
+                seenValues.add(value);
+            });
+
+            if (normalizedPrevious.length > 0) {
+                $brochureStoreSelect.val(normalizedPrevious);
+            }
+
+            $brochureStoreSelect.trigger('change');
+        }
+
+        function loadStoresForCompany(companyId) {
+            if (!$brochureStoreSelect.length) {
+                return Promise.resolve([]);
+            }
+
+            const normalizedId = typeof companyId === 'string' ? companyId.trim() : '';
+            if (normalizedId === '') {
+                resetStoreSelector({ hide: false, clearSelection: true, clearOptions: true });
+                setStoreSelectorLoading(false);
+                return Promise.resolve([]);
+            }
+
+            if (storesAbortController) {
+                storesAbortController.abort();
+                storesAbortController = null;
+            }
+
+            if (companyStoresCache.has(normalizedId)) {
+                populateStoreSelectorOptions(companyStoresCache.get(normalizedId));
+                setStoreSelectorLoading(false);
+                return Promise.resolve(companyStoresCache.get(normalizedId));
+            }
+
+            populateStoreSelectorOptions([]);
+            setStoreSelectorLoading(true);
+
+            const controller = new AbortController();
+            storesAbortController = controller;
+
+            return fetchJson(`/booking-wizard/api/stores?companyId=${encodeURIComponent(normalizedId)}`, {
+                signal: controller.signal,
+            })
+                .then((stores) => {
+                    if (storesAbortController !== controller) {
+                        return stores;
+                    }
+
+                    const items = Array.isArray(stores) ? stores : [];
+                    companyStoresCache.set(normalizedId, items);
+                    populateStoreSelectorOptions(items);
+                    return items;
+                })
+                .catch((error) => {
+                    if (error && error.name === 'AbortError') {
+                        return [];
+                    }
+
+                    if (storesAbortController !== controller) {
+                        return [];
+                    }
+
+                    populateStoreSelectorOptions([]);
+                    showBrochureActionFeedback(
+                        'danger',
+                        error && error.message
+                            ? error.message
+                            : 'Unable to load stores for the selected company.',
+                    );
+
+                    return [];
+                })
+                .finally(() => {
+                    if (storesAbortController === controller) {
+                        storesAbortController = null;
+                    }
+
+                    setStoreSelectorLoading(false);
+                });
+        }
+
+        function getSelectedStoreNumbers() {
+            if (!$brochureStoreSelect.length) {
+                return [];
+            }
+
+            const values = $brochureStoreSelect.val();
+            if (!Array.isArray(values)) {
+                return [];
+            }
+
+            const normalized = [];
+            values.forEach((value) => {
+                if (value === null || value === undefined) {
+                    return;
+                }
+
+                const stringValue = String(value).trim();
+                if (stringValue === '' || normalized.includes(stringValue)) {
+                    return;
+                }
+
+                normalized.push(stringValue);
+            });
+
+            return normalized;
+        }
+
+        function handleBrochureActionChange(actionValue) {
+            if (!$brochureStoreSelect.length) {
+                return;
+            }
+
+            const normalizedAction = typeof actionValue === 'string'
+                ? actionValue.trim()
+                : '';
+
+            clearSelect2Error($brochureStoreSelect);
+
+            if (normalizedAction === BROCHURE_ACTION_DUPLICATE_PER_SELECTED_STORE) {
+                resetStoreSelector({ hide: false, clearSelection: false });
+
+                if (companySelect && companySelect.value) {
+                    $brochureStoreSelect.prop('disabled', false);
+                    $brochureStoreSelect.trigger('change.select2');
+                    loadStoresForCompany(companySelect.value);
+                } else {
+                    populateStoreSelectorOptions([]);
+                    $brochureStoreSelect.prop('disabled', true);
+                    $brochureStoreSelect.trigger('change.select2');
+                }
+
+                return;
+            }
+
+            resetStoreSelector({ hide: true, clearSelection: true });
+            $brochureStoreSelect.prop('disabled', false);
+            $brochureStoreSelect.trigger('change.select2');
+        }
         function getBrochureIdentifier(brochure) {
             if (!brochure || typeof brochure !== 'object') {
                 return null;
@@ -350,6 +638,7 @@
             selectedBrochureIds.clear();
             updateBrochureSelectionSummary();
             clearBrochureActionFeedback();
+            resetStoreSelector({ hide: true, clearSelection: true });
 
             if (brochuresAbortController) {
                 brochuresAbortController.abort();
@@ -415,7 +704,17 @@
             const selectedCount = parsePositiveInteger(summary.selectedBrochures, selectedBrochureIds.size);
             const storesCount = parsePositiveInteger(summary.stores, 0);
             const generatedCount = parsePositiveInteger(summary.generated, 0);
+            const storeNumbers = Array.isArray(summary.storeNumbers)
+                ? summary.storeNumbers
+                    .map((value) => {
+                        if (value === null || value === undefined) {
+                            return '';
+                        }
 
+                        return String(value).trim();
+                    })
+                    .filter((value, index, array) => value !== '' && array.indexOf(value) === index)
+                : [];
             const importData = result.import && typeof result.import === 'object' ? result.import : null;
             const status = importData && typeof importData.status === 'string'
                 ? importData.status
@@ -436,7 +735,10 @@
             } else {
                 parts.push('Brochure action completed.');
             }
-
+            if (storeNumbers.length > 0) {
+                const storeLabel = storeNumbers.length === 1 ? 'Store' : 'Stores';
+                parts.push(`${storeLabel}: ${storeNumbers.join(', ')}.`);
+            }
             if (selectedCount > 0) {
                 parts.push(`${selectedCount} original brochure${selectedCount === 1 ? '' : 's'} selected.`);
             }
@@ -1356,6 +1658,20 @@
             width: '100%',
         });
 
+        if ($brochureStoreSelect.length) {
+            $brochureStoreSelect.select2({
+                placeholder: $brochureStoreSelect.data('placeholder') || 'Select stores',
+                allowClear: true,
+                tags: true,
+                tokenSeparators: [',', ' '],
+                width: '100%',
+                dropdownParent: $('#brochure-results-table-wrapper'),
+                closeOnSelect: false,
+            });
+
+            resetStoreSelector({ hide: true, clearSelection: true, clearOptions: true });
+        }
+
         $companySelect.prop('disabled', true);
         $companySelect.empty().append(new Option('Select an owner first', '', true, true));
 
@@ -1370,7 +1686,7 @@
             setStepLabel(1, null);
             resetBrochuresState({ resetLabel: true });
             resetBookingsState({ resetLabel: true });
-
+            handleBrochureActionChange(brochureActionSelect ? brochureActionSelect.value : null);
             if (!ownerId) {
                 $companySelect.prop('disabled', true);
                 $companySelect.empty().append(new Option('Select an owner first', '', true, true));
@@ -1403,6 +1719,7 @@
             resetBrochuresState({ resetLabel: true });
             resetBookingsState({ resetLabel: true });
             setStepLabel(1, value ? selectedText : null);
+            handleBrochureActionChange(brochureActionSelect ? brochureActionSelect.value : null);
         });
 
         document.querySelectorAll('[data-next-step]').forEach((button) => {
@@ -1473,6 +1790,14 @@
             });
         });
 
+        if (brochureActionSelect) {
+            brochureActionSelect.addEventListener('change', () => {
+                handleBrochureActionChange(brochureActionSelect.value);
+            });
+
+            handleBrochureActionChange(brochureActionSelect.value);
+        }
+
         if (brochureActionButton) {
             brochureActionButton.addEventListener('click', () => {
                 clearBrochureActionFeedback();
@@ -1500,7 +1825,9 @@
                     return;
                 }
 
-                const actionValue = brochureActionSelect ? brochureActionSelect.value : 'duplicate_per_store';
+                const actionValue = brochureActionSelect
+                    ? brochureActionSelect.value
+                    : BROCHURE_ACTION_DUPLICATE_PER_STORE;
                 const normalizedAction = typeof actionValue === 'string' ? actionValue.trim() : '';
 
                 if (normalizedAction === '') {
@@ -1514,6 +1841,21 @@
                     ownerId: ownerSelect.value,
                     brochureIds: Array.from(selectedBrochureIds),
                 };
+
+                if (normalizedAction === BROCHURE_ACTION_DUPLICATE_PER_SELECTED_STORE) {
+                    const storeNumbers = getSelectedStoreNumbers();
+
+                    if (storeNumbers.length === 0) {
+                        showBrochureActionFeedback('warning', 'Select at least one store number to duplicate brochures.');
+                        setSelect2Error($brochureStoreSelect, 'Please select at least one store');
+                        return;
+                    }
+
+                    clearSelect2Error($brochureStoreSelect);
+                    payload.storeNumbers = storeNumbers;
+                } else if ($brochureStoreSelect.length) {
+                    clearSelect2Error($brochureStoreSelect);
+                }
 
                 const originalText = brochureActionButton.textContent;
                 brochureActionButton.disabled = true;
