@@ -156,6 +156,7 @@ class BrochureActionService
         }
 
         $brochureCsv = $this->csvService->createCsvFromBrochure($duplicatedBrochures, $companyId);
+
         $import = $this->iprotoService->importData($brochureCsv);
 
         return [

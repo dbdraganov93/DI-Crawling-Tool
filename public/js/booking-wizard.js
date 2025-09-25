@@ -29,7 +29,7 @@
 
         return data;
     }
-
+`
     const BROCHURE_ACTION_DUPLICATE_PER_STORE = 'duplicate_per_store';
     const BROCHURE_ACTION_DUPLICATE_PER_SELECTED_STORE = 'duplicate_per_selected_store';
 
@@ -67,8 +67,10 @@
         const brochureActionSelect = document.getElementById('brochure-action-select');
         const brochureActionButton = document.getElementById('brochure-action-submit');
         const brochureActionFeedback = document.getElementById('brochure-action-feedback');
+
         const brochureStoreSelectorWrapper = document.getElementById('brochure-store-selector');
         const $brochureStoreSelect = $('#brochure-store-select');
+
         const bookingsSubtitle = document.getElementById('booking-results-subtitle');
         const bookingsLoading = document.getElementById('booking-results-loading');
         const bookingsError = document.getElementById('booking-results-error');

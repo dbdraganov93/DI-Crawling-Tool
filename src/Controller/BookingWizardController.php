@@ -182,6 +182,7 @@ class BookingWizardController extends AbstractController
                     return $this->json(['error' => 'Unsupported brochure action requested.'], Response::HTTP_BAD_REQUEST);
             }
 
+
             return $this->json($result);
         } catch (\InvalidArgumentException $exception) {
             return $this->json(['error' => $exception->getMessage()], Response::HTTP_BAD_REQUEST);
