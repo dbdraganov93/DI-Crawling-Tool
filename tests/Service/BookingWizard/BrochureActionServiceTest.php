@@ -9,6 +9,7 @@ use App\Service\BookingWizard\BrochureActionService;
 use App\Service\CsvService;
 use App\Service\IprotoService;
 use PHPUnit\Framework\TestCase;
+use function mb_check_encoding;
 
 class BrochureActionServiceTest extends TestCase
 {
@@ -163,6 +164,130 @@ class BrochureActionServiceTest extends TestCase
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Failed to import duplicated brochures.');
+
+        $service->duplicateBrochuresPerStore('42', '9', ['55']);
+    }
+
+    public function testDuplicateBrochuresPerStoreSanitizesInvalidStrings(): void
+    {
+        $iprotoService = $this->createMock(IprotoService::class);
+        $csvService = $this->createMock(CsvService::class);
+
+        $service = new BrochureActionService($iprotoService, $csvService);
+
+        $iprotoService
+            ->expects($this->once())
+            ->method('getStoresByCompany')
+            ->with('42')
+            ->willReturn([
+                ['storeNumber' => '100'],
+            ]);
+
+        $iprotoService
+            ->expects($this->once())
+            ->method('getBrochureDetails')
+            ->with('55')
+            ->willReturn([
+                'id' => '55',
+                'brochureNumber' => 'BR-Ü',
+                'title' => "Sommer Angebote \xC3\x28",
+                'tags' => [
+                    ['name' => 'Promo'],
+                    ['title' => "Sonder \xC3\x28"],
+                ],
+                'trackingPixels' => [
+                    ['url' => 'https://tracker.example/pixel?a=1'],
+                    ['code' => '<script>track()</script>'],
+                ],
+                'pages' => [
+                    ['pdfUrl' => 'https://cdn.example/brochure.pdf'],
+                ],
+                'integration' => '/api/integrations/42',
+            ]);
+
+        $csvService
+            ->expects($this->once())
+            ->method('createCsvFromBrochure')
+            ->with(
+                $this->callback(function ($brochures) {
+                    $this->assertIsArray($brochures);
+                    $this->assertCount(1, $brochures);
+                    $brochure = $brochures[0];
+                    $this->assertInstanceOf(Brochure::class, $brochure);
+                    $this->assertSame('BR-Ü_100', $brochure->getBrochureNumber());
+                    $this->assertSame('https://cdn.example/brochure.pdf', $brochure->getPdfUrl());
+                    $this->assertTrue(mb_check_encoding($brochure->getTitle(), 'UTF-8'));
+                    $this->assertStringNotContainsString("\xC3\x28", $brochure->getTitle());
+                    $this->assertSame(
+                        "https://tracker.example/pixel?a=1\n<script>track()</script>",
+                        $brochure->getTrackingPixels()
+                    );
+                    $tags = $brochure->getTags();
+                    $this->assertTrue(mb_check_encoding($tags, 'UTF-8'));
+                    $this->assertStringContainsString('Promo', $tags);
+                    $this->assertStringContainsString('Sonder', $tags);
+                    $this->assertStringNotContainsString("\xC3\x28", $tags);
+
+                    return true;
+                }),
+                '42'
+            )
+            ->willReturn([
+                'companyId' => '42',
+                'type' => 'brochures',
+                'base64' => 'ZHVtbXk=',
+            ]);
+
+        $iprotoService
+            ->expects($this->once())
+            ->method('importData')
+            ->willReturn([
+                '@id' => '/api/imports/999',
+                'status' => 'queued',
+            ]);
+
+        $result = $service->duplicateBrochuresPerStore('42', '9', ['55']);
+
+        $this->assertSame('999', $result['importId']);
+        $this->assertSame('queued', $result['import']['status']);
+    }
+
+    public function testDuplicateBrochuresPerStoreWrapsCsvFailures(): void
+    {
+        $iprotoService = $this->createMock(IprotoService::class);
+        $csvService = $this->createMock(CsvService::class);
+
+        $service = new BrochureActionService($iprotoService, $csvService);
+
+        $iprotoService
+            ->expects($this->once())
+            ->method('getStoresByCompany')
+            ->with('42')
+            ->willReturn([
+                ['storeNumber' => '100'],
+            ]);
+
+        $iprotoService
+            ->expects($this->once())
+            ->method('getBrochureDetails')
+            ->with('55')
+            ->willReturn([
+                'id' => '55',
+                'brochureNumber' => 'BR-01',
+                'integration' => '/api/integrations/42',
+            ]);
+
+        $csvService
+            ->expects($this->once())
+            ->method('createCsvFromBrochure')
+            ->willThrowException(new \Exception('csv exploded'));
+
+        $iprotoService
+            ->expects($this->never())
+            ->method('importData');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Failed to create brochure CSV for duplication.');
 
         $service->duplicateBrochuresPerStore('42', '9', ['55']);
     }

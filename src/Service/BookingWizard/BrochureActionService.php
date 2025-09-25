@@ -65,7 +65,15 @@ class BrochureActionService
                 $payload['brochureNumber'] = $this->buildBrochureNumberForStore($basePayload['brochureNumber'], $storeNumber);
                 $payload['storeNumber'] = $storeNumber;
 
-                $duplicatedBrochures[] = Brochure::fromArray($payload);
+                try {
+                    $duplicatedBrochures[] = Brochure::fromArray($payload);
+                } catch (\Throwable $exception) {
+                    throw new \RuntimeException(
+                        sprintf('Failed to duplicate brochure %s for store %s.', $brochureId, $storeNumber),
+                        0,
+                        $exception
+                    );
+                }
             }
         }
 
@@ -73,7 +81,11 @@ class BrochureActionService
             throw new \RuntimeException('No brochures were duplicated.');
         }
 
-        $brochureCsv = $this->csvService->createCsvFromBrochure($duplicatedBrochures, $normalizedCompanyId);
+        try {
+            $brochureCsv = $this->csvService->createCsvFromBrochure($duplicatedBrochures, $normalizedCompanyId);
+        } catch (\Throwable $exception) {
+            throw new \RuntimeException('Failed to create brochure CSV for duplication.', 0, $exception);
+        }
 
         try {
             $import = $this->iprotoService->importData($brochureCsv);
@@ -201,7 +213,13 @@ class BrochureActionService
         ];
 
         if (isset($brochure['pages']) && is_array($brochure['pages']) && $brochure['pages'] !== []) {
-            $candidates[] = $brochure['pages'][0];
+            foreach ($brochure['pages'] as $page) {
+                if (is_array($page)) {
+                    $candidates[] = $page['pdfUrl'] ?? $page['pdf_url'] ?? $page['url'] ?? $page['file'] ?? null;
+                } else {
+                    $candidates[] = $page;
+                }
+            }
         }
 
         foreach ($candidates as $candidate) {
@@ -251,6 +269,10 @@ class BrochureActionService
         if (is_array($value)) {
             $items = [];
             foreach ($value as $entry) {
+                if (is_array($entry)) {
+                    $entry = $entry['url'] ?? $entry['code'] ?? $entry['pixel'] ?? $entry['value'] ?? null;
+                }
+
                 $normalized = $this->normalizeScalar($entry);
                 if ($normalized !== '') {
                     $items[] = $normalized;
@@ -272,6 +294,9 @@ class BrochureActionService
         if (is_array($value)) {
             $items = [];
             foreach ($value as $entry) {
+                if (is_array($entry)) {
+                    $entry = $entry['name'] ?? $entry['title'] ?? $entry['label'] ?? $entry['value'] ?? null;
+                }
                 $normalized = $this->normalizeScalar($entry);
                 if ($normalized !== '') {
                     $items[] = $normalized;
@@ -342,7 +367,17 @@ class BrochureActionService
             return '';
         }
 
-        return trim($value);
+        $value = trim($value);
+
+        if ($value === '') {
+            return '';
+        }
+
+        if (!mb_check_encoding($value, 'UTF-8')) {
+            $value = $this->sanitizeUtf8($value);
+        }
+
+        return $value;
     }
 
     private function normalizeIdentifier(mixed $value): string
@@ -428,5 +463,20 @@ class BrochureActionService
         $lastSegment = end($segments);
 
         return $lastSegment !== false ? $lastSegment : null;
+    }
+
+    private function sanitizeUtf8(string $value): string
+    {
+        $sanitized = @iconv('UTF-8', 'UTF-8//IGNORE', $value);
+        if (is_string($sanitized) && $sanitized !== '') {
+            return trim($sanitized);
+        }
+
+        $converted = @utf8_encode($value);
+        if (is_string($converted) && mb_check_encoding($converted, 'UTF-8')) {
+            return trim($converted);
+        }
+
+        return '';
     }
 }

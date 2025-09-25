@@ -118,7 +118,12 @@ class BookingWizardController extends AbstractController
                 'exception' => $exception,
             ]);
 
-            return $this->json(['error' => 'Unable to process brochure action.'], Response::HTTP_BAD_GATEWAY);
+            $message = trim($exception->getMessage());
+            $error = $message !== ''
+                ? sprintf('Unable to process brochure action: %s', $message)
+                : 'Unable to process brochure action.';
+
+            return $this->json(['error' => $error], Response::HTTP_BAD_GATEWAY);
         }
     }
 
