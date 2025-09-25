@@ -1,0 +1,577 @@
+:root {
+    --wizard-primary: #0a84ff;
+    --wizard-primary-soft: rgba(10, 132, 255, 0.15);
+    --wizard-muted: #a1a1a6;
+    --wizard-surface: #ffffff;
+    --wizard-border: #e3e7f4;
+    --wizard-shadow: 0 22px 70px rgba(15, 23, 42, 0.12);
+}
+
+.booking-wizard-container {
+    max-width: 1120px;
+    margin: 0 auto;
+    background: linear-gradient(145deg, #ffffff 35%, #f4f6fb 100%);
+    border-radius: 28px;
+    padding: 3rem 3.25rem;
+    box-shadow: var(--wizard-shadow);
+}
+
+.booking-wizard-container h1 {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: #111827;
+}
+
+@media (max-width: 1199.98px) {
+    .booking-wizard-container {
+        padding: 2.5rem;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .booking-wizard-container {
+        padding: 2rem;
+        border-radius: 24px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .booking-wizard-container {
+        padding: 1.5rem;
+        border-radius: 20px;
+    }
+
+    .booking-stepper {
+        flex-direction: column;
+        gap: 1.25rem;
+        padding: 1rem 1.25rem;
+    }
+
+    .booking-stepper::before {
+        display: none;
+    }
+}
+
+.booking-stepper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+    position: relative;
+    gap: 1.5rem;
+    padding: 1.35rem 1.75rem;
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 22px;
+    border: 1px solid rgba(214, 220, 240, 0.65);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.booking-stepper::before {
+    content: '';
+    position: absolute;
+    top: calc(50% + 1px);
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(193, 206, 235, 0.1) 0%, rgba(150, 167, 212, 0.45) 50%, rgba(193, 206, 235, 0.1) 100%);
+    transform: translateY(-50%);
+    z-index: 0;
+}
+
+.booking-stepper-step {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    text-align: center;
+    color: var(--wizard-muted);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+.booking-stepper-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    line-height: 44px;
+    margin: 0 auto 0.5rem;
+    background: linear-gradient(145deg, #f1f3fb, #ffffff);
+    border: 1px solid rgba(214, 220, 240, 0.9);
+    color: #394053;
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.booking-stepper-label {
+    font-size: 0.95rem;
+}
+
+.booking-stepper-step.active .booking-stepper-circle {
+    background: linear-gradient(145deg, rgba(10, 132, 255, 0.95), rgba(0, 122, 255, 0.9));
+    border: none;
+    color: #fff;
+    box-shadow: 0 14px 28px rgba(10, 132, 255, 0.35);
+}
+
+.booking-stepper-step.active .booking-stepper-label {
+    color: #1d1d1f;
+    font-weight: 600;
+}
+
+.booking-stepper-step.completed .booking-stepper-circle {
+    background: linear-gradient(145deg, #34c759, #2ac05a);
+    color: #fff;
+    border: none;
+    box-shadow: 0 12px 24px rgba(52, 199, 89, 0.35);
+}
+
+.booking-stepper-step.completed .booking-stepper-circle::after {
+    content: '\2713';
+    display: block;
+}
+
+.booking-stepper-step.completed .booking-stepper-label {
+    color: #1d7043;
+}
+
+.booking-step {
+    display: none;
+    background: var(--wizard-surface);
+    border: 1px solid rgba(214, 220, 240, 0.65);
+    border-radius: 24px;
+    padding: 2.25rem 2.5rem;
+    box-shadow: 0 28px 60px rgba(15, 23, 42, 0.08);
+}
+
+.booking-step.active {
+    display: block;
+}
+
+.booking-step h4 {
+    font-weight: 600;
+    color: #1c1c1e;
+    margin-bottom: 1.5rem;
+}
+
+.booking-step .form-label {
+    font-weight: 500;
+    color: #1d1d1f;
+    letter-spacing: 0.01em;
+}
+
+.booking-step .form-select,
+.booking-step .select2-container .select2-selection--single {
+    border-radius: 14px;
+    border-color: rgba(208, 214, 230, 0.9);
+    padding: 0.6rem 0.75rem;
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.booking-step .select2-container .select2-selection--single {
+    height: auto;
+}
+
+.booking-step .btn {
+    border-radius: 12px;
+    font-weight: 600;
+    padding: 0.55rem 1.5rem;
+    letter-spacing: 0.01em;
+}
+
+.booking-step .alert {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+}
+
+.booking-step .alert-info {
+    background: linear-gradient(145deg, rgba(10, 132, 255, 0.12), rgba(10, 132, 255, 0.08));
+    color: #004a93;
+}
+
+.booking-step .alert-warning {
+    background: linear-gradient(145deg, rgba(255, 149, 0, 0.15), rgba(255, 214, 0, 0.15));
+    color: #7a5300;
+}
+
+.booking-step .alert-danger {
+    background: linear-gradient(145deg, rgba(255, 59, 48, 0.18), rgba(255, 105, 97, 0.15));
+    color: #8f1d1a;
+}
+
+.select2-selection.is-invalid,
+.select2-container--default .select2-selection--single.is-invalid {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+}
+
+.select2-error-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.35rem;
+    margin-left: 0.35rem;
+}
+
+.booking-wizard-form .btn-success {
+    min-width: 140px;
+}
+
+#brochure-results-loading,
+#brochure-results-error,
+#brochure-results-empty,
+#booking-results-loading,
+#booking-results-error,
+#booking-results-empty {
+    margin-top: 1.1rem;
+}
+
+.table-card {
+    margin-top: 1.75rem;
+    background: rgba(255, 255, 255, 0.96);
+    border-radius: 22px;
+    border: 1px solid rgba(217, 223, 238, 0.8);
+    padding: 1.6rem 1.75rem;
+    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.08);
+}
+
+.table-card .table {
+    margin-bottom: 0;
+    color: #1f2937;
+}
+
+.table-card .table thead th {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-bottom-width: 1px;
+    border-color: rgba(219, 225, 238, 0.9);
+    color: #6b7280;
+    background: transparent;
+}
+
+.table-card .table tbody td {
+    border-color: rgba(226, 232, 240, 0.7);
+    font-size: 0.92rem;
+    vertical-align: middle;
+    white-space: normal;
+    word-break: break-word;
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
+}
+
+.table-card .table tbody tr:hover {
+    background: rgba(10, 132, 255, 0.06);
+}
+
+.table-card .table tbody tr:last-child td {
+    border-bottom-width: 0;
+}
+
+.table-card .table thead th,
+.table-card .table tbody td {
+    padding-left: 0.9rem;
+    padding-right: 0.9rem;
+}
+
+.table-card .table .table-selection-header,
+.table-card .table .table-selection-cell {
+    width: 3rem;
+    min-width: 3rem;
+    text-align: center;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.table-card .table .table-selection-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.table-card .table .table-selection-checkbox {
+    appearance: none;
+    width: 1.15rem;
+    height: 1.15rem;
+    margin: 0;
+    border-radius: 0.55rem;
+    border: 1px solid rgba(120, 144, 180, 0.7);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(244, 247, 255, 0.96) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 2px rgba(15, 23, 42, 0.12);
+    cursor: pointer;
+    position: relative;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.table-card .table .table-selection-checkbox::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.35rem;
+    height: 0.65rem;
+    border-right: 2px solid transparent;
+    border-bottom: 2px solid transparent;
+    transform: translate(-50%, -62%) rotate(45deg) scale(0);
+    transform-origin: center;
+    transition: transform 0.16s ease;
+}
+
+.table-card .table .table-selection-checkbox:hover:not(:disabled) {
+    border-color: rgba(10, 132, 255, 0.55);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), 0 4px 9px rgba(15, 23, 42, 0.12);
+}
+
+.table-card .table .table-selection-checkbox:checked {
+    border-color: var(--wizard-primary);
+    background: linear-gradient(180deg, rgba(10, 132, 255, 0.95) 0%, rgba(0, 102, 204, 0.95) 100%);
+    box-shadow: 0 0 0 2px var(--wizard-primary-soft);
+}
+
+.table-card .table .table-selection-checkbox:checked::after {
+    border-color: #ffffff;
+    transform: translate(-50%, -62%) rotate(45deg) scale(1);
+}
+
+.table-card .table .table-selection-checkbox:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--wizard-primary-soft);
+}
+
+.table-card .table .table-selection-checkbox:disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
+    border-color: rgba(160, 174, 192, 0.6);
+    background: rgba(241, 245, 255, 0.8);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .table-card .table .table-selection-checkbox {
+        transition: none;
+    }
+
+    .table-card .table .table-selection-checkbox::after {
+        transition: none;
+    }
+}
+
+.table-card-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.table-card-toolbar .table-search {
+    flex: 1 1 240px;
+    border-radius: 14px;
+    border: 1px solid rgba(216, 222, 238, 0.9);
+    background: rgba(247, 249, 255, 0.9);
+    padding: 0.55rem 0.75rem;
+    transition: all 0.2s ease;
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.table-card-toolbar .table-search:focus {
+    outline: none;
+    border-color: var(--wizard-primary);
+    background: #ffffff;
+    box-shadow: 0 0 0 0.35rem var(--wizard-primary-soft);
+}
+
+.table-card-toolbar .form-select {
+    border-radius: 14px;
+    border: 1px solid rgba(216, 222, 238, 0.9);
+    padding: 0.5rem 2.25rem 0.5rem 0.85rem;
+    min-width: 150px;
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+    background-position: right 0.85rem center;
+}
+
+.table-card-actions {
+    margin-top: 1.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.table-card-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.table-card-actions-group.store-selector {
+    flex: 1 1 320px;
+    min-width: 260px;
+}
+
+.table-card-actions-group.store-selector.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.table-card-actions-group.store-selector .select2-container {
+    width: 100% !important;
+    min-width: 260px;
+}
+
+.table-card-actions-group.store-selector .select2-container--default .select2-selection--multiple {
+    min-height: 40px;
+    border-radius: 16px;
+    border: 1px solid rgba(205, 214, 231, 0.85);
+    padding: 0.35rem 0.6rem;
+    background: rgba(247, 249, 255, 0.92);
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.table-card-actions-group.store-selector .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(10, 132, 255, 0.95), rgba(88, 86, 214, 0.9));
+    color: #fff;
+    border: none;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.82rem;
+    box-shadow: 0 8px 18px rgba(10, 132, 255, 0.28);
+}
+
+.table-card-actions-group.store-selector .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: rgba(255, 255, 255, 0.85);
+    margin-right: 0.35rem;
+}
+
+.table-card-actions-group.store-selector .select2-container--default .select2-selection--multiple .select2-search__field {
+    color: #1f2937;
+}
+
+.table-card-actions .form-select {
+    min-width: 220px;
+    border-radius: 14px;
+    border: 1px solid rgba(205, 214, 231, 0.85);
+    padding: 0.45rem 2.2rem 0.45rem 0.9rem;
+    background: rgba(247, 249, 255, 0.85);
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.table-card-actions .form-select:focus {
+    border-color: rgba(10, 132, 255, 0.5);
+    box-shadow: 0 0 0 0.35rem rgba(10, 132, 255, 0.16);
+}
+
+.table-card-actions .btn {
+    border-radius: 999px;
+    padding: 0.45rem 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow: 0 16px 30px rgba(10, 132, 255, 0.24);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.table-card-actions .btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 10px 20px rgba(10, 132, 255, 0.22);
+}
+
+#brochure-action-feedback {
+    margin-top: 1rem;
+    border-radius: 18px;
+    border: 1px solid rgba(209, 213, 219, 0.6);
+    background: rgba(255, 255, 255, 0.95);
+    color: #1f2937;
+    font-size: 0.92rem;
+    padding: 0.95rem 1.2rem;
+    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.05);
+}
+
+.table-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.25rem;
+}
+
+.table-card-footer small {
+    color: #4b5563;
+    font-weight: 500;
+}
+
+.table-card-footer .pagination {
+    margin-bottom: 0;
+}
+
+.table-card-footer .pagination .page-link {
+    border: none;
+    border-radius: 12px;
+    color: var(--wizard-primary);
+    font-weight: 600;
+    padding: 0.3rem 0.75rem;
+    background: transparent;
+    transition: all 0.15s ease;
+}
+
+.table-card-footer .pagination .page-item.active .page-link {
+    background: var(--wizard-primary);
+    color: #fff;
+    box-shadow: 0 12px 24px rgba(10, 132, 255, 0.25);
+}
+
+.table-card-footer .pagination .page-item.disabled .page-link {
+    color: var(--wizard-muted);
+    opacity: 0.6;
+}
+
+.table-card-footer .pagination .page-link:hover {
+    background: rgba(10, 132, 255, 0.12);
+}
+
+.table-card-footer .pagination .page-item + .page-item {
+    margin-left: 0.35rem;
+}
+
+.table-card-empty {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+@media (max-width: 575.98px) {
+    .table-card-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .table-card-toolbar .form-select {
+        width: 100%;
+    }
+
+    .table-card-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .table-card-actions-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .table-card-actions .form-select,
+    .table-card-actions .btn {
+        width: 100%;
+    }
+
+    .table-card-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .table-card-footer .pagination {
+        justify-content: center;
+    }
+}
