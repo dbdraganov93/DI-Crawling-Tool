@@ -231,7 +231,7 @@ class Brochure extends AbstractDto
 
     protected function setGender(string $gender): void
     {
-        $this->setGender($gender);
+        $this->gender = $gender;
     }
 
     public function getGender(): string
