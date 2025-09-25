@@ -95,7 +95,13 @@
                         <label for="brochure-action-select" class="visually-hidden">Brochure action</label>
                         <select class="form-select form-select-sm" id="brochure-action-select" aria-label="Select brochure action">
                             <option value="duplicate_per_store" selected>Duplicate brochures per store</option>
+                            <option value="duplicate_selected_stores">Duplicate brochures per selected store</option>
                         </select>
+                    </div>
+                    <div class="table-card-actions-group brochure-action-stores d-none" id="brochure-action-stores-group">
+                        <label for="brochure-action-selected-stores" class="form-label">Stores</label>
+                        <select class="form-select form-select-sm" id="brochure-action-selected-stores" aria-label="Select stores" multiple data-placeholder="Start typing to search stores"></select>
+                        <small class="form-text text-muted" id="brochure-action-stores-status">Choose a company to load store suggestions.</small>
                     </div>
                     <button type="button" class="btn btn-primary" id="brochure-action-submit">Go baby! Go!</button>
                 </div>

@@ -96,6 +96,116 @@ class BrochureActionServiceTest extends TestCase
         $this->assertSame('queued', $result['import']['status']);
     }
 
+    public function testDuplicateBrochuresPerSelectedStoresHonoursStoreSelection(): void
+    {
+        $iprotoService = $this->createMock(IprotoService::class);
+        $csvService = $this->createMock(CsvService::class);
+
+        $service = new BrochureActionService($iprotoService, $csvService);
+
+        $iprotoService
+            ->expects($this->once())
+            ->method('getStoresByCompany')
+            ->with('42')
+            ->willReturn([
+                ['storeNumber' => '100'],
+                ['storeNumber' => '200'],
+                ['storeNumber' => '300'],
+            ]);
+
+        $brochureDetail = [
+            'id' => '55',
+            'brochureNumber' => 'BR-01',
+            'integration' => '/api/integrations/42',
+        ];
+
+        $iprotoService
+            ->expects($this->once())
+            ->method('getBrochureDetails')
+            ->with('55')
+            ->willReturn($brochureDetail);
+
+        $csvService
+            ->expects($this->once())
+            ->method('createCsvFromBrochure')
+            ->with(
+                $this->callback(function ($brochures) {
+                    if (!is_array($brochures) || count($brochures) !== 2) {
+                        return false;
+                    }
+
+                    $first = $brochures[0];
+                    $second = $brochures[1];
+
+                    return $first instanceof Brochure
+                        && $second instanceof Brochure
+                        && $first->getStoreNumber() === '200'
+                        && $first->getBrochureNumber() === 'BR-01_200'
+                        && $second->getStoreNumber() === '100'
+                        && $second->getBrochureNumber() === 'BR-01_100';
+                }),
+                '42'
+            )
+            ->willReturn([
+                'companyId' => '42',
+            ]);
+
+        $iprotoService
+            ->expects($this->once())
+            ->method('importData')
+            ->with([
+                'companyId' => '42',
+            ])
+            ->willReturn([
+                '@id' => '/api/imports/100',
+                'status' => 'queued',
+            ]);
+
+        $result = $service->duplicateBrochuresPerSelectedStores('42', '9', ['55'], ['200', '100', '100']);
+
+        $this->assertSame(1, $result['summary']['selectedBrochures']);
+        $this->assertSame(2, $result['summary']['stores']);
+        $this->assertSame(2, $result['summary']['generated']);
+    }
+
+    public function testDuplicateBrochuresPerSelectedStoresRejectsUnknownStores(): void
+    {
+        $iprotoService = $this->createMock(IprotoService::class);
+        $csvService = $this->createMock(CsvService::class);
+
+        $service = new BrochureActionService($iprotoService, $csvService);
+
+        $iprotoService
+            ->expects($this->once())
+            ->method('getStoresByCompany')
+            ->with('42')
+            ->willReturn([
+                ['storeNumber' => '100'],
+            ]);
+
+        $iprotoService
+            ->expects($this->never())
+            ->method('getBrochureDetails');
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('not available');
+
+        $service->duplicateBrochuresPerSelectedStores('42', '9', ['55'], ['999']);
+    }
+
+    public function testDuplicateBrochuresPerSelectedStoresRequiresSelection(): void
+    {
+        $service = new BrochureActionService(
+            $this->createMock(IprotoService::class),
+            $this->createMock(CsvService::class)
+        );
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Select at least one store');
+
+        $service->duplicateBrochuresPerSelectedStores('42', '9', ['55'], []);
+    }
+
     public function testDuplicateBrochuresPerStoreRequiresSelection(): void
     {
         $service = new BrochureActionService(

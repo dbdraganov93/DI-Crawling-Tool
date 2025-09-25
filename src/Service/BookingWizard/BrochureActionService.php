@@ -12,6 +12,7 @@ use InvalidArgumentException;
 class BrochureActionService
 {
     public const ACTION_DUPLICATE_PER_STORE = 'duplicate_per_store';
+    public const ACTION_DUPLICATE_SELECTED_STORES = 'duplicate_selected_stores';
 
     public function __construct(
         private IprotoService $iprotoService,
@@ -31,9 +32,42 @@ class BrochureActionService
      */
     public function duplicateBrochuresPerStore(string $companyId, string $ownerId, array $brochureIds): array
     {
+        return $this->duplicateBrochuresInternal($companyId, $ownerId, $brochureIds, null);
+    }
+
+    /**
+     * @param array<int, int|string> $brochureIds
+     * @param array<int, int|string> $storeNumbers
+     *
+     * @return array{
+     *     summary: array{selectedBrochures: int, stores: int, generated: int},
+     *     csv: array<string, mixed>,
+     *     import: array<string, mixed>,
+     *     importId: string|null,
+     * }
+     */
+    public function duplicateBrochuresPerSelectedStores(string $companyId, string $ownerId, array $brochureIds, array $storeNumbers): array
+    {
+        return $this->duplicateBrochuresInternal($companyId, $ownerId, $brochureIds, $storeNumbers);
+    }
+
+    /**
+     * @param array<int, int|string> $brochureIds
+     * @param array<int, int|string>|null $storeNumbers
+     *
+     * @return array{
+     *     summary: array{selectedBrochures: int, stores: int, generated: int},
+     *     csv: array<string, mixed>,
+     *     import: array<string, mixed>,
+     *     importId: string|null,
+     * }
+     */
+    private function duplicateBrochuresInternal(string $companyId, string $ownerId, array $brochureIds, ?array $storeNumbers): array
+    {
         $normalizedCompanyId = $this->normalizeIdentifier($companyId);
         $normalizedOwnerId = $this->normalizeIdentifier($ownerId);
         $normalizedBrochureIds = $this->normalizeIdentifiers($brochureIds);
+        $normalizedStoreNumbers = $storeNumbers === null ? null : $this->normalizeIdentifiers($storeNumbers);
 
         if ($normalizedCompanyId === '') {
             throw new InvalidArgumentException('A company must be selected to duplicate brochures.');
@@ -47,11 +81,40 @@ class BrochureActionService
             throw new InvalidArgumentException('Select at least one brochure to duplicate.');
         }
 
-        $stores = $this->iprotoService->getStoresByCompany($normalizedCompanyId);
-        $storeNumbers = $this->extractStoreNumbers($stores);
+        if ($normalizedStoreNumbers !== null && $normalizedStoreNumbers === []) {
+            throw new InvalidArgumentException('Select at least one store to duplicate brochures.');
+        }
 
-        if ($storeNumbers === []) {
+        $stores = $this->iprotoService->getStoresByCompany($normalizedCompanyId);
+        $availableStoreNumbers = $this->extractStoreNumbers($stores);
+
+        if ($availableStoreNumbers === []) {
             throw new \RuntimeException('No stores found for the selected company.');
+        }
+
+        $targetStoreNumbers = $availableStoreNumbers;
+
+        if ($normalizedStoreNumbers !== null) {
+            $reconciled = $this->reconcileSelectedStoreNumbers($normalizedStoreNumbers, $availableStoreNumbers);
+            $targetStoreNumbers = $reconciled['stores'];
+
+            if ($targetStoreNumbers === []) {
+                if ($reconciled['missing'] !== []) {
+                    throw new InvalidArgumentException(sprintf(
+                        'The following stores are not available for the selected company: %s.',
+                        implode(', ', $reconciled['missing'])
+                    ));
+                }
+
+                throw new InvalidArgumentException('Select at least one store to duplicate brochures.');
+            }
+
+            if ($reconciled['missing'] !== []) {
+                throw new InvalidArgumentException(sprintf(
+                    'The following stores are not available for the selected company: %s.',
+                    implode(', ', $reconciled['missing'])
+                ));
+            }
         }
 
         $duplicatedBrochures = [];
@@ -60,7 +123,7 @@ class BrochureActionService
             $brochureDetail = $this->iprotoService->getBrochureDetails($brochureId);
             $basePayload = $this->normalizeBrochurePayload($brochureDetail, $normalizedCompanyId, $brochureId);
 
-            foreach ($storeNumbers as $storeNumber) {
+            foreach ($targetStoreNumbers as $storeNumber) {
                 $payload = $basePayload;
                 $payload['brochureNumber'] = $this->buildBrochureNumberForStore($basePayload['brochureNumber'], $storeNumber);
                 $payload['storeNumber'] = $storeNumber;
@@ -96,7 +159,7 @@ class BrochureActionService
         return [
             'summary' => [
                 'selectedBrochures' => count($normalizedBrochureIds),
-                'stores' => count($storeNumbers),
+                'stores' => count($targetStoreNumbers),
                 'generated' => count($duplicatedBrochures),
             ],
             'csv' => $brochureCsv,
@@ -135,6 +198,47 @@ class BrochureActionService
         }
 
         return array_values($storeNumbers);
+    }
+
+    /**
+     * @param array<int, string> $selectedStoreNumbers
+     * @param array<int, string> $availableStoreNumbers
+     *
+     * @return array{stores: array<int, string>, missing: array<int, string>}
+     */
+    private function reconcileSelectedStoreNumbers(array $selectedStoreNumbers, array $availableStoreNumbers): array
+    {
+        $availableLookup = [];
+
+        foreach ($availableStoreNumbers as $storeNumber) {
+            $availableLookup[$storeNumber] = true;
+        }
+
+        $stores = [];
+        $missing = [];
+
+        foreach ($selectedStoreNumbers as $storeNumber) {
+            if ($storeNumber === '') {
+                continue;
+            }
+
+            if (isset($availableLookup[$storeNumber])) {
+                if (!in_array($storeNumber, $stores, true)) {
+                    $stores[] = $storeNumber;
+                }
+
+                continue;
+            }
+
+            if (!in_array($storeNumber, $missing, true)) {
+                $missing[] = $storeNumber;
+            }
+        }
+
+        return [
+            'stores' => $stores,
+            'missing' => $missing,
+        ];
     }
 
     private function buildBrochureNumberForStore(string $brochureNumber, string $storeNumber): string

@@ -68,6 +68,89 @@ class BookingWizardController extends AbstractController
         }
     }
 
+    #[Route('/booking-wizard/api/stores', name: 'app_booking_wizard_stores', methods: ['GET'])]
+    public function fetchStores(
+        Request $request,
+        IprotoService $iprotoService,
+        LoggerInterface $logger,
+    ): JsonResponse {
+        $companyId = trim((string) $request->query->get('companyId', ''));
+
+        if ($companyId === '') {
+            return $this->json(['error' => 'Missing or invalid companyId parameter.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $stores = $iprotoService->getStoresByCompany($companyId);
+            $formatted = [];
+
+            foreach ($stores as $store) {
+                if (!is_array($store)) {
+                    continue;
+                }
+
+                $storeNumber = $this->normalizeStoreString($store['storeNumber'] ?? $store['store_number'] ?? $store['number'] ?? null);
+
+                if ($storeNumber === '' || isset($formatted[$storeNumber])) {
+                    continue;
+                }
+
+                $name = $this->normalizeStoreString(
+                    $store['name'] ?? $store['storeName'] ?? $store['description'] ?? $store['title'] ?? null,
+                );
+                $city = $this->normalizeStoreString($store['city'] ?? $store['cityName'] ?? $store['locationCity'] ?? null);
+                $state = $this->normalizeStoreString($store['state'] ?? $store['region'] ?? $store['province'] ?? null);
+
+                $label = $storeNumber;
+
+                if ($name !== '' && $city !== '') {
+                    $label = sprintf('%s — %s (%s)', $storeNumber, $name, $city);
+                } elseif ($name !== '') {
+                    $label = sprintf('%s — %s', $storeNumber, $name);
+                } elseif ($city !== '') {
+                    $label = sprintf('%s — %s', $storeNumber, $city);
+                }
+
+                if ($state !== '') {
+                    if ($name !== '' && $city !== '') {
+                        $label = sprintf('%s — %s (%s, %s)', $storeNumber, $name, $city, $state);
+                    } elseif ($city !== '') {
+                        $label = sprintf('%s — %s (%s)', $storeNumber, $city, $state);
+                    } elseif ($name !== '') {
+                        $label = sprintf('%s — %s (%s)', $storeNumber, $name, $state);
+                    }
+                }
+
+                $formatted[$storeNumber] = [
+                    'id' => $storeNumber,
+                    'storeNumber' => $storeNumber,
+                    'label' => $label,
+                    'name' => $name,
+                    'city' => $city,
+                    'state' => $state,
+                ];
+            }
+
+            return $this->json(array_values($formatted));
+        } catch (\InvalidArgumentException $exception) {
+            return $this->json(['error' => $exception->getMessage()], Response::HTTP_BAD_REQUEST);
+        } catch (\RuntimeException $exception) {
+            $logger->error('Store API request failed.', [
+                'companyId' => $companyId,
+                'exception' => $exception,
+            ]);
+
+            return $this->json(['error' => $exception->getMessage()], Response::HTTP_BAD_GATEWAY);
+        } catch (\Throwable $exception) {
+            $logger->error('Unexpected error while loading stores.', [
+                'companyId' => $companyId,
+                'exception' => $exception,
+            ]);
+
+            return $this->json(['error' => 'Unable to load stores.'], Response::HTTP_BAD_GATEWAY);
+        }
+    }
+
     #[Route('/booking-wizard/api/brochure-actions', name: 'app_booking_wizard_brochure_actions', methods: ['POST'])]
     public function handleBrochureActions(
         Request $request,
@@ -84,17 +167,32 @@ class BookingWizardController extends AbstractController
         $companyId = trim((string) ($data['companyId'] ?? ''));
         $ownerId = trim((string) ($data['ownerId'] ?? ''));
         $brochureIds = $data['brochureIds'] ?? [];
+        $storeNumbers = $data['stores'] ?? ($data['selectedStores'] ?? []);
 
         if (!is_array($brochureIds)) {
             $brochureIds = [];
         }
 
-        if ($action !== BrochureActionService::ACTION_DUPLICATE_PER_STORE) {
-            return $this->json(['error' => 'Unsupported brochure action requested.'], Response::HTTP_BAD_REQUEST);
+        if (!is_array($storeNumbers)) {
+            $storeNumbers = [];
         }
 
         try {
-            $result = $brochureActionService->duplicateBrochuresPerStore($companyId, $ownerId, $brochureIds);
+            switch ($action) {
+                case BrochureActionService::ACTION_DUPLICATE_PER_STORE:
+                    $result = $brochureActionService->duplicateBrochuresPerStore($companyId, $ownerId, $brochureIds);
+                    break;
+                case BrochureActionService::ACTION_DUPLICATE_SELECTED_STORES:
+                    $result = $brochureActionService->duplicateBrochuresPerSelectedStores(
+                        $companyId,
+                        $ownerId,
+                        $brochureIds,
+                        $storeNumbers,
+                    );
+                    break;
+                default:
+                    return $this->json(['error' => 'Unsupported brochure action requested.'], Response::HTTP_BAD_REQUEST);
+            }
 
             return $this->json($result);
         } catch (\InvalidArgumentException $exception) {
@@ -164,5 +262,26 @@ class BookingWizardController extends AbstractController
 
             return $this->json(['error' => 'Unable to load CPC bookings.'], Response::HTTP_BAD_GATEWAY);
         }
+    }
+
+    private function normalizeStoreString(mixed $value): string
+    {
+        if (is_int($value) || is_float($value)) {
+            $value = (string) $value;
+        }
+
+        if (!is_string($value)) {
+            return '';
+        }
+
+        $trimmed = trim($value);
+
+        if ($trimmed === '') {
+            return '';
+        }
+
+        $normalized = preg_replace('/\s+/', ' ', $trimmed);
+
+        return is_string($normalized) && $normalized !== '' ? $normalized : $trimmed;
     }
 }
