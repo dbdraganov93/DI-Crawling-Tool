@@ -332,17 +332,17 @@ class BrochureActionService
             return $normalized;
         }
 
-        if (isset($this->brochurePdfCache[$pageId])) {
-            return $this->brochurePdfCache[$pageId];
+        if (isset($this->brochurePdfCache[$brochureId])) {
+            return $this->brochurePdfCache[$brochureId];
         }
 
         $this->ensureBrochurePdfDirectory();
 
-        $fileName = sprintf('brochure_%s.pdf', $pageId);
+        $fileName = sprintf('brochure_%s.pdf', $brochureId);
         $destination = $this->brochurePdfDir . '/' . $fileName;
 
         try {
-            $localPath = $this->iprotoService->downloadBrochurePdf($pageId, $destination);
+            $localPath = $this->iprotoService->downloadBrochurePdf($pageId, $destination, $brochureId);
         } catch (\Throwable $exception) {
             throw new \RuntimeException(
                 sprintf('Failed to download brochure PDF %s for brochure %s.', $pageId, $brochureId),
@@ -361,7 +361,7 @@ class BrochureActionService
             );
         }
 
-        $this->brochurePdfCache[$pageId] = $uploadedUrl;
+        $this->brochurePdfCache[$brochureId] = $uploadedUrl;
 
         return $uploadedUrl;
     }

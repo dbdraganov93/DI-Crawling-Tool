@@ -401,14 +401,15 @@ class BrochureActionServiceTest extends TestCase
                 $this->callback(function (string $destination) use ($pdfDir) {
                     $this->assertStringStartsWith($pdfDir, $destination);
                     return true;
-                })
+                }),
+                '55'
             )
-            ->willReturnCallback(static function (string $pageId, string $destination): string {
+            ->willReturnCallback(static function (string $pageId, string $destination, string $brochureId): string {
                 if (!is_dir(dirname($destination))) {
                     mkdir(dirname($destination), 0755, true);
                 }
 
-                file_put_contents($destination, 'PDF-' . $pageId);
+                file_put_contents($destination, 'PDF-' . $pageId . '-' . $brochureId);
 
                 return $destination;
             });
@@ -422,7 +423,7 @@ class BrochureActionServiceTest extends TestCase
 
                 return true;
             }))
-            ->willReturn('https://s3.example/brochure_1442340.pdf');
+            ->willReturn('https://s3.example/brochure_55.pdf');
 
         $csvService
             ->expects($this->once())
@@ -433,8 +434,8 @@ class BrochureActionServiceTest extends TestCase
                     $first = $brochures[0];
                     $second = $brochures[1];
 
-                    $this->assertSame('https://s3.example/brochure_1442340.pdf', $first->getPdfUrl());
-                    $this->assertSame('https://s3.example/brochure_1442340.pdf', $second->getPdfUrl());
+                    $this->assertSame('https://s3.example/brochure_55.pdf', $first->getPdfUrl());
+                    $this->assertSame('https://s3.example/brochure_55.pdf', $second->getPdfUrl());
 
                     return true;
                 }),

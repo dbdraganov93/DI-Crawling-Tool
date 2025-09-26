@@ -199,15 +199,20 @@ class IprotoService
         return $data;
     }
 
-    public function downloadBrochurePdf(string $brochurePageId, string $destinationPath): string
+    public function downloadBrochurePdf(string $brochurePageId, string $destinationPath, string $brochureId): string
     {
         $pageId = trim($brochurePageId);
+        $normalizedBrochureId = trim($brochureId);
 
         if ($pageId === '') {
             throw new InvalidArgumentException('Brochure page ID is required to download the PDF.');
         }
 
-        $uri = sprintf('/api/stashed_files/brochures/%s', rawurlencode($pageId));
+        if ($normalizedBrochureId === '') {
+            throw new InvalidArgumentException('Brochure ID is required to download the PDF.');
+        }
+
+        $uri = sprintf('/api/stashed_files/brochures/%s', rawurlencode($normalizedBrochureId));
 
         $token = $this->tokenService->getValidToken();
         if ($token === '') {
@@ -229,18 +234,27 @@ class IprotoService
 
             if ($statusCode < 200 || $statusCode >= 300) {
                 $this->logger->warning(sprintf(
-                    'Failed to download brochure PDF %s: status %d, body: %s',
+                    'Failed to download brochure PDF %s (page %s): status %d, body: %s',
+                    $normalizedBrochureId,
                     $pageId,
                     $statusCode,
                     $response->getContent(false)
                 ));
 
-                throw new \RuntimeException(sprintf('Unable to download brochure PDF %s (status %d).', $pageId, $statusCode));
+                throw new \RuntimeException(sprintf(
+                    'Unable to download brochure PDF %s (status %d).',
+                    $normalizedBrochureId,
+                    $statusCode
+                ));
             }
 
             $content = $response->getContent();
         } catch (\Throwable $exception) {
-            throw new \RuntimeException(sprintf('Unable to download brochure PDF %s.', $pageId), 0, $exception);
+            throw new \RuntimeException(
+                sprintf('Unable to download brochure PDF %s.', $normalizedBrochureId),
+                0,
+                $exception
+            );
         }
 
         $directory = dirname($destinationPath);
@@ -251,7 +265,11 @@ class IprotoService
         }
 
         if (file_put_contents($destinationPath, $content) === false) {
-            throw new \RuntimeException(sprintf('Unable to write brochure PDF %s to "%s".', $pageId, $destinationPath));
+            throw new \RuntimeException(sprintf(
+                'Unable to write brochure PDF %s to "%s".',
+                $normalizedBrochureId,
+                $destinationPath
+            ));
         }
 
         return $destinationPath;
