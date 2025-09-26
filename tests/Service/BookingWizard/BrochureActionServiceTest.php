@@ -8,6 +8,7 @@ use App\Dto\Brochure;
 use App\Service\BookingWizard\BrochureActionService;
 use App\Service\CsvService;
 use App\Service\IprotoService;
+use App\Service\S3Service;
 use PHPUnit\Framework\TestCase;
 use function mb_check_encoding;
 
@@ -18,7 +19,7 @@ class BrochureActionServiceTest extends TestCase
         $iprotoService = $this->createMock(IprotoService::class);
         $csvService = $this->createMock(CsvService::class);
 
-        $service = new BrochureActionService($iprotoService, $csvService);
+        $service = $this->createBrochureActionService($iprotoService, $csvService);
 
         $iprotoService
             ->expects($this->once())
@@ -101,7 +102,7 @@ class BrochureActionServiceTest extends TestCase
         $iprotoService = $this->createMock(IprotoService::class);
         $csvService = $this->createMock(CsvService::class);
 
-        $service = new BrochureActionService($iprotoService, $csvService);
+        $service = $this->createBrochureActionService($iprotoService, $csvService);
 
         $iprotoService
             ->expects($this->once())
@@ -173,7 +174,7 @@ class BrochureActionServiceTest extends TestCase
         $iprotoService = $this->createMock(IprotoService::class);
         $csvService = $this->createMock(CsvService::class);
 
-        $service = new BrochureActionService($iprotoService, $csvService);
+        $service = $this->createBrochureActionService($iprotoService, $csvService);
 
         $iprotoService
             ->expects($this->once())
@@ -195,7 +196,7 @@ class BrochureActionServiceTest extends TestCase
 
     public function testDuplicateBrochuresPerSelectedStoresRequiresSelection(): void
     {
-        $service = new BrochureActionService(
+        $service = $this->createBrochureActionService(
             $this->createMock(IprotoService::class),
             $this->createMock(CsvService::class)
         );
@@ -208,7 +209,7 @@ class BrochureActionServiceTest extends TestCase
 
     public function testDuplicateBrochuresPerStoreRequiresSelection(): void
     {
-        $service = new BrochureActionService(
+        $service = $this->createBrochureActionService(
             $this->createMock(IprotoService::class),
             $this->createMock(CsvService::class)
         );
@@ -226,7 +227,7 @@ class BrochureActionServiceTest extends TestCase
             ->with('42')
             ->willReturn([]);
 
-        $service = new BrochureActionService($iprotoService, $this->createMock(CsvService::class));
+        $service = $this->createBrochureActionService($iprotoService, $this->createMock(CsvService::class));
 
         $this->expectException(\RuntimeException::class);
         $service->duplicateBrochuresPerStore('42', '9', ['1']);
@@ -237,7 +238,7 @@ class BrochureActionServiceTest extends TestCase
         $iprotoService = $this->createMock(IprotoService::class);
         $csvService = $this->createMock(CsvService::class);
 
-        $service = new BrochureActionService($iprotoService, $csvService);
+        $service = $this->createBrochureActionService($iprotoService, $csvService);
 
         $iprotoService
             ->expects($this->once())
@@ -283,7 +284,7 @@ class BrochureActionServiceTest extends TestCase
         $iprotoService = $this->createMock(IprotoService::class);
         $csvService = $this->createMock(CsvService::class);
 
-        $service = new BrochureActionService($iprotoService, $csvService);
+        $service = $this->createBrochureActionService($iprotoService, $csvService);
 
         $iprotoService
             ->expects($this->once())
@@ -362,12 +363,107 @@ class BrochureActionServiceTest extends TestCase
         $this->assertSame('queued', $result['import']['status']);
     }
 
+    public function testDuplicateBrochuresPerStoreUploadsPdfToS3WhenBrochurePageUrlProvided(): void
+    {
+        $iprotoService = $this->createMock(IprotoService::class);
+        $csvService = $this->createMock(CsvService::class);
+        $s3Service = $this->createMock(S3Service::class);
+
+        $pdfDir = sys_get_temp_dir() . '/brochure-action/' . uniqid('pdf-', true);
+
+        $service = new BrochureActionService($iprotoService, $csvService, $s3Service, $pdfDir);
+
+        $iprotoService
+            ->expects($this->once())
+            ->method('getStoresByCompany')
+            ->with('42')
+            ->willReturn([
+                ['storeNumber' => '100'],
+                ['storeNumber' => '200'],
+            ]);
+
+        $iprotoService
+            ->expects($this->once())
+            ->method('getBrochureDetails')
+            ->with('55')
+            ->willReturn([
+                'id' => '55',
+                'brochureNumber' => 'BR-01',
+                'integration' => '/api/integrations/42',
+                'pdfUrl' => '/api/brochure_pages/1442340',
+            ]);
+
+        $iprotoService
+            ->expects($this->once())
+            ->method('downloadBrochurePdf')
+            ->with(
+                '1442340',
+                $this->callback(function (string $destination) use ($pdfDir) {
+                    $this->assertStringStartsWith($pdfDir, $destination);
+                    return true;
+                })
+            )
+            ->willReturnCallback(static function (string $pageId, string $destination): string {
+                if (!is_dir(dirname($destination))) {
+                    mkdir(dirname($destination), 0755, true);
+                }
+
+                file_put_contents($destination, 'PDF-' . $pageId);
+
+                return $destination;
+            });
+
+        $s3Service
+            ->expects($this->once())
+            ->method('upload')
+            ->with($this->callback(function (string $localPath) use ($pdfDir) {
+                $this->assertStringStartsWith($pdfDir, $localPath);
+                $this->assertFileExists($localPath);
+
+                return true;
+            }))
+            ->willReturn('https://s3.example/brochure_1442340.pdf');
+
+        $csvService
+            ->expects($this->once())
+            ->method('createCsvFromBrochure')
+            ->with(
+                $this->callback(function (array $brochures) {
+                    $this->assertCount(2, $brochures);
+                    $first = $brochures[0];
+                    $second = $brochures[1];
+
+                    $this->assertSame('https://s3.example/brochure_1442340.pdf', $first->getPdfUrl());
+                    $this->assertSame('https://s3.example/brochure_1442340.pdf', $second->getPdfUrl());
+
+                    return true;
+                }),
+                '42'
+            )
+            ->willReturn([
+                'downloadLink' => 'https://example.com/brochures.csv',
+            ]);
+
+        $iprotoService
+            ->expects($this->once())
+            ->method('importData')
+            ->willReturn([
+                '@id' => '/api/imports/888',
+                'status' => 'queued',
+            ]);
+
+        $result = $service->duplicateBrochuresPerStore('42', '9', ['55']);
+
+        $this->assertSame('888', $result['importId']);
+        $this->assertSame('queued', $result['import']['status']);
+    }
+
     public function testDuplicateBrochuresPerStoreWrapsCsvFailures(): void
     {
         $iprotoService = $this->createMock(IprotoService::class);
         $csvService = $this->createMock(CsvService::class);
 
-        $service = new BrochureActionService($iprotoService, $csvService);
+        $service = $this->createBrochureActionService($iprotoService, $csvService);
 
         $iprotoService
             ->expects($this->once())
@@ -400,5 +496,24 @@ class BrochureActionServiceTest extends TestCase
         $this->expectExceptionMessage('Failed to create brochure CSV for duplication.');
 
         $service->duplicateBrochuresPerStore('42', '9', ['55']);
+    }
+
+    private function createBrochureActionService(
+        ?IprotoService $iprotoService = null,
+        ?CsvService $csvService = null,
+        ?S3Service $s3Service = null,
+        ?string $pdfDir = null
+    ): BrochureActionService {
+        $iprotoService ??= $this->createMock(IprotoService::class);
+        $csvService ??= $this->createMock(CsvService::class);
+        $s3Service ??= $this->createMock(S3Service::class);
+
+        $s3Service->method('upload')->willReturnCallback(
+            static fn (string $path): string => 'https://s3.example/' . basename($path)
+        );
+
+        $pdfDir ??= sys_get_temp_dir() . '/brochure-action/' . uniqid('', true);
+
+        return new BrochureActionService($iprotoService, $csvService, $s3Service, $pdfDir);
     }
 }

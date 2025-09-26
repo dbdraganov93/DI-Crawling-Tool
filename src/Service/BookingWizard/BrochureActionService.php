@@ -7,6 +7,7 @@ namespace App\Service\BookingWizard;
 use App\Dto\Brochure;
 use App\Service\CsvService;
 use App\Service\IprotoService;
+use App\Service\S3Service;
 use InvalidArgumentException;
 
 class BrochureActionService
@@ -14,10 +15,18 @@ class BrochureActionService
     public const ACTION_DUPLICATE_PER_STORE = 'duplicate_per_store';
     public const ACTION_DUPLICATE_SELECTED_STORES = 'duplicate_selected_stores';
 
+    /** @var array<string, string> */
+    private array $brochurePdfCache = [];
+
+    private bool $brochurePdfDirectoryEnsured = false;
+
     public function __construct(
         private IprotoService $iprotoService,
         private CsvService $csvService,
+        private S3Service $s3Service,
+        private string $brochurePdfDir = 'public/pdf',
     ) {
+        $this->brochurePdfDir = rtrim($brochurePdfDir, '/');
     }
 
     /**
@@ -122,6 +131,7 @@ class BrochureActionService
         foreach ($normalizedBrochureIds as $brochureId) {
             $brochureDetail = $this->iprotoService->getBrochureDetails($brochureId);
             $basePayload = $this->normalizeBrochurePayload($brochureDetail, $normalizedCompanyId, $brochureId);
+            $basePayload['pdfUrl'] = $this->preparePdfUrl($basePayload['pdfUrl'], $brochureId);
 
             foreach ($targetStoreNumbers as $storeNumber) {
                 $payload = $basePayload;
@@ -308,6 +318,54 @@ class BrochureActionService
         ];
     }
 
+    private function preparePdfUrl(string $pdfUrl, string $brochureId): string
+    {
+        $normalized = trim($pdfUrl);
+
+        if ($normalized === '') {
+            return '';
+        }
+
+        $pageId = $this->extractBrochurePageId($normalized);
+
+        if ($pageId === null) {
+            return $normalized;
+        }
+
+        if (isset($this->brochurePdfCache[$pageId])) {
+            return $this->brochurePdfCache[$pageId];
+        }
+
+        $this->ensureBrochurePdfDirectory();
+
+        $fileName = sprintf('brochure_%s.pdf', $pageId);
+        $destination = $this->brochurePdfDir . '/' . $fileName;
+
+        try {
+            $localPath = $this->iprotoService->downloadBrochurePdf($pageId, $destination);
+        } catch (\Throwable $exception) {
+            throw new \RuntimeException(
+                sprintf('Failed to download brochure PDF %s for brochure %s.', $pageId, $brochureId),
+                0,
+                $exception
+            );
+        }
+
+        try {
+            $uploadedUrl = $this->s3Service->upload($localPath);
+        } catch (\Throwable $exception) {
+            throw new \RuntimeException(
+                sprintf('Failed to upload brochure PDF %s for brochure %s.', $pageId, $brochureId),
+                0,
+                $exception
+            );
+        }
+
+        $this->brochurePdfCache[$pageId] = $uploadedUrl;
+
+        return $uploadedUrl;
+    }
+
     private function normalizePdfUrl(array $brochure): string
     {
         $candidates = [
@@ -334,6 +392,44 @@ class BrochureActionService
         }
 
         return '';
+    }
+
+    private function ensureBrochurePdfDirectory(): void
+    {
+        if ($this->brochurePdfDirectoryEnsured) {
+            return;
+        }
+
+        $directory = $this->brochurePdfDir;
+
+        if ($directory !== '' && !str_starts_with($directory, '/') && str_contains($directory, '://') === false) {
+            $workingDirectory = getcwd() ?: '';
+            if ($workingDirectory !== '') {
+                $directory = rtrim($workingDirectory, '/') . '/' . ltrim($directory, '/');
+            }
+        }
+
+        if (!is_dir($directory)) {
+            if (!mkdir($directory, 0755, true) && !is_dir($directory)) {
+                throw new \RuntimeException(sprintf('Unable to create brochure PDF directory "%s".', $directory));
+            }
+        }
+
+        $this->brochurePdfDir = rtrim($directory, '/');
+        $this->brochurePdfDirectoryEnsured = true;
+    }
+
+    private function extractBrochurePageId(string $pdfUrl): ?string
+    {
+        if ($pdfUrl === '') {
+            return null;
+        }
+
+        if (preg_match('~brochure_pages/(\d+)~', $pdfUrl, $matches) === 1) {
+            return $matches[1];
+        }
+
+        return null;
     }
 
     private function normalizeSalesRegion(mixed $value): string

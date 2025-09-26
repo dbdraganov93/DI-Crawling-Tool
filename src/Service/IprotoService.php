@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -196,6 +197,64 @@ class IprotoService
         }
 
         return $data;
+    }
+
+    public function downloadBrochurePdf(string $brochurePageId, string $destinationPath): string
+    {
+        $pageId = trim($brochurePageId);
+
+        if ($pageId === '') {
+            throw new InvalidArgumentException('Brochure page ID is required to download the PDF.');
+        }
+
+        $uri = sprintf('/api/stashed_files/brochures/%s', rawurlencode($pageId));
+
+        $token = $this->tokenService->getValidToken();
+        if ($token === '') {
+            throw new \RuntimeException('Unable to download brochure PDF without a valid token.');
+        }
+
+        $url = $this->buildUrl($uri);
+        $options = [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'Accept' => 'application/pdf',
+            ],
+            'http_version' => '1.1',
+        ];
+
+        try {
+            $response = $this->httpClient->request('GET', $url, $options);
+            $statusCode = $response->getStatusCode();
+
+            if ($statusCode < 200 || $statusCode >= 300) {
+                $this->logger->warning(sprintf(
+                    'Failed to download brochure PDF %s: status %d, body: %s',
+                    $pageId,
+                    $statusCode,
+                    $response->getContent(false)
+                ));
+
+                throw new \RuntimeException(sprintf('Unable to download brochure PDF %s (status %d).', $pageId, $statusCode));
+            }
+
+            $content = $response->getContent();
+        } catch (\Throwable $exception) {
+            throw new \RuntimeException(sprintf('Unable to download brochure PDF %s.', $pageId), 0, $exception);
+        }
+
+        $directory = dirname($destinationPath);
+        if (!is_dir($directory)) {
+            if (!mkdir($directory, 0755, true) && !is_dir($directory)) {
+                throw new \RuntimeException(sprintf('Unable to create directory "%s" for brochure PDF.', $directory));
+            }
+        }
+
+        if (file_put_contents($destinationPath, $content) === false) {
+            throw new \RuntimeException(sprintf('Unable to write brochure PDF %s to "%s".', $pageId, $destinationPath));
+        }
+
+        return $destinationPath;
     }
 
     /**
