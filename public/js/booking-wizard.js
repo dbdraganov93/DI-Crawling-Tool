@@ -57,6 +57,7 @@
         const brochuresError = document.getElementById('brochure-results-error');
         const brochuresEmpty = document.getElementById('brochure-results-empty');
         const brochuresTableWrapper = document.getElementById('brochure-results-table-wrapper');
+        const brochuresTableContainer = document.getElementById('brochure-results-table-container');
         const brochuresTableBody = document.querySelector('#brochure-results-table tbody');
         const brochuresSearchInput = document.getElementById('brochure-results-search');
         const brochuresPageSizeSelect = document.getElementById('brochure-results-page-size');
@@ -70,6 +71,7 @@
         const brochureFilterDeleted = document.getElementById('brochure-filter-deleted');
         const brochureFilterTimeInputs = Array.from(document.querySelectorAll('input[name="brochure-filter-time"]'));
         const brochureFilterResetButton = document.getElementById('brochure-filter-reset');
+        const brochureEmptyResetButton = document.getElementById('brochure-empty-reset');
         const brochureSelectedStoresGroup = document.getElementById('brochure-action-stores-group');
         const brochureSelectedStoresStatus = document.getElementById('brochure-action-stores-status');
         const $brochureSelectedStoresSelect = $('#brochure-action-selected-stores');
@@ -125,7 +127,7 @@
         let currentStep = 0;
 
         brochuresTableManager = createTableManager({
-            wrapper: brochuresTableWrapper,
+            wrapper: brochuresTableContainer,
             tableBody: brochuresTableBody,
             searchInput: brochuresSearchInput,
             pageSizeSelect: brochuresPageSizeSelect,
@@ -501,7 +503,13 @@
 
             if (brochuresTableManager) {
                 brochuresTableManager.reset();
-            } else if (brochuresTableWrapper) {
+            }
+
+            if (brochuresTableContainer) {
+                brochuresTableContainer.classList.add('d-none');
+            }
+
+            if (brochuresTableWrapper) {
                 brochuresTableWrapper.classList.add('d-none');
             }
 
@@ -523,8 +531,14 @@
 
             if (brochuresTableManager) {
                 brochuresTableManager.reset();
-            } else if (brochuresTableWrapper) {
-                brochuresTableWrapper.classList.add('d-none');
+            }
+
+            if (brochuresTableContainer) {
+                brochuresTableContainer.classList.add('d-none');
+            }
+
+            if (brochuresTableWrapper) {
+                brochuresTableWrapper.classList.remove('d-none');
             }
 
             if (brochuresLoading) {
@@ -538,8 +552,14 @@
 
             if (brochuresTableManager) {
                 brochuresTableManager.reset();
-            } else if (brochuresTableWrapper) {
-                brochuresTableWrapper.classList.add('d-none');
+            }
+
+            if (brochuresTableContainer) {
+                brochuresTableContainer.classList.add('d-none');
+            }
+
+            if (brochuresTableWrapper) {
+                brochuresTableWrapper.classList.remove('d-none');
             }
 
             if (brochuresError) {
@@ -1588,14 +1608,27 @@
             pruneSelectedBrochureIds(items);
             updateBrochureSelectionSummary();
 
+            brochuresTableWrapper.classList.remove('d-none');
+
             if (items.length === 0) {
                 if (brochuresTableManager) {
                     brochuresTableManager.reset();
+                }
+                if (brochuresTableContainer) {
+                    brochuresTableContainer.classList.add('d-none');
                 }
                 if (brochuresEmpty) {
                     brochuresEmpty.classList.remove('d-none');
                 }
                 return;
+            }
+
+            if (brochuresEmpty) {
+                brochuresEmpty.classList.add('d-none');
+            }
+
+            if (brochuresTableContainer) {
+                brochuresTableContainer.classList.remove('d-none');
             }
 
             if (brochuresTableManager) {
@@ -1996,6 +2029,13 @@
 
         if (brochureFilterResetButton) {
             brochureFilterResetButton.addEventListener('click', () => {
+                resetBrochureFilterControls();
+                handleBrochureFiltersChanged();
+            });
+        }
+
+        if (brochureEmptyResetButton) {
+            brochureEmptyResetButton.addEventListener('click', () => {
                 resetBrochureFilterControls();
                 handleBrochureFiltersChanged();
             });
