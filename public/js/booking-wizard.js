@@ -67,6 +67,9 @@
         const brochureActionSelect = document.getElementById('brochure-action-select');
         const brochureActionButton = document.getElementById('brochure-action-submit');
         const brochureActionFeedback = document.getElementById('brochure-action-feedback');
+        const brochureFilterDeleted = document.getElementById('brochure-filter-deleted');
+        const brochureFilterTimeInputs = Array.from(document.querySelectorAll('input[name="brochure-filter-time"]'));
+        const brochureFilterResetButton = document.getElementById('brochure-filter-reset');
         const brochureSelectedStoresGroup = document.getElementById('brochure-action-stores-group');
         const brochureSelectedStoresStatus = document.getElementById('brochure-action-stores-status');
         const $brochureSelectedStoresSelect = $('#brochure-action-selected-stores');
@@ -89,8 +92,11 @@
         let lastLoadedBrochuresCompanyId = null;
         let lastLoadedBrochuresOwnerId = null;
         let lastLoadedBrochures = null;
+        let lastLoadedBrochuresFiltersKey = null;
 
         const selectedBrochureIds = new Set();
+
+        let defaultBrochureFilterState = null;
 
         let selectedStoresSelectInitialized = false;
         const storeOptionsCache = new Map();
@@ -108,6 +114,8 @@
         }
 
         updateBrochureSelectionSummary();
+
+        defaultBrochureFilterState = cloneBrochureFilters(getNormalizedBrochureFilters());
 
         let bookingsAbortController = null;
         let lastLoadedBookingsCompanyId = null;
@@ -261,6 +269,122 @@
                 : `${count} brochures selected`;
         }
 
+        function cloneBrochureFilters(filters) {
+            if (!filters || typeof filters !== 'object') {
+                return {
+                    deleted: 'active',
+                    timeConstraints: [],
+                };
+            }
+
+            const deleted = typeof filters.deleted === 'string'
+                ? filters.deleted.trim().toLowerCase()
+                : 'active';
+
+            const normalized = {
+                deleted: deleted === 'deleted' ? 'deleted' : 'active',
+                timeConstraints: [],
+            };
+
+            const source = Array.isArray(filters.timeConstraints) ? filters.timeConstraints : [];
+
+            source.forEach((value) => {
+                let normalizedValue = '';
+
+                if (typeof value === 'string') {
+                    normalizedValue = value.trim().toLowerCase();
+                } else if (value !== null && value !== undefined) {
+                    normalizedValue = String(value).trim().toLowerCase();
+                }
+
+                if (normalizedValue === '' || normalized.timeConstraints.includes(normalizedValue)) {
+                    return;
+                }
+
+                normalized.timeConstraints.push(normalizedValue);
+            });
+
+            return normalized;
+        }
+
+        function getBrochureFiltersKey(filters) {
+            const snapshot = cloneBrochureFilters(filters);
+            const sortedConstraints = snapshot.timeConstraints.slice().sort();
+
+            return JSON.stringify({
+                deleted: snapshot.deleted,
+                timeConstraints: sortedConstraints,
+            });
+        }
+
+        function getNormalizedBrochureFilters() {
+            const selectedConstraints = [];
+
+            brochureFilterTimeInputs.forEach((input) => {
+                if (!(input instanceof HTMLInputElement) || !input.checked) {
+                    return;
+                }
+
+                const value = typeof input.value === 'string'
+                    ? input.value.trim().toLowerCase()
+                    : '';
+
+                if (value !== '' && !selectedConstraints.includes(value)) {
+                    selectedConstraints.push(value);
+                }
+            });
+
+            const deletedValue = brochureFilterDeleted && typeof brochureFilterDeleted.value === 'string'
+                ? brochureFilterDeleted.value.trim().toLowerCase()
+                : 'active';
+
+            return cloneBrochureFilters({
+                deleted: deletedValue,
+                timeConstraints: selectedConstraints,
+            });
+        }
+
+        function resetBrochureFilterControls() {
+            const defaults = defaultBrochureFilterState || {
+                deleted: 'active',
+                timeConstraints: ['current', 'upcoming'],
+            };
+
+            if (brochureFilterDeleted) {
+                brochureFilterDeleted.value = defaults.deleted;
+            }
+
+            brochureFilterTimeInputs.forEach((input) => {
+                if (!(input instanceof HTMLInputElement)) {
+                    return;
+                }
+
+                const value = typeof input.value === 'string'
+                    ? input.value.trim().toLowerCase()
+                    : '';
+
+                input.checked = defaults.timeConstraints.includes(value);
+            });
+        }
+
+        function handleBrochureFiltersChanged() {
+            const hasOwner = !!ownerSelect.value;
+            const hasCompany = !!companySelect.value;
+
+            if (!hasOwner || !hasCompany) {
+                return;
+            }
+
+            const filters = getNormalizedBrochureFilters();
+            const selectedText = $companySelect.find('option:selected').text().trim();
+
+            if (currentStep === 2) {
+                loadBrochures(companySelect.value, selectedText, ownerSelect.value, filters);
+            } else {
+                lastLoadedBrochuresFiltersKey = null;
+            }
+        }
+
         function clearBrochureActionFeedback() {
             if (!brochureActionFeedback) {
                 return;
@@ -386,6 +510,7 @@
                 lastLoadedBrochuresCompanyId = null;
                 lastLoadedBrochuresOwnerId = null;
                 lastLoadedBrochures = null;
+                lastLoadedBrochuresFiltersKey = null;
             }
 
             updateSelectedStoresVisibility();
@@ -1480,7 +1605,7 @@
             brochuresTableWrapper.classList.remove('d-none');
         }
 
-        function loadBrochures(companyId, companyLabel, ownerId) {
+        function loadBrochures(companyId, companyLabel, ownerId, filters) {
             const normalizedCompanyId = typeof companyId === 'string' ? companyId.trim() : String(companyId);
             if (!normalizedCompanyId) {
                 return;
@@ -1488,6 +1613,9 @@
 
             const normalizedOwnerId = typeof ownerId === 'string' ? ownerId.trim() : ownerId;
             const ownerKey = normalizedOwnerId && normalizedOwnerId !== '' ? normalizedOwnerId : null;
+
+            const filterSnapshot = cloneBrochureFilters(filters || getNormalizedBrochureFilters());
+            const filtersKey = getBrochureFiltersKey(filterSnapshot);
 
             if (brochuresAbortController) {
                 brochuresAbortController.abort();
@@ -1499,6 +1627,7 @@
             if (
                 lastLoadedBrochuresCompanyId === normalizedCompanyId &&
                 lastLoadedBrochuresOwnerId === ownerKey &&
+                lastLoadedBrochuresFiltersKey === filtersKey &&
                 Array.isArray(lastLoadedBrochures)
             ) {
                 setStepLabel(2, stepLabel);
@@ -1512,13 +1641,28 @@
             lastLoadedBrochuresCompanyId = normalizedCompanyId;
             lastLoadedBrochuresOwnerId = ownerKey;
             lastLoadedBrochures = null;
+            lastLoadedBrochuresFiltersKey = null;
 
             setStepLabel(2, stepLabel);
             showBrochuresLoading(companyLabel);
 
             const params = new URLSearchParams({ companyId: normalizedCompanyId });
-            if (ownerKey) {
+            if (ownerKey !== null) {
                 params.append('ownerId', ownerKey);
+            }
+
+            params.append('deletedFilter', filterSnapshot.deleted === 'deleted' ? 'deleted' : 'active');
+
+            if (Array.isArray(filterSnapshot.timeConstraints) && filterSnapshot.timeConstraints.length > 0) {
+                filterSnapshot.timeConstraints
+                    .slice()
+                    .forEach((constraint) => {
+                        if (typeof constraint !== 'string' || constraint.trim() === '') {
+                            return;
+                        }
+
+                        params.append(`timeConstraint[${constraint}]`, 'true');
+                    });
             }
 
             fetchJson(`/booking-wizard/api/brochures?${params.toString()}`, {
@@ -1530,6 +1674,7 @@
                     }
 
                     lastLoadedBrochures = Array.isArray(brochures) ? brochures : [];
+                    lastLoadedBrochuresFiltersKey = filtersKey;
                     renderBrochures(lastLoadedBrochures, companyLabel);
                 })
                 .catch((error) => {
@@ -1544,6 +1689,7 @@
                     lastLoadedBrochuresCompanyId = null;
                     lastLoadedBrochuresOwnerId = null;
                     lastLoadedBrochures = null;
+                    lastLoadedBrochuresFiltersKey = null;
                     showBrochuresError(error && error.message ? error.message : 'Unable to load brochures.', companyLabel);
                 })
                 .finally(() => {
@@ -1782,7 +1928,12 @@
                     showStep(step);
 
                     if (step === 2) {
-                        loadBrochures(companySelect.value, selectedText, ownerSelect.value);
+                        loadBrochures(
+                            companySelect.value,
+                            selectedText,
+                            ownerSelect.value,
+                            getNormalizedBrochureFilters(),
+                        );
                     } else if (step >= 3) {
                         loadBookings(companySelect.value, selectedText, ownerSelect.value);
                     }
@@ -1815,6 +1966,40 @@
                 showStep(step);
             });
         });
+
+        if (brochureFilterDeleted) {
+            brochureFilterDeleted.addEventListener('change', () => {
+                handleBrochureFiltersChanged();
+            });
+        }
+
+        brochureFilterTimeInputs.forEach((input) => {
+            if (!(input instanceof HTMLInputElement)) {
+                return;
+            }
+
+            input.addEventListener('change', () => {
+                if (!input.checked) {
+                    const anyChecked = brochureFilterTimeInputs.some(
+                        (timeInput) => timeInput instanceof HTMLInputElement && timeInput.checked,
+                    );
+
+                    if (!anyChecked) {
+                        input.checked = true;
+                        return;
+                    }
+                }
+
+                handleBrochureFiltersChanged();
+            });
+        });
+
+        if (brochureFilterResetButton) {
+            brochureFilterResetButton.addEventListener('click', () => {
+                resetBrochureFilterControls();
+                handleBrochureFiltersChanged();
+            });
+        }
 
         if (brochureActionSelect) {
             brochureActionSelect.addEventListener('change', () => {

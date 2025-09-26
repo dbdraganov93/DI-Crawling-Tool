@@ -43,8 +43,10 @@ class BookingWizardController extends AbstractController
             return $this->json(['error' => 'Missing or invalid ownerId or companyId parameter.'], Response::HTTP_BAD_REQUEST);
         }
 
+        $filters = $this->resolveBrochureFilters($request);
+
         try {
-            $brochures = $iprotoService->getBrochuresByOwnerAndCompany($ownerId, $companyId);
+            $brochures = $iprotoService->getBrochuresByOwnerAndCompany($ownerId, $companyId, $filters);
 
             return $this->json($brochures);
         } catch (\InvalidArgumentException $exception) {
@@ -53,6 +55,7 @@ class BookingWizardController extends AbstractController
             $logger->error('Brochure API request failed.', [
                 'companyId' => $companyId,
                 'ownerId' => $ownerId,
+                'filters' => $filters,
                 'exception' => $exception,
             ]);
 
@@ -61,6 +64,7 @@ class BookingWizardController extends AbstractController
             $logger->error('Unexpected error while loading brochures.', [
                 'companyId' => $companyId,
                 'ownerId' => $ownerId,
+                'filters' => $filters,
                 'exception' => $exception,
             ]);
 
@@ -262,6 +266,102 @@ class BookingWizardController extends AbstractController
 
             return $this->json(['error' => 'Unable to load CPC bookings.'], Response::HTTP_BAD_GATEWAY);
         }
+    }
+
+    /**
+     * @return array{deletedFilter: string, timeConstraints: array<int, string>}
+     */
+    private function resolveBrochureFilters(Request $request): array
+    {
+        $filters = [
+            'deletedFilter' => 'active',
+            'timeConstraints' => ['current', 'upcoming'],
+        ];
+
+        $deletedFilterRaw = strtolower(trim((string) $request->query->get('deletedFilter', '')));
+        if ($deletedFilterRaw === 'deleted') {
+            $filters['deletedFilter'] = 'deleted';
+        } elseif ($deletedFilterRaw === 'all') {
+            $filters['deletedFilter'] = 'all';
+        } else {
+            $filters['deletedFilter'] = 'active';
+        }
+
+        $timeConstraintParam = $request->query->all('timeConstraint');
+        $timeConstraints = $this->normalizeTimeConstraintFilters($timeConstraintParam);
+
+        if (!empty($timeConstraints)) {
+            $filters['timeConstraints'] = $timeConstraints;
+        } elseif ($request->query->has('timeConstraint')) {
+            $filters['timeConstraints'] = [];
+        }
+
+        return $filters;
+    }
+
+    /**
+     * @param mixed $raw
+     * @return array<int, string>
+     */
+    private function normalizeTimeConstraintFilters(mixed $raw): array
+    {
+        $allowed = ['current', 'upcoming', 'past'];
+        $normalized = [];
+
+        if (is_array($raw)) {
+            foreach ($raw as $key => $value) {
+                if (is_int($key)) {
+                    $nested = $this->normalizeTimeConstraintFilters($value);
+                    foreach ($nested as $item) {
+                        if (!in_array($item, $normalized, true)) {
+                            $normalized[] = $item;
+                        }
+                    }
+                    continue;
+                }
+
+                if (!$this->isTruthy($value)) {
+                    continue;
+                }
+
+                $constraint = strtolower(trim((string) $key));
+                if ($constraint === '' || !in_array($constraint, $allowed, true) || in_array($constraint, $normalized, true)) {
+                    continue;
+                }
+
+                $normalized[] = $constraint;
+            }
+
+            return $normalized;
+        }
+
+        if (is_string($raw)) {
+            $constraint = strtolower(trim($raw));
+            if ($constraint !== '' && in_array($constraint, $allowed, true) && !in_array($constraint, $normalized, true)) {
+                $normalized[] = $constraint;
+            }
+        }
+
+        return $normalized;
+    }
+
+    private function isTruthy(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return $value !== 0;
+        }
+
+        if (is_string($value)) {
+            $normalized = strtolower(trim($value));
+
+            return !in_array($normalized, ['', '0', 'false', 'off', 'no'], true);
+        }
+
+        return $value !== null;
     }
 
     private function normalizeStoreString(mixed $value): string

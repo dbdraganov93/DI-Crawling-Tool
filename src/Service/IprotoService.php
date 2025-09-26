@@ -75,9 +75,10 @@ class IprotoService
 
 
     /**
+     * @param array<string, mixed> $options
      * @return array<int, array<string, mixed>>
      */
-    public function getBrochuresByOwnerAndCompany(string $ownerId, string $companyId, int $itemsPerPage = 100): array
+    public function getBrochuresByOwnerAndCompany(string $ownerId, string $companyId, array $options = []): array
     {
         $ownerId = trim($ownerId);
         $companyId = trim($companyId);
@@ -86,7 +87,8 @@ class IprotoService
             throw new \InvalidArgumentException('Owner ID and company ID are required to fetch brochures.');
         }
 
-        $itemsPerPage = max(1, min($itemsPerPage, 200));
+        $itemsPerPageOption = $options['itemsPerPage'] ?? 100;
+        $itemsPerPage = max(1, min((int) $itemsPerPageOption, 200));
         $integrationId = trim((string) ($this->extractIntegrationId($companyId) ?? $companyId));
         if ($integrationId === '') {
             $integrationId = $companyId;
@@ -97,6 +99,68 @@ class IprotoService
         $results = [];
         $remainingIterations = 200;
 
+        $orderOptions = $options['order'] ?? ['id' => 'desc'];
+        if (!is_array($orderOptions)) {
+            $orderOptions = ['id' => 'desc'];
+        }
+
+        $order = [];
+        foreach ($orderOptions as $field => $direction) {
+            if (!is_string($field)) {
+                continue;
+            }
+
+            $normalizedField = trim($field);
+            if ($normalizedField === '') {
+                continue;
+            }
+
+            $normalizedDirection = is_string($direction) ? strtolower(trim($direction)) : 'asc';
+            $order[$normalizedField] = $normalizedDirection === 'desc' ? 'desc' : 'asc';
+        }
+
+        if (empty($order)) {
+            $order = ['id' => 'desc'];
+        }
+
+        $deletedFilter = isset($options['deletedFilter']) && is_string($options['deletedFilter'])
+            ? strtolower(trim($options['deletedFilter']))
+            : 'active';
+
+        $deletedExists = null;
+        if ($deletedFilter === 'deleted') {
+            $deletedExists = true;
+        } elseif ($deletedFilter === 'active' || $deletedFilter === 'not_deleted') {
+            $deletedExists = false;
+        }
+
+        $timeConstraints = ['current', 'upcoming'];
+        if (array_key_exists('timeConstraints', $options)) {
+            $timeConstraints = [];
+            $constraintsOption = $options['timeConstraints'];
+
+            if (is_array($constraintsOption)) {
+                foreach ($constraintsOption as $constraint) {
+                    if (!is_string($constraint)) {
+                        continue;
+                    }
+
+                    $normalizedConstraint = strtolower(trim($constraint));
+                    if ($normalizedConstraint === '') {
+                        continue;
+                    }
+
+                    if (!in_array($normalizedConstraint, ['current', 'upcoming', 'past'], true)) {
+                        continue;
+                    }
+
+                    if (!in_array($normalizedConstraint, $timeConstraints, true)) {
+                        $timeConstraints[] = $normalizedConstraint;
+                    }
+                }
+            }
+        }
+
         do {
             $params = [
                 'owner' => $ownerId,
@@ -104,18 +168,21 @@ class IprotoService
                 'integration.id' => $integrationId,
                 'itemsPerPage' => $itemsPerPage,
                 'page' => $page,
-                'exists' => [
-                    'deletedAt' => false,
-                ],
-                'order' => [
-                    'id' => 'asc',
-                    'title' => 'asc',
-                    'brochureNumber' => 'asc',
-                    'validFrom' => 'asc',
-                    'visibleFrom' => 'asc',
-                    'validTo' => 'asc',
-                ],
+                'order' => $order,
             ];
+
+            if ($deletedExists !== null) {
+                $params['exists'] = [
+                    'deletedAt' => $deletedExists,
+                ];
+            }
+
+            if (!empty($timeConstraints)) {
+                $params['timeConstraint'] = [];
+                foreach ($timeConstraints as $constraint) {
+                    $params['timeConstraint'][$constraint] = true;
+                }
+            }
 
             $response = $this->sendRequest(
                 'GET',

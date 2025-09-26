@@ -82,6 +82,35 @@
             </div>
 
             <div class="table-card d-none" id="brochure-results-table-wrapper">
+                <div class="table-card-filters" id="brochure-filter-bar">
+                    <div class="table-card-filter-group">
+                        <label for="brochure-filter-deleted" class="form-label mb-1">Brochure status</label>
+                        <select class="form-select form-select-sm" id="brochure-filter-deleted" aria-label="Brochure status">
+                            <option value="active" selected>Active brochures</option>
+                            <option value="deleted">Deleted brochures</option>
+                        </select>
+                    </div>
+                    <div class="table-card-filter-group">
+                        <span class="form-label mb-1 d-block">Time window</span>
+                        <div class="filter-pill-group" role="group" aria-label="Brochure time window">
+                            <div class="filter-pill">
+                                <input type="checkbox" class="filter-pill-input" id="brochure-filter-time-current" name="brochure-filter-time" value="current" checked>
+                                <label class="filter-pill-label" for="brochure-filter-time-current">Current</label>
+                            </div>
+                            <div class="filter-pill">
+                                <input type="checkbox" class="filter-pill-input" id="brochure-filter-time-upcoming" name="brochure-filter-time" value="upcoming" checked>
+                                <label class="filter-pill-label" for="brochure-filter-time-upcoming">Upcoming</label>
+                            </div>
+                            <div class="filter-pill">
+                                <input type="checkbox" class="filter-pill-input" id="brochure-filter-time-past" name="brochure-filter-time" value="past">
+                                <label class="filter-pill-label" for="brochure-filter-time-past">Past</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-card-filter-group table-card-filter-reset">
+                        <button type="button" class="btn btn-link btn-sm p-0" id="brochure-filter-reset">Reset filters</button>
+                    </div>
+                </div>
                 <div class="table-card-toolbar">
                     <input type="search" class="form-control table-search" id="brochure-results-search" placeholder="Search brochures" aria-label="Search brochures">
                     <select class="form-select form-select-sm" id="brochure-results-page-size" aria-label="Brochure results per page">
