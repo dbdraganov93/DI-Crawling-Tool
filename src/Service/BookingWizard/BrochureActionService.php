@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\BookingWizard;
 
 use App\Dto\Brochure;
+use App\Dto\Product;
 use App\Service\CsvService;
 use App\Service\IprotoService;
 use App\Service\S3Service;
@@ -126,17 +127,120 @@ class BrochureActionService
             }
         }
 
-        $duplicatedBrochures = [];
+        $brochureMetadata = [];
+        $discoverLayouts = [];
+        $discoverProductsByBrochure = [];
+        $discoverProductDetails = [];
 
         foreach ($normalizedBrochureIds as $brochureId) {
             $brochureDetail = $this->iprotoService->getBrochureDetails($brochureId);
             $basePayload = $this->normalizeBrochurePayload($brochureDetail, $normalizedCompanyId, $brochureId);
             $basePayload['pdfUrl'] = $this->preparePdfUrl($basePayload['pdfUrl'], $brochureId);
 
+            $brochureMetadata[$brochureId] = [
+                'payload' => $basePayload,
+            ];
+
+            if (!$this->isDiscoverBrochure($basePayload)) {
+                continue;
+            }
+
+            $layoutData = $this->decodeDiscoverLayout($brochureDetail);
+            if ($layoutData === null) {
+                continue;
+            }
+
+            $discoverLayouts[$brochureId] = $layoutData;
+            $productIds = $this->collectDiscoverProductIds($layoutData);
+
+            if ($productIds === []) {
+                continue;
+            }
+
+            $discoverProductsByBrochure[$brochureId] = $productIds;
+
+            foreach ($productIds as $productId) {
+                if (isset($discoverProductDetails[$productId])) {
+                    continue;
+                }
+
+                $productDetail = $this->iprotoService->getProduct($productId);
+                $productNumber = $this->normalizeScalar($productDetail['productNumber'] ?? $productDetail['product_number'] ?? '');
+
+                if ($productNumber === '') {
+                    throw new \RuntimeException(sprintf(
+                        'Product %s referenced by brochure %s is missing a product number.',
+                        $productId,
+                        $brochureId
+                    ));
+                }
+
+                $discoverProductDetails[$productId] = [
+                    'number' => $productNumber,
+                    'data' => $productDetail,
+                ];
+            }
+        }
+
+        $productArticleLookup = [];
+        $productIdLookup = [];
+
+        if ($discoverProductDetails !== []) {
+            $productPreparation = $this->prepareDiscoverProductsForStores(
+                $discoverProductDetails,
+                $discoverProductsByBrochure,
+                $targetStoreNumbers,
+                $normalizedCompanyId,
+            );
+
+            $productArticleLookup = $productPreparation['lookup'];
+
+            if ($productPreparation['products'] !== []) {
+                try {
+                    $productCsv = $this->csvService->createCsvFromProducts($productPreparation['products'], $normalizedCompanyId);
+                } catch (\Throwable $exception) {
+                    throw new \RuntimeException('Failed to create product CSV for brochure duplication.', 0, $exception);
+                }
+
+                try {
+                    $this->iprotoService->importData($productCsv);
+                } catch (\Throwable $exception) {
+                    throw new \RuntimeException('Failed to import duplicated products.', 0, $exception);
+                }
+
+                $productRecords = $this->waitForDuplicatedProducts($normalizedCompanyId, $productPreparation['articleNumbers']);
+                $productIdLookup = $this->mapProductIdsByArticle($productRecords);
+            }
+        }
+
+        $duplicatedBrochures = [];
+
+        foreach ($normalizedBrochureIds as $brochureId) {
+            $metadata = $brochureMetadata[$brochureId] ?? null;
+
+            if ($metadata === null) {
+                continue;
+            }
+
+            $basePayload = $metadata['payload'];
+            $layoutData = $discoverLayouts[$brochureId] ?? null;
+
             foreach ($targetStoreNumbers as $storeNumber) {
                 $payload = $basePayload;
                 $payload['brochureNumber'] = $this->buildBrochureNumberForStore($basePayload['brochureNumber'], $storeNumber);
                 $payload['storeNumber'] = $storeNumber;
+
+                if ($layoutData !== null) {
+                    $productIdMap = $this->buildProductIdMapForStore($productArticleLookup, $productIdLookup, $brochureId, $storeNumber);
+
+                    if ($productIdMap !== []) {
+                        $updatedLayout = $this->buildDiscoverLayoutForStore($layoutData, $productIdMap);
+
+                        if ($updatedLayout !== null) {
+                            $payload['layout'] = $updatedLayout;
+                        }
+                    }
+                }
 
                 try {
                     $duplicatedBrochures[] = Brochure::fromArray($payload);
@@ -267,6 +371,22 @@ class BrochureActionService
         return sprintf('%s_%s', $normalizedBrochure, $normalizedStore);
     }
 
+    private function buildProductNumberForStore(string $productNumber, string $storeNumber): string
+    {
+        $normalizedProduct = $this->normalizeIdentifier($productNumber);
+        $normalizedStore = $this->normalizeIdentifier(preg_replace('/\s+/', '', $storeNumber) ?? $storeNumber);
+
+        if ($normalizedProduct === '') {
+            return $normalizedStore;
+        }
+
+        if ($normalizedStore === '') {
+            return $normalizedProduct;
+        }
+
+        return sprintf('%s_%s', $normalizedProduct, $normalizedStore);
+    }
+
     /**
      * @param array<string, mixed> $brochure
      *
@@ -364,6 +484,388 @@ class BrochureActionService
         $this->brochurePdfCache[$brochureId] = $uploadedUrl;
 
         return $uploadedUrl;
+    }
+
+    private function isDiscoverBrochure(array $payload): bool
+    {
+        $type = strtolower($this->normalizeScalar($payload['type'] ?? ''));
+
+        return $type === 'discover';
+    }
+
+    private function decodeDiscoverLayout(array $brochure): ?array
+    {
+        $layout = $brochure['layout'] ?? null;
+
+        if (is_string($layout) && $layout !== '') {
+            $decoded = json_decode($layout, true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        if (is_array($layout)) {
+            return $layout;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<mixed> $layout
+     * @return array<int, string>
+     */
+    private function collectDiscoverProductIds(array $layout): array
+    {
+        $ids = [];
+
+        $this->walkDiscoverLayout($layout, static function (string $id) use (&$ids): void {
+            $ids[$id] = $id;
+        });
+
+        return array_values($ids);
+    }
+
+    /**
+     * @param array<mixed> $node
+     */
+    private function walkDiscoverLayout(array $node, callable $collector): void
+    {
+        if (isset($node['products']) && is_array($node['products'])) {
+            foreach ($node['products'] as $product) {
+                if (!is_array($product)) {
+                    continue;
+                }
+
+                $id = $product['id'] ?? null;
+                if ($id === null) {
+                    continue;
+                }
+
+                $collector((string) $id);
+            }
+        }
+
+        foreach ($node as $value) {
+            if (is_array($value)) {
+                $this->walkDiscoverLayout($value, $collector);
+            }
+        }
+    }
+
+    /**
+     * @param array<mixed> $layoutData
+     * @param array<string, int|string> $productIdMap
+     */
+    private function buildDiscoverLayoutForStore(array $layoutData, array $productIdMap): ?string
+    {
+        if ($productIdMap === []) {
+            return null;
+        }
+
+        $updated = $this->replaceDiscoverProductIds($layoutData, $productIdMap);
+        $encoded = json_encode($updated, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        if ($encoded === false) {
+            throw new \RuntimeException('Failed to encode discover brochure layout.');
+        }
+
+        return $encoded;
+    }
+
+    /**
+     * @param array<mixed> $node
+     * @param array<string, int|string> $productIdMap
+     * @return array<mixed>
+     */
+    private function replaceDiscoverProductIds(array $node, array $productIdMap): array
+    {
+        $result = [];
+
+        foreach ($node as $key => $value) {
+            if (is_array($value)) {
+                if ($key === 'products') {
+                    $products = [];
+                    foreach ($value as $product) {
+                        if (!is_array($product)) {
+                            $products[] = $product;
+                            continue;
+                        }
+
+                        $productCopy = $this->replaceDiscoverProductIds($product, $productIdMap);
+
+                        if (isset($productCopy['id'])) {
+                            $idKey = (string) $productCopy['id'];
+                            if (isset($productIdMap[$idKey])) {
+                                $replacement = $productIdMap[$idKey];
+                                $productCopy['id'] = is_numeric($replacement) ? (int) $replacement : $replacement;
+                            }
+                        }
+
+                        $products[] = $productCopy;
+                    }
+
+                    $result[$key] = $products;
+                    continue;
+                }
+
+                $result[$key] = $this->replaceDiscoverProductIds($value, $productIdMap);
+                continue;
+            }
+
+            if ($key === 'id') {
+                $idKey = (string) $value;
+                if (isset($productIdMap[$idKey])) {
+                    $replacement = $productIdMap[$idKey];
+                    $result[$key] = is_numeric($replacement) ? (int) $replacement : $replacement;
+                    continue;
+                }
+            }
+
+            $result[$key] = $value;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array<string, array<string, array<string, string>>> $articleLookup
+     * @param array<string, int|string> $productIdLookup
+     * @return array<string, int|string>
+     */
+    private function buildProductIdMapForStore(array $articleLookup, array $productIdLookup, string $brochureId, string $storeNumber): array
+    {
+        if (!isset($articleLookup[$brochureId][$storeNumber])) {
+            return [];
+        }
+
+        $map = [];
+
+        foreach ($articleLookup[$brochureId][$storeNumber] as $originalProductId => $articleNumber) {
+            if (!isset($productIdLookup[$articleNumber])) {
+                throw new \RuntimeException(sprintf(
+                    'Duplicated product "%s" for brochure %s and store %s is not available.',
+                    $articleNumber,
+                    $brochureId,
+                    $storeNumber
+                ));
+            }
+
+            $map[(string) $originalProductId] = $productIdLookup[$articleNumber];
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param array<string|int, array{number: string, data: array<string, mixed>}> $productDetails
+     * @param array<string, array<int, string>> $productsByBrochure
+     * @param array<int, string> $storeNumbers
+     * @return array{
+     *     products: array<int, Product>,
+     *     articleNumbers: array<int, string>,
+     *     lookup: array<string, array<string, array<string, string>>>
+     * }
+     */
+    private function prepareDiscoverProductsForStores(
+        array $productDetails,
+        array $productsByBrochure,
+        array $storeNumbers,
+        string $companyId,
+    ): array {
+        $products = [];
+        $lookup = [];
+
+        foreach ($productsByBrochure as $brochureId => $productIds) {
+            foreach ($storeNumbers as $storeNumber) {
+                foreach ($productIds as $productId) {
+                    if (!isset($productDetails[$productId])) {
+                        continue;
+                    }
+
+                    $detail = $productDetails[$productId];
+                    $newNumber = $this->buildProductNumberForStore($detail['number'], $storeNumber);
+
+                    $lookup[$brochureId][$storeNumber][(string) $productId] = $newNumber;
+
+                    if (!isset($products[$newNumber])) {
+                        $products[$newNumber] = $this->createProductDtoForStore(
+                            $detail['data'],
+                            $newNumber,
+                            $companyId,
+                            $storeNumber,
+                        );
+                    }
+                }
+            }
+        }
+
+        return [
+            'products' => array_values($products),
+            'articleNumbers' => array_keys($products),
+            'lookup' => $lookup,
+        ];
+    }
+
+    private function createProductDtoForStore(
+        array $productData,
+        string $newProductNumber,
+        string $companyId,
+        string $storeNumber,
+    ): Product {
+        $integrationId = $this->extractIdFromIri($productData['integration'] ?? null) ?? $companyId;
+
+        $payload = [
+            'integration' => $integrationId,
+            'productNumber' => $newProductNumber,
+            'title' => $this->normalizeScalar($productData['title'] ?? ''),
+            'description' => $this->normalizeScalar($productData['description'] ?? ''),
+            'price' => $this->normalizeScalar($productData['price'] ?? ''),
+            'currency' => $this->normalizeScalar($productData['currency'] ?? ''),
+            'secondaryPrice' => $this->normalizeScalar($productData['secondaryPrice'] ?? ''),
+            'secondaryCurrency' => $this->normalizeScalar($productData['secondaryCurrency'] ?? ''),
+            'priceIsVariable' => $this->normalizeBooleanFlag($productData['priceIsVariable'] ?? null),
+            'manufacturerPrice' => $this->normalizeScalar($productData['manufacturerPrice'] ?? ''),
+            'secondaryManufacturerPrice' => $this->normalizeScalar($productData['secondaryManufacturerPrice'] ?? ''),
+            'manufacturerNumber' => $this->normalizeScalar($productData['manufacturerNumber'] ?? ''),
+            'gtin' => $this->normalizeScalar($productData['gtin'] ?? ''),
+            'languageCode' => $this->normalizeScalar($productData['languageCode'] ?? ''),
+            'keywords' => $this->normalizeProductKeywords($productData['keywords'] ?? null),
+            'trackingPixels' => $this->normalizeProductTrackingPixels($productData['trackingPixels'] ?? null),
+            'url' => $this->normalizeScalar($productData['url'] ?? ''),
+            'brandText' => $this->normalizeScalar($productData['brandText'] ?? ''),
+            'brandImage' => $this->normalizeScalar($productData['brandImage'] ?? ''),
+            'amount' => $this->normalizeScalar($productData['amount'] ?? ''),
+            'size' => $this->normalizeScalar($productData['size'] ?? ''),
+            'color' => $this->normalizeScalar($productData['color'] ?? ''),
+            'unitType' => $this->normalizeScalar($productData['unitType'] ?? ''),
+            'subTitle' => $this->normalizeScalar($productData['subTitle'] ?? ''),
+            'salesRegion' => $this->normalizeSalesRegion($productData['salesRegion'] ?? null),
+            'validFrom' => $this->normalizeScalar($productData['validFrom'] ?? ''),
+            'validTo' => $this->normalizeScalar($productData['validTo'] ?? ''),
+            'visibleFrom' => $this->normalizeScalar($productData['visibleFrom'] ?? ''),
+            'hidden' => $this->normalizeBooleanFlag($productData['hidden'] ?? null),
+            'additionalProperties' => $this->normalizeScalar($productData['additionalProperties'] ?? ''),
+            'shipping' => $this->normalizeScalar($productData['shipping'] ?? ''),
+            'variants' => $this->normalizeProductVariants($productData['variants'] ?? null),
+        ];
+
+        return Product::fromArray($payload);
+    }
+
+    /**
+     * @param array<int, string> $articleNumbers
+     * @return array<string, array<string, mixed>>
+     */
+    private function waitForDuplicatedProducts(string $companyId, array $articleNumbers): array
+    {
+        $pending = array_values(array_unique(array_map('strval', $articleNumbers)));
+
+        if ($pending === []) {
+            return [];
+        }
+
+        $results = [];
+        $attempts = 0;
+        $maxAttempts = 60;
+
+        while ($pending !== [] && $attempts < $maxAttempts) {
+            foreach ($pending as $index => $articleNumber) {
+                try {
+                    $product = $this->iprotoService->findProductsByNumber($companyId, $articleNumber);
+                } catch (\Throwable $exception) {
+                    throw new \RuntimeException(sprintf('Unable to load duplicated product "%s".', $articleNumber), 0, $exception);
+                }
+
+                if ($product !== false) {
+                    $results[$articleNumber] = $product;
+                    unset($pending[$index]);
+                }
+            }
+
+            if ($pending === []) {
+                break;
+            }
+
+            ++$attempts;
+            $pending = array_values($pending);
+            usleep(500000);
+        }
+
+        if ($pending !== []) {
+            throw new \RuntimeException('Timed out waiting for duplicated products to become available.');
+        }
+
+        return $results;
+    }
+
+    /**
+     * @param array<string, array<string, mixed>> $productRecords
+     * @return array<string, int|string>
+     */
+    private function mapProductIdsByArticle(array $productRecords): array
+    {
+        $map = [];
+
+        foreach ($productRecords as $articleNumber => $record) {
+            $id = $record['id'] ?? null;
+
+            if ($id === null) {
+                continue;
+            }
+
+            $map[$articleNumber] = is_numeric($id) ? (int) $id : (string) $id;
+        }
+
+        return $map;
+    }
+
+    private function normalizeBooleanFlag(mixed $value): string
+    {
+        if (is_bool($value)) {
+            return $value ? '1' : '0';
+        }
+
+        if (is_int($value)) {
+            return $value !== 0 ? '1' : '0';
+        }
+
+        if (is_string($value)) {
+            $normalized = strtolower(trim($value));
+
+            if ($normalized === '') {
+                return '0';
+            }
+
+            return in_array($normalized, ['1', 'true', 'yes', 'on'], true) ? '1' : '0';
+        }
+
+        return '0';
+    }
+
+    private function normalizeProductKeywords(mixed $value): string
+    {
+        return $this->normalizeTags($value);
+    }
+
+    private function normalizeProductTrackingPixels(mixed $value): string
+    {
+        return $this->normalizeTrackingPixels($value);
+    }
+
+    private function normalizeProductVariants(mixed $value): string
+    {
+        if (is_string($value)) {
+            return trim($value);
+        }
+
+        if (is_array($value) && $value !== []) {
+            $encoded = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+            return $encoded === false ? '' : $encoded;
+        }
+
+        return '';
     }
 
     private function normalizePdfUrl(array $brochure): string

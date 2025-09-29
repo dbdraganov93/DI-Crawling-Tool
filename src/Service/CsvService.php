@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Dto\Product;
 use App\Dto\Store;
 use League\Csv\Writer;
 use SplTempFileObject;
@@ -205,6 +206,59 @@ class CsvService
         return [
             'companyId' => $companyId,
             'type' => 'brochures',
+            'filePath' => $filePath,
+            'message' => "CSV created successfully: {$fileName}. \n Download at http://127.0.0.1:8000/csv/{$fileName}",
+            'downloadLink' => $domain . "http://127.0.0.1:8000/csv/{$fileName}",
+            'base64' => $base64Csv,
+        ];
+    }
+
+    /**
+     * @param array<int, Product> $products
+     */
+    public function createCsvFromProducts(array $products, string $companyId): array
+    {
+        if ($products === []) {
+            throw new \RuntimeException('No products to export.');
+        }
+
+        $csv = Writer::createFromFileObject(new SplTempFileObject());
+        $csv->insertOne(Product::CSV_HEADERS);
+
+        foreach ($products as $product) {
+            if (!$product instanceof Product) {
+                throw new \InvalidArgumentException('Expected array of Dto\\Product objects.');
+            }
+
+            $row = [];
+            $data = $product->toArray();
+
+            foreach (Product::CSV_HEADERS as $header) {
+                $row[] = $data[$header] ?? '';
+            }
+
+            $csv->insertOne($row);
+        }
+
+        $timestamp = round(microtime(true) * 1000);
+        $fileName = sprintf('products_%s_%d.csv', $companyId, $timestamp);
+        $filePath = rtrim($this->csvDir, '/') . '/' . $fileName;
+
+        $directory = dirname($filePath);
+        if (!is_dir($directory)) {
+            if (!mkdir($directory, 0755, true) && !is_dir($directory)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $directory));
+            }
+        }
+
+        $csvContent = $csv->toString();
+        file_put_contents($filePath, $csvContent);
+        $base64Csv = base64_encode($csvContent);
+        $domain = getenv('APP_DOMAIN');
+
+        return [
+            'companyId' => $companyId,
+            'type' => 'products',
             'filePath' => $filePath,
             'message' => "CSV created successfully: {$fileName}. \n Download at http://127.0.0.1:8000/csv/{$fileName}",
             'downloadLink' => $domain . "http://127.0.0.1:8000/csv/{$fileName}",

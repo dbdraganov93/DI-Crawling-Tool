@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Service\BookingWizard;
 
 use App\Dto\Brochure;
+use App\Dto\Product;
 use App\Service\BookingWizard\BrochureActionService;
 use App\Service\CsvService;
 use App\Service\IprotoService;
@@ -457,6 +458,178 @@ class BrochureActionServiceTest extends TestCase
 
         $this->assertSame('888', $result['importId']);
         $this->assertSame('queued', $result['import']['status']);
+    }
+
+    public function testDuplicateDiscoverBrochuresDuplicateProductsPerStore(): void
+    {
+        $iprotoService = $this->createMock(IprotoService::class);
+        $csvService = $this->createMock(CsvService::class);
+
+        $service = $this->createBrochureActionService($iprotoService, $csvService);
+
+        $iprotoService
+            ->expects($this->once())
+            ->method('getStoresByCompany')
+            ->with('42')
+            ->willReturn([
+                ['storeNumber' => '100'],
+                ['storeNumber' => '200'],
+            ]);
+
+        $layout = [
+            '3' => [
+                'pages' => [
+                    [
+                        'modules' => [
+                            [
+                                'name' => 'product_slot',
+                                'products' => [
+                                    ['id' => 11],
+                                    ['id' => 22],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $brochureDetail = [
+            'id' => '55',
+            'brochureNumber' => 'DISC-01',
+            'integration' => '/api/integrations/42',
+            'type' => 'discover',
+            'layout' => json_encode($layout, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        ];
+
+        $iprotoService
+            ->expects($this->once())
+            ->method('getBrochureDetails')
+            ->with('55')
+            ->willReturn($brochureDetail);
+
+        $iprotoService
+            ->expects($this->exactly(2))
+            ->method('getProduct')
+            ->willReturnMap([
+                [11, ['productNumber' => 'P-11', 'integration' => '/api/integrations/42']],
+                [22, ['productNumber' => 'P-22', 'integration' => '/api/integrations/42']],
+            ]);
+
+        $csvService
+            ->expects($this->once())
+            ->method('createCsvFromProducts')
+            ->with(
+                $this->callback(function (array $products): bool {
+                    if (count($products) !== 4) {
+                        return false;
+                    }
+
+                    $numbers = array_map(static function (Product $product): string {
+                        return $product->getProductNumber();
+                    }, $products);
+
+                    sort($numbers);
+
+                    return $numbers === ['P-11_100', 'P-11_200', 'P-22_100', 'P-22_200'];
+                }),
+                '42'
+            )
+            ->willReturn([
+                'type' => 'products',
+                'companyId' => '42',
+                'base64' => 'products',
+            ]);
+
+        $iprotoService
+            ->expects($this->exactly(2))
+            ->method('importData')
+            ->willReturnOnConsecutiveCalls(
+                ['@id' => '/api/imports/555'],
+                ['@id' => '/api/imports/999', 'status' => 'queued']
+            );
+
+        $iprotoService
+            ->expects($this->exactly(4))
+            ->method('findProductsByNumber')
+            ->willReturnMap([
+                ['42', 'P-11_100', ['id' => 1011]],
+                ['42', 'P-11_200', ['id' => 2011]],
+                ['42', 'P-22_100', ['id' => 1022]],
+                ['42', 'P-22_200', ['id' => 2022]],
+            ]);
+
+        $csvService
+            ->expects($this->once())
+            ->method('createCsvFromBrochure')
+            ->with(
+                $this->callback(function (array $brochures): bool {
+                    if (count($brochures) !== 2) {
+                        return false;
+                    }
+
+                    $expectedLayouts = [
+                        '100' => [1011, 1022],
+                        '200' => [2011, 2022],
+                    ];
+
+                    foreach ($brochures as $brochure) {
+                        if (!$brochure instanceof Brochure) {
+                            return false;
+                        }
+
+                        $decoded = json_decode($brochure->getLayout(), true);
+                        if (!is_array($decoded)) {
+                            return false;
+                        }
+
+                        $ids = [];
+                        foreach ($decoded as $block) {
+                            if (!is_array($block)) {
+                                continue;
+                            }
+
+                            foreach ($block['pages'] ?? [] as $page) {
+                                if (!is_array($page)) {
+                                    continue;
+                                }
+
+                                foreach ($page['modules'] ?? [] as $module) {
+                                    if (!is_array($module)) {
+                                        continue;
+                                    }
+
+                                    foreach ($module['products'] ?? [] as $product) {
+                                        if (is_array($product) && isset($product['id'])) {
+                                            $ids[] = $product['id'];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        sort($ids);
+
+                        $storeNumber = $brochure->getStoreNumber();
+
+                        if (!isset($expectedLayouts[$storeNumber]) || $ids !== $expectedLayouts[$storeNumber]) {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }),
+                '42'
+            )
+            ->willReturn([
+                'downloadLink' => 'https://example.com/brochures.csv',
+            ]);
+
+        $result = $service->duplicateBrochuresPerStore('42', '9', ['55']);
+
+        $this->assertSame('999', $result['importId']);
+        $this->assertSame(2, $result['summary']['stores']);
+        $this->assertSame(2, $result['summary']['generated']);
     }
 
     public function testDuplicateBrochuresPerStoreWrapsCsvFailures(): void

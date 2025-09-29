@@ -102,6 +102,51 @@ class IprotoService
         return $body;
     }
 
+    /**
+     * @return array<string, mixed>|false
+     */
+    public function findProductsByNumber(int|string $companyId, string $articleNumber)
+    {
+        $normalizedCompanyId = trim((string) $companyId);
+        $normalizedArticle = trim($articleNumber);
+
+        if ($normalizedCompanyId === '' || $normalizedArticle === '') {
+            throw new InvalidArgumentException('Company ID and product number are required to locate a product.');
+        }
+
+        $response = $this->sendRequest('GET', '/api/products', [
+            'integration' => '/api/integrations/' . ltrim($normalizedCompanyId, '/'),
+            'productNumber' => $normalizedArticle,
+            'exists' => [
+                'deletedAt' => false,
+            ],
+            'timeConstraint' => [
+                'future' => true,
+            ],
+            'itemsPerPage' => 1,
+        ])['body'];
+
+        if (!is_array($response) || !isset($response['hydra:totalItems'])) {
+            throw new \RuntimeException('Unexpected product search response received from iProto.');
+        }
+
+        if ((int) $response['hydra:totalItems'] === 0) {
+            return false;
+        }
+
+        $items = $response['hydra:member'] ?? [];
+        if (!is_array($items)) {
+            return false;
+        }
+
+        $first = reset($items);
+        if (!is_array($first)) {
+            return false;
+        }
+
+        return $this->mapProductToApi3($first);
+    }
+
 
     /**
      * @param array<string, mixed> $options
@@ -740,6 +785,104 @@ class IprotoService
         $lastSegment = end($segments);
 
         return $lastSegment !== false ? $lastSegment : null;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function mapProductToApi3(array $product): array
+    {
+        $id = $product['id'] ?? null;
+
+        if ($id === null && isset($product['@id'])) {
+            $id = $this->extractIntegrationId($product['@id']);
+        }
+
+        if (is_numeric($id)) {
+            $id = (int) $id;
+        } elseif ($id !== null) {
+            $id = (string) $id;
+        }
+
+        return [
+            'id' => $id,
+            'productNumber' => $this->normalizeProductString($product['productNumber'] ?? $product['product_number'] ?? ''),
+            'title' => $this->normalizeProductString($product['title'] ?? ''),
+            'description' => $this->normalizeProductString($product['description'] ?? ''),
+            'price' => $this->normalizeProductString($product['price'] ?? ''),
+            'currency' => $this->normalizeProductString($product['currency'] ?? ''),
+            'secondaryPrice' => $this->normalizeProductString($product['secondaryPrice'] ?? ''),
+            'secondaryCurrency' => $this->normalizeProductString($product['secondaryCurrency'] ?? ''),
+            'manufacturerPrice' => $this->normalizeProductString($product['manufacturerPrice'] ?? ''),
+            'secondaryManufacturerPrice' => $this->normalizeProductString($product['secondaryManufacturerPrice'] ?? ''),
+            'manufacturerNumber' => $this->normalizeProductString($product['manufacturerNumber'] ?? ''),
+            'gtin' => $this->normalizeProductString($product['gtin'] ?? ''),
+            'languageCode' => $this->normalizeProductString($product['languageCode'] ?? ''),
+            'keywords' => $this->normalizeProductList($product['keywords'] ?? null),
+            'trackingPixels' => $this->normalizeProductList($product['trackingPixels'] ?? null),
+            'url' => $this->normalizeProductString($product['url'] ?? ''),
+            'brandText' => $this->normalizeProductString($product['brandText'] ?? ''),
+            'brandImage' => $this->normalizeProductString($product['brandImage'] ?? ''),
+            'amount' => $this->normalizeProductString($product['amount'] ?? ''),
+            'size' => $this->normalizeProductString($product['size'] ?? ''),
+            'color' => $this->normalizeProductString($product['color'] ?? ''),
+            'unitType' => $this->normalizeProductString($product['unitType'] ?? ''),
+            'subTitle' => $this->normalizeProductString($product['subTitle'] ?? ''),
+            'salesRegion' => $this->normalizeProductString($product['salesRegion'] ?? ''),
+            'validFrom' => $this->normalizeProductString($product['validFrom'] ?? ''),
+            'validTo' => $this->normalizeProductString($product['validTo'] ?? ''),
+            'visibleFrom' => $this->normalizeProductString($product['visibleFrom'] ?? ''),
+            'hidden' => $product['hidden'] ?? false,
+            'priceIsVariable' => $product['priceIsVariable'] ?? false,
+            'additionalProperties' => $this->normalizeProductString($product['additionalProperties'] ?? ''),
+            'shipping' => $this->normalizeProductString($product['shipping'] ?? ''),
+            'integration' => $this->normalizeProductString($product['integration'] ?? ''),
+            'variants' => is_array($product['variants'] ?? null) ? $product['variants'] : [],
+            'raw' => $product,
+        ];
+    }
+
+    private function normalizeProductString(mixed $value): string
+    {
+        if ($value instanceof \Stringable) {
+            $value = (string) $value;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            $value = (string) $value;
+        }
+
+        if (!is_string($value)) {
+            return '';
+        }
+
+        return trim($value);
+    }
+
+    private function normalizeProductList(mixed $value): string
+    {
+        if (is_string($value)) {
+            return trim($value);
+        }
+
+        if (is_array($value)) {
+            $items = [];
+
+            foreach ($value as $entry) {
+                if (is_array($entry)) {
+                    $entry = $entry['value'] ?? $entry['url'] ?? $entry['label'] ?? $entry['code'] ?? null;
+                }
+
+                $normalized = $this->normalizeProductString($entry);
+                if ($normalized !== '') {
+                    $items[] = $normalized;
+                }
+            }
+
+            return implode(', ', $items);
+        }
+
+        return '';
     }
 
     public function importData(array $data): array
