@@ -73,6 +73,35 @@ class IprotoService
         return $response['body'];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    public function getProduct(int|string $productId): array
+    {
+        $normalizedId = trim((string) $productId);
+
+        if ($normalizedId === '') {
+            throw new InvalidArgumentException('Product ID is required to fetch a product.');
+        }
+
+        $response = $this->sendRequest(
+            'GET',
+            sprintf('/api/products/%s', rawurlencode($normalizedId)),
+            [],
+            null,
+            'application/ld+json',
+            'application/ld+json',
+        );
+
+        $body = $response['body'];
+
+        if (!is_array($body)) {
+            throw new \RuntimeException(sprintf('Unexpected response while fetching product "%s" from iProto.', $normalizedId));
+        }
+
+        return $body;
+    }
+
 
     /**
      * @param array<string, mixed> $options
