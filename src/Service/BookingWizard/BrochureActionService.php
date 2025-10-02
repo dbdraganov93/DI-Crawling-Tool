@@ -9,6 +9,7 @@ use App\Dto\Product;
 use App\Service\CsvService;
 use App\Service\IprotoService;
 use App\Service\S3Service;
+use Closure;
 use InvalidArgumentException;
 
 class BrochureActionService
@@ -21,13 +22,29 @@ class BrochureActionService
 
     private bool $brochurePdfDirectoryEnsured = false;
 
+    private Closure $productSleepCallback;
+
+    private int $productPollAttempts;
+
+    private int $productPollIntervalSeconds;
+
     public function __construct(
         private IprotoService $iprotoService,
         private CsvService $csvService,
         private S3Service $s3Service,
         private string $brochurePdfDir = 'public/pdf',
+        ?Closure $productSleepCallback = null,
+        int $productPollAttempts = 7,
+        int $productPollIntervalSeconds = 180,
     ) {
         $this->brochurePdfDir = rtrim($brochurePdfDir, '/');
+        $this->productSleepCallback = $productSleepCallback ?? static function (int $seconds): void {
+            if ($seconds > 0) {
+                sleep($seconds);
+            }
+        };
+        $this->productPollAttempts = max(1, $productPollAttempts);
+        $this->productPollIntervalSeconds = max(0, $productPollIntervalSeconds);
     }
 
     /**
@@ -766,10 +783,12 @@ class BrochureActionService
         }
 
         $results = [];
-        $attempts = 0;
-        $maxAttempts = 60;
+        $attempt = 0;
+        $maxAttempts = $this->productPollAttempts;
 
-        while ($pending !== [] && $attempts < $maxAttempts) {
+        while ($pending !== [] && $attempt < $maxAttempts) {
+            $this->pauseBeforeProductCheck();
+
             foreach ($pending as $index => $articleNumber) {
                 try {
                     $product = $this->iprotoService->findProductsByNumber($companyId, $articleNumber);
@@ -787,16 +806,26 @@ class BrochureActionService
                 break;
             }
 
-            ++$attempts;
+            ++$attempt;
             $pending = array_values($pending);
-            usleep(500000);
         }
 
         if ($pending !== []) {
-            throw new \RuntimeException('Timed out waiting for duplicated products to become available.');
+            throw new \RuntimeException('Product import failed to complete.');
         }
 
         return $results;
+    }
+
+    private function pauseBeforeProductCheck(): void
+    {
+        $seconds = $this->productPollIntervalSeconds;
+
+        if ($seconds <= 0) {
+            return;
+        }
+
+        ($this->productSleepCallback)($seconds);
     }
 
     /**

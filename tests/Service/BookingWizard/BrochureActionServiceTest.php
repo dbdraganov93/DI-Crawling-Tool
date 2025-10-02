@@ -372,7 +372,17 @@ class BrochureActionServiceTest extends TestCase
 
         $pdfDir = sys_get_temp_dir() . '/brochure-action/' . uniqid('pdf-', true);
 
-        $service = new BrochureActionService($iprotoService, $csvService, $s3Service, $pdfDir);
+        $service = new BrochureActionService(
+            $iprotoService,
+            $csvService,
+            $s3Service,
+            $pdfDir,
+            static function (int $seconds): void {
+                // no-op for tests
+            },
+            7,
+            0,
+        );
 
         $iprotoService
             ->expects($this->once())
@@ -688,6 +698,16 @@ class BrochureActionServiceTest extends TestCase
 
         $pdfDir ??= sys_get_temp_dir() . '/brochure-action/' . uniqid('', true);
 
-        return new BrochureActionService($iprotoService, $csvService, $s3Service, $pdfDir);
+        return new BrochureActionService(
+            $iprotoService,
+            $csvService,
+            $s3Service,
+            $pdfDir,
+            static function (int $seconds): void {
+                // no-op for tests
+            },
+            7,
+            0,
+        );
     }
 }
