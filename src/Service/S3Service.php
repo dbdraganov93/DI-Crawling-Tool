@@ -13,8 +13,13 @@ class S3Service
     private string $bucket;
     private string $region;
 
-    public function __construct(string $bucket, string $region, ?string $profile = null)
-    {
+    public function __construct(
+        string $bucket,
+        string $region,
+        ?string $profile = null,
+        ?string $accessKey = null,
+        ?string $secretKey = null
+    ) {
         $this->bucket = $bucket;
         $this->region = $region;
 
@@ -28,7 +33,39 @@ class S3Service
             $config['use_aws_shared_config_files'] = true;
         }
 
+        $accessKey = $this->resolveCredential($accessKey, 'AWS_ACCESS_KEY_ID');
+        $secretKey = $this->resolveCredential($secretKey, 'AWS_SECRET_ACCESS_KEY');
+
+        if ($accessKey && $secretKey) {
+            $config['credentials'] = [
+                'key' => $accessKey,
+                'secret' => $secretKey,
+            ];
+        }
+
         $this->s3Client = new S3Client($config);
+    }
+
+    private function resolveCredential(?string $value, string $envKey): ?string
+    {
+        if ($value !== null && $value !== '') {
+            return $value;
+        }
+
+        $envValue = getenv($envKey);
+        if ($envValue !== false && $envValue !== '') {
+            return $envValue;
+        }
+
+        if (isset($_ENV[$envKey]) && $_ENV[$envKey] !== '') {
+            return $_ENV[$envKey];
+        }
+
+        if (isset($_SERVER[$envKey]) && $_SERVER[$envKey] !== '') {
+            return $_SERVER[$envKey];
+        }
+
+        return null;
     }
 
 

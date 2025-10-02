@@ -43,8 +43,10 @@ class BookingWizardController extends AbstractController
             return $this->json(['error' => 'Missing or invalid ownerId or companyId parameter.'], Response::HTTP_BAD_REQUEST);
         }
 
+        $filters = $this->resolveBrochureFilters($request);
+
         try {
-            $brochures = $iprotoService->getBrochuresByOwnerAndCompany($ownerId, $companyId);
+            $brochures = $iprotoService->getBrochuresByOwnerAndCompany($ownerId, $companyId, $filters);
 
             return $this->json($brochures);
         } catch (\InvalidArgumentException $exception) {
@@ -53,6 +55,7 @@ class BookingWizardController extends AbstractController
             $logger->error('Brochure API request failed.', [
                 'companyId' => $companyId,
                 'ownerId' => $ownerId,
+                'filters' => $filters,
                 'exception' => $exception,
             ]);
 
@@ -61,10 +64,94 @@ class BookingWizardController extends AbstractController
             $logger->error('Unexpected error while loading brochures.', [
                 'companyId' => $companyId,
                 'ownerId' => $ownerId,
+                'filters' => $filters,
                 'exception' => $exception,
             ]);
 
             return $this->json(['error' => 'Unable to load brochures.'], Response::HTTP_BAD_GATEWAY);
+        }
+    }
+
+    #[Route('/booking-wizard/api/stores', name: 'app_booking_wizard_stores', methods: ['GET'])]
+    public function fetchStores(
+        Request $request,
+        IprotoService $iprotoService,
+        LoggerInterface $logger,
+    ): JsonResponse {
+        $companyId = trim((string) $request->query->get('companyId', ''));
+
+        if ($companyId === '') {
+            return $this->json(['error' => 'Missing or invalid companyId parameter.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $stores = $iprotoService->getStoresByCompany($companyId);
+            $formatted = [];
+
+            foreach ($stores as $store) {
+                if (!is_array($store)) {
+                    continue;
+                }
+
+                $storeNumber = $this->normalizeStoreString($store['storeNumber'] ?? $store['store_number'] ?? $store['number'] ?? null);
+
+                if ($storeNumber === '' || isset($formatted[$storeNumber])) {
+                    continue;
+                }
+
+                $name = $this->normalizeStoreString(
+                    $store['name'] ?? $store['storeName'] ?? $store['description'] ?? $store['title'] ?? null,
+                );
+                $city = $this->normalizeStoreString($store['city'] ?? $store['cityName'] ?? $store['locationCity'] ?? null);
+                $state = $this->normalizeStoreString($store['state'] ?? $store['region'] ?? $store['province'] ?? null);
+
+                $label = $storeNumber;
+
+                if ($name !== '' && $city !== '') {
+                    $label = sprintf('%s — %s (%s)', $storeNumber, $name, $city);
+                } elseif ($name !== '') {
+                    $label = sprintf('%s — %s', $storeNumber, $name);
+                } elseif ($city !== '') {
+                    $label = sprintf('%s — %s', $storeNumber, $city);
+                }
+
+                if ($state !== '') {
+                    if ($name !== '' && $city !== '') {
+                        $label = sprintf('%s — %s (%s, %s)', $storeNumber, $name, $city, $state);
+                    } elseif ($city !== '') {
+                        $label = sprintf('%s — %s (%s)', $storeNumber, $city, $state);
+                    } elseif ($name !== '') {
+                        $label = sprintf('%s — %s (%s)', $storeNumber, $name, $state);
+                    }
+                }
+
+                $formatted[$storeNumber] = [
+                    'id' => $storeNumber,
+                    'storeNumber' => $storeNumber,
+                    'label' => $label,
+                    'name' => $name,
+                    'city' => $city,
+                    'state' => $state,
+                ];
+            }
+
+            return $this->json(array_values($formatted));
+        } catch (\InvalidArgumentException $exception) {
+            return $this->json(['error' => $exception->getMessage()], Response::HTTP_BAD_REQUEST);
+        } catch (\RuntimeException $exception) {
+            $logger->error('Store API request failed.', [
+                'companyId' => $companyId,
+                'exception' => $exception,
+            ]);
+
+            return $this->json(['error' => $exception->getMessage()], Response::HTTP_BAD_GATEWAY);
+        } catch (\Throwable $exception) {
+            $logger->error('Unexpected error while loading stores.', [
+                'companyId' => $companyId,
+                'exception' => $exception,
+            ]);
+
+            return $this->json(['error' => 'Unable to load stores.'], Response::HTTP_BAD_GATEWAY);
         }
     }
 
@@ -84,17 +171,32 @@ class BookingWizardController extends AbstractController
         $companyId = trim((string) ($data['companyId'] ?? ''));
         $ownerId = trim((string) ($data['ownerId'] ?? ''));
         $brochureIds = $data['brochureIds'] ?? [];
+        $storeNumbers = $data['stores'] ?? ($data['selectedStores'] ?? []);
 
         if (!is_array($brochureIds)) {
             $brochureIds = [];
         }
 
-        if ($action !== BrochureActionService::ACTION_DUPLICATE_PER_STORE) {
-            return $this->json(['error' => 'Unsupported brochure action requested.'], Response::HTTP_BAD_REQUEST);
+        if (!is_array($storeNumbers)) {
+            $storeNumbers = [];
         }
 
         try {
-            $result = $brochureActionService->duplicateBrochuresPerStore($companyId, $ownerId, $brochureIds);
+            switch ($action) {
+                case BrochureActionService::ACTION_DUPLICATE_PER_STORE:
+                    $result = $brochureActionService->duplicateBrochuresPerStore($companyId, $ownerId, $brochureIds);
+                    break;
+                case BrochureActionService::ACTION_DUPLICATE_SELECTED_STORES:
+                    $result = $brochureActionService->duplicateBrochuresPerSelectedStores(
+                        $companyId,
+                        $ownerId,
+                        $brochureIds,
+                        $storeNumbers,
+                    );
+                    break;
+                default:
+                    return $this->json(['error' => 'Unsupported brochure action requested.'], Response::HTTP_BAD_REQUEST);
+            }
 
             return $this->json($result);
         } catch (\InvalidArgumentException $exception) {
@@ -118,7 +220,12 @@ class BookingWizardController extends AbstractController
                 'exception' => $exception,
             ]);
 
-            return $this->json(['error' => 'Unable to process brochure action.'], Response::HTTP_BAD_GATEWAY);
+            $message = trim($exception->getMessage());
+            $error = $message !== ''
+                ? sprintf('Unable to process brochure action: %s', $message)
+                : 'Unable to process brochure action.';
+
+            return $this->json(['error' => $error], Response::HTTP_BAD_GATEWAY);
         }
     }
 
@@ -159,5 +266,122 @@ class BookingWizardController extends AbstractController
 
             return $this->json(['error' => 'Unable to load CPC bookings.'], Response::HTTP_BAD_GATEWAY);
         }
+    }
+
+    /**
+     * @return array{deletedFilter: string, timeConstraints: array<int, string>}
+     */
+    private function resolveBrochureFilters(Request $request): array
+    {
+        $filters = [
+            'deletedFilter' => 'active',
+            'timeConstraints' => ['current', 'upcoming'],
+        ];
+
+        $deletedFilterRaw = strtolower(trim((string) $request->query->get('deletedFilter', '')));
+        if ($deletedFilterRaw === 'deleted') {
+            $filters['deletedFilter'] = 'deleted';
+        } elseif ($deletedFilterRaw === 'all') {
+            $filters['deletedFilter'] = 'all';
+        } else {
+            $filters['deletedFilter'] = 'active';
+        }
+
+        $timeConstraintParam = $request->query->all('timeConstraint');
+        $timeConstraints = $this->normalizeTimeConstraintFilters($timeConstraintParam);
+
+        if (!empty($timeConstraints)) {
+            $filters['timeConstraints'] = $timeConstraints;
+        } elseif ($request->query->has('timeConstraint')) {
+            $filters['timeConstraints'] = [];
+        }
+
+        return $filters;
+    }
+
+    /**
+     * @param mixed $raw
+     * @return array<int, string>
+     */
+    private function normalizeTimeConstraintFilters(mixed $raw): array
+    {
+        $allowed = ['current', 'upcoming', 'past'];
+        $normalized = [];
+
+        if (is_array($raw)) {
+            foreach ($raw as $key => $value) {
+                if (is_int($key)) {
+                    $nested = $this->normalizeTimeConstraintFilters($value);
+                    foreach ($nested as $item) {
+                        if (!in_array($item, $normalized, true)) {
+                            $normalized[] = $item;
+                        }
+                    }
+                    continue;
+                }
+
+                if (!$this->isTruthy($value)) {
+                    continue;
+                }
+
+                $constraint = strtolower(trim((string) $key));
+                if ($constraint === '' || !in_array($constraint, $allowed, true) || in_array($constraint, $normalized, true)) {
+                    continue;
+                }
+
+                $normalized[] = $constraint;
+            }
+
+            return $normalized;
+        }
+
+        if (is_string($raw)) {
+            $constraint = strtolower(trim($raw));
+            if ($constraint !== '' && in_array($constraint, $allowed, true) && !in_array($constraint, $normalized, true)) {
+                $normalized[] = $constraint;
+            }
+        }
+
+        return $normalized;
+    }
+
+    private function isTruthy(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return $value !== 0;
+        }
+
+        if (is_string($value)) {
+            $normalized = strtolower(trim($value));
+
+            return !in_array($normalized, ['', '0', 'false', 'off', 'no'], true);
+        }
+
+        return $value !== null;
+    }
+
+    private function normalizeStoreString(mixed $value): string
+    {
+        if (is_int($value) || is_float($value)) {
+            $value = (string) $value;
+        }
+
+        if (!is_string($value)) {
+            return '';
+        }
+
+        $trimmed = trim($value);
+
+        if ($trimmed === '') {
+            return '';
+        }
+
+        $normalized = preg_replace('/\s+/', ' ', $trimmed);
+
+        return is_string($normalized) && $normalized !== '' ? $normalized : $trimmed;
     }
 }

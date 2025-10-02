@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -72,11 +73,86 @@ class IprotoService
         return $response['body'];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    public function getProduct(int|string $productId): array
+    {
+        $normalizedId = trim((string) $productId);
+
+        if ($normalizedId === '') {
+            throw new InvalidArgumentException('Product ID is required to fetch a product.');
+        }
+
+        $response = $this->sendRequest(
+            'GET',
+            sprintf('/api/products/%s', rawurlencode($normalizedId)),
+            [],
+            null,
+            'application/ld+json',
+            'application/ld+json',
+        );
+
+        $body = $response['body'];
+
+        if (!is_array($body)) {
+            throw new \RuntimeException(sprintf('Unexpected response while fetching product "%s" from iProto.', $normalizedId));
+        }
+
+        return $body;
+    }
 
     /**
+     * @return array<string, mixed>|false
+     */
+    public function findProductsByNumber(int|string $companyId, string $articleNumber)
+    {
+        $normalizedCompanyId = trim((string) $companyId);
+        $normalizedArticle = trim($articleNumber);
+
+        if ($normalizedCompanyId === '' || $normalizedArticle === '') {
+            throw new InvalidArgumentException('Company ID and product number are required to locate a product.');
+        }
+
+        $response = $this->sendRequest('GET', '/api/products', [
+            'integration' => '/api/integrations/' . ltrim($normalizedCompanyId, '/'),
+            'productNumber' => $normalizedArticle,
+            'exists' => [
+                'deletedAt' => false,
+            ],
+            'timeConstraint' => [
+                'future' => true,
+            ],
+            'itemsPerPage' => 1,
+        ])['body'];
+
+        if (!is_array($response) || !isset($response['hydra:totalItems'])) {
+            throw new \RuntimeException('Unexpected product search response received from iProto.');
+        }
+
+        if ((int) $response['hydra:totalItems'] === 0) {
+            return false;
+        }
+
+        $items = $response['hydra:member'] ?? [];
+        if (!is_array($items)) {
+            return false;
+        }
+
+        $first = reset($items);
+        if (!is_array($first)) {
+            return false;
+        }
+
+        return $this->mapProductToApi3($first);
+    }
+
+
+    /**
+     * @param array<string, mixed> $options
      * @return array<int, array<string, mixed>>
      */
-    public function getBrochuresByOwnerAndCompany(string $ownerId, string $companyId, int $itemsPerPage = 100): array
+    public function getBrochuresByOwnerAndCompany(string $ownerId, string $companyId, array $options = []): array
     {
         $ownerId = trim($ownerId);
         $companyId = trim($companyId);
@@ -85,7 +161,8 @@ class IprotoService
             throw new \InvalidArgumentException('Owner ID and company ID are required to fetch brochures.');
         }
 
-        $itemsPerPage = max(1, min($itemsPerPage, 200));
+        $itemsPerPageOption = $options['itemsPerPage'] ?? 100;
+        $itemsPerPage = max(1, min((int) $itemsPerPageOption, 200));
         $integrationId = trim((string) ($this->extractIntegrationId($companyId) ?? $companyId));
         if ($integrationId === '') {
             $integrationId = $companyId;
@@ -96,6 +173,68 @@ class IprotoService
         $results = [];
         $remainingIterations = 200;
 
+        $orderOptions = $options['order'] ?? ['id' => 'desc'];
+        if (!is_array($orderOptions)) {
+            $orderOptions = ['id' => 'desc'];
+        }
+
+        $order = [];
+        foreach ($orderOptions as $field => $direction) {
+            if (!is_string($field)) {
+                continue;
+            }
+
+            $normalizedField = trim($field);
+            if ($normalizedField === '') {
+                continue;
+            }
+
+            $normalizedDirection = is_string($direction) ? strtolower(trim($direction)) : 'asc';
+            $order[$normalizedField] = $normalizedDirection === 'desc' ? 'desc' : 'asc';
+        }
+
+        if (empty($order)) {
+            $order = ['id' => 'desc'];
+        }
+
+        $deletedFilter = isset($options['deletedFilter']) && is_string($options['deletedFilter'])
+            ? strtolower(trim($options['deletedFilter']))
+            : 'active';
+
+        $deletedExists = null;
+        if ($deletedFilter === 'deleted') {
+            $deletedExists = true;
+        } elseif ($deletedFilter === 'active' || $deletedFilter === 'not_deleted') {
+            $deletedExists = false;
+        }
+
+        $timeConstraints = ['current', 'upcoming'];
+        if (array_key_exists('timeConstraints', $options)) {
+            $timeConstraints = [];
+            $constraintsOption = $options['timeConstraints'];
+
+            if (is_array($constraintsOption)) {
+                foreach ($constraintsOption as $constraint) {
+                    if (!is_string($constraint)) {
+                        continue;
+                    }
+
+                    $normalizedConstraint = strtolower(trim($constraint));
+                    if ($normalizedConstraint === '') {
+                        continue;
+                    }
+
+                    if (!in_array($normalizedConstraint, ['current', 'upcoming', 'past'], true)) {
+                        continue;
+                    }
+
+                    if (!in_array($normalizedConstraint, $timeConstraints, true)) {
+                        $timeConstraints[] = $normalizedConstraint;
+                    }
+                }
+            }
+        }
+
         do {
             $params = [
                 'owner' => $ownerId,
@@ -103,18 +242,21 @@ class IprotoService
                 'integration.id' => $integrationId,
                 'itemsPerPage' => $itemsPerPage,
                 'page' => $page,
-                'exists' => [
-                    'deletedAt' => false,
-                ],
-                'order' => [
-                    'id' => 'asc',
-                    'title' => 'asc',
-                    'brochureNumber' => 'asc',
-                    'validFrom' => 'asc',
-                    'visibleFrom' => 'asc',
-                    'validTo' => 'asc',
-                ],
+                'order' => $order,
             ];
+
+            if ($deletedExists !== null) {
+                $params['exists'] = [
+                    'deletedAt' => $deletedExists,
+                ];
+            }
+
+            if (!empty($timeConstraints)) {
+                $params['timeConstraint'] = [];
+                foreach ($timeConstraints as $constraint) {
+                    $params['timeConstraint'][$constraint] = true;
+                }
+            }
 
             $response = $this->sendRequest(
                 'GET',
@@ -196,6 +338,82 @@ class IprotoService
         }
 
         return $data;
+    }
+
+    public function downloadBrochurePdf(string $brochurePageId, string $destinationPath, string $brochureId): string
+    {
+        $pageId = trim($brochurePageId);
+        $normalizedBrochureId = trim($brochureId);
+
+        if ($pageId === '') {
+            throw new InvalidArgumentException('Brochure page ID is required to download the PDF.');
+        }
+
+        if ($normalizedBrochureId === '') {
+            throw new InvalidArgumentException('Brochure ID is required to download the PDF.');
+        }
+
+        $uri = sprintf('/api/stashed_files/brochures/%s', rawurlencode($normalizedBrochureId));
+
+        $token = $this->tokenService->getValidToken();
+        if ($token === '') {
+            throw new \RuntimeException('Unable to download brochure PDF without a valid token.');
+        }
+
+        $url = $this->buildUrl($uri);
+        $options = [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'Accept' => 'application/pdf',
+            ],
+            'http_version' => '1.1',
+        ];
+
+        try {
+            $response = $this->httpClient->request('GET', $url, $options);
+            $statusCode = $response->getStatusCode();
+
+            if ($statusCode < 200 || $statusCode >= 300) {
+                $this->logger->warning(sprintf(
+                    'Failed to download brochure PDF %s (page %s): status %d, body: %s',
+                    $normalizedBrochureId,
+                    $pageId,
+                    $statusCode,
+                    $response->getContent(false)
+                ));
+
+                throw new \RuntimeException(sprintf(
+                    'Unable to download brochure PDF %s (status %d).',
+                    $normalizedBrochureId,
+                    $statusCode
+                ));
+            }
+
+            $content = $response->getContent();
+        } catch (\Throwable $exception) {
+            throw new \RuntimeException(
+                sprintf('Unable to download brochure PDF %s.', $normalizedBrochureId),
+                0,
+                $exception
+            );
+        }
+
+        $directory = dirname($destinationPath);
+        if (!is_dir($directory)) {
+            if (!mkdir($directory, 0755, true) && !is_dir($directory)) {
+                throw new \RuntimeException(sprintf('Unable to create directory "%s" for brochure PDF.', $directory));
+            }
+        }
+
+        if (file_put_contents($destinationPath, $content) === false) {
+            throw new \RuntimeException(sprintf(
+                'Unable to write brochure PDF %s to "%s".',
+                $normalizedBrochureId,
+                $destinationPath
+            ));
+        }
+
+        return $destinationPath;
     }
 
     /**
@@ -569,6 +787,104 @@ class IprotoService
         return $lastSegment !== false ? $lastSegment : null;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    private function mapProductToApi3(array $product): array
+    {
+        $id = $product['id'] ?? null;
+
+        if ($id === null && isset($product['@id'])) {
+            $id = $this->extractIntegrationId($product['@id']);
+        }
+
+        if (is_numeric($id)) {
+            $id = (int) $id;
+        } elseif ($id !== null) {
+            $id = (string) $id;
+        }
+
+        return [
+            'id' => $id,
+            'productNumber' => $this->normalizeProductString($product['productNumber'] ?? $product['product_number'] ?? ''),
+            'title' => $this->normalizeProductString($product['title'] ?? ''),
+            'description' => $this->normalizeProductString($product['description'] ?? ''),
+            'price' => $this->normalizeProductString($product['price'] ?? ''),
+            'currency' => $this->normalizeProductString($product['currency'] ?? ''),
+            'secondaryPrice' => $this->normalizeProductString($product['secondaryPrice'] ?? ''),
+            'secondaryCurrency' => $this->normalizeProductString($product['secondaryCurrency'] ?? ''),
+            'manufacturerPrice' => $this->normalizeProductString($product['manufacturerPrice'] ?? ''),
+            'secondaryManufacturerPrice' => $this->normalizeProductString($product['secondaryManufacturerPrice'] ?? ''),
+            'manufacturerNumber' => $this->normalizeProductString($product['manufacturerNumber'] ?? ''),
+            'gtin' => $this->normalizeProductString($product['gtin'] ?? ''),
+            'languageCode' => $this->normalizeProductString($product['languageCode'] ?? ''),
+            'keywords' => $this->normalizeProductList($product['keywords'] ?? null),
+            'trackingPixels' => $this->normalizeProductList($product['trackingPixels'] ?? null),
+            'url' => $this->normalizeProductString($product['url'] ?? ''),
+            'brandText' => $this->normalizeProductString($product['brandText'] ?? ''),
+            'brandImage' => $this->normalizeProductString($product['brandImage'] ?? ''),
+            'amount' => $this->normalizeProductString($product['amount'] ?? ''),
+            'size' => $this->normalizeProductString($product['size'] ?? ''),
+            'color' => $this->normalizeProductString($product['color'] ?? ''),
+            'unitType' => $this->normalizeProductString($product['unitType'] ?? ''),
+            'subTitle' => $this->normalizeProductString($product['subTitle'] ?? ''),
+            'salesRegion' => $this->normalizeProductString($product['salesRegion'] ?? ''),
+            'validFrom' => $this->normalizeProductString($product['validFrom'] ?? ''),
+            'validTo' => $this->normalizeProductString($product['validTo'] ?? ''),
+            'visibleFrom' => $this->normalizeProductString($product['visibleFrom'] ?? ''),
+            'hidden' => $product['hidden'] ?? false,
+            'priceIsVariable' => $product['priceIsVariable'] ?? false,
+            'additionalProperties' => $this->normalizeProductString($product['additionalProperties'] ?? ''),
+            'shipping' => $this->normalizeProductString($product['shipping'] ?? ''),
+            'integration' => $this->normalizeProductString($product['integration'] ?? ''),
+            'variants' => is_array($product['variants'] ?? null) ? $product['variants'] : [],
+            'raw' => $product,
+        ];
+    }
+
+    private function normalizeProductString(mixed $value): string
+    {
+        if ($value instanceof \Stringable) {
+            $value = (string) $value;
+        }
+
+        if (is_int($value) || is_float($value)) {
+            $value = (string) $value;
+        }
+
+        if (!is_string($value)) {
+            return '';
+        }
+
+        return trim($value);
+    }
+
+    private function normalizeProductList(mixed $value): string
+    {
+        if (is_string($value)) {
+            return trim($value);
+        }
+
+        if (is_array($value)) {
+            $items = [];
+
+            foreach ($value as $entry) {
+                if (is_array($entry)) {
+                    $entry = $entry['value'] ?? $entry['url'] ?? $entry['label'] ?? $entry['code'] ?? null;
+                }
+
+                $normalized = $this->normalizeProductString($entry);
+                if ($normalized !== '') {
+                    $items[] = $normalized;
+                }
+            }
+
+            return implode(', ', $items);
+        }
+
+        return '';
+    }
+
     public function importData(array $data): array
     {
         // Auto-detect if $data is in CSV result format
@@ -583,8 +899,13 @@ class IprotoService
 
         // Now $data is in the expected format
         $response = $this->sendRequest('POST', '/api/imports', [], $data, 'application/ld+json', 'application/ld+json');
+        $body = $response['body'];
 
-        return $response['body'];
+        if (!is_array($body)) {
+            throw new \RuntimeException('Unexpected import response received from iProto.');
+        }
+
+        return $body;
     }
 
     public function getImportStatus($importId): array
